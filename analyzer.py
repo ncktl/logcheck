@@ -78,10 +78,10 @@ def infer_language(file_path):
     :return: String containing programming language name
     """
     if file_path.suffix == ".py":
-        print("python detected")
+        # print("python detected")
         return "python"
     elif file_path.suffix == ".js":
-        print("javascript detected")
+        # print("javascript detected")
         return "javascript"
     else:
         print_supported_languages()
@@ -125,6 +125,7 @@ def main(argv):
         analyzer = []
         pass
     analyzer.analyze()
+    #print(sourcecode)
 
 
 if __name__ == "__main__":

@@ -50,3 +50,28 @@ except Exception as errormsg:
 	bar()
 	if True:
 		logging.exception("Nested logging")
+
+# Nested except with logging
+if True:
+	try:
+		foo()
+	except:
+		bar()
+		logging.info("Test")
+
+# Nested except without logging
+if True:
+	try:
+		foo()
+	except:
+		bar()
+	logging.info("Test")
+
+# Nested except without logging
+if True:
+	if True:
+		try:
+			foo()
+		except:
+			bar()
+		logging.info("Test")
