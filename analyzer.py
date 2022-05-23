@@ -1,11 +1,11 @@
-import logging
-
-from tree_sitter import Language, Parser, Tree
+# import logging
+from tree_sitter import Language, Parser
 import sys
 from pathlib import Path
 from PythonAnalyzer import PythonAnalyzer
 
 supported_languages = ["javascript", "python"]
+
 
 def js_exception_handling(tree_lang, tree):
 
@@ -14,27 +14,19 @@ def js_exception_handling(tree_lang, tree):
     # Query to find exception handling nodes in the ast
     exception_query = tree_lang.query("(catch_clause) @b")
     # Query to find function calls in the ast
-    # call_query = tree_lang.query("(call_expression (attribute . (identifier) @c))")  # too specific?
-    call_query = tree_lang.query("(call_expression (identifier) @c)")
-
+    # call_query = tree_lang.query("(call_expression (identifier) @c)")
+    # Query to find blocks
     block_query = tree_lang.query("(member_expression) @d")
 
     # Find the exception handling nodes
     exception_occurrences = exception_query.captures(tree.root_node)
 
     for i in exception_occurrences:
-        #print(i)
         print(i[0].text.decode("UTF-8"))
-        #print("Children:")
-        #print(i[0].children)
-        possible_log_occurences = call_query.captures(i[0])
+        # possible_log_occurrences = call_query.captures(i[0])
         investigation = block_query.captures(i[0])
         used_logging = False
         for j in investigation:
-            #print(j)
-            #print(j[0].text.decode("UTF-8"))
-            #print("Children:")
-            #print(j[0].children)
             if j[0].text.decode("UTF-8") in logging_indicators:
                 used_logging = True
                 break
@@ -42,11 +34,6 @@ def js_exception_handling(tree_lang, tree):
             print("Logging used in exception handling. Well done!")
         else:
             print("Log your exceptions!")
-        # for j in possible_log_occurences:
-        #     print(j)
-        #     print(j[0].text.decode("UTF-8"))
-        #     print("Children:")
-        #     print(j[0].children)
 
 
 def create_ts_lang_obj(language):
@@ -78,10 +65,8 @@ def infer_language(file_path):
     :return: String containing programming language name
     """
     if file_path.suffix == ".py":
-        # print("python detected")
         return "python"
     elif file_path.suffix == ".js":
-        # print("javascript detected")
         return "javascript"
     else:
         print_supported_languages()
@@ -118,14 +103,13 @@ def main(argv):
     parser.set_language(tree_lang)
     # Create abstract syntax tree
     tree = parser.parse(bytes(sourcecode, "utf8"))
-    #print(file_path.is)
+    analyzer = []
     if prog_lang == "python":
         analyzer = PythonAnalyzer(sourcecode, tree_lang, tree, file_path)
     if prog_lang == "javascript":
         analyzer = []
         pass
     analyzer.analyze()
-    #print(sourcecode)
 
 
 if __name__ == "__main__":
