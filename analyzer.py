@@ -64,15 +64,10 @@ def create_ts_lang_obj(language):
 def print_supported_languages():
     print(f"Supported languages: {supported_languages}", file=sys.stderr)
 
-# DEPRECATED
-# def print_usage():
-#     print(f"Usage: python3 {__file__} [-L <language>] <file to be analyzed>", file=sys.stderr)
-#     print("If no language is specified, the analyzer will attempt to infer the language.", file=sys.stderr)
-#     print_supported_languages()
-
 
 def print_usage():
-    print(f"Usage: python3 {__file__} <files to be analyzed>", file=sys.stderr)
+    print(f"Usage: python3 {__file__} [-L <language>] <file to be analyzed>", file=sys.stderr)
+    print("If no language is specified, the analyzer will attempt to infer the language.", file=sys.stderr)
     print_supported_languages()
 
 
