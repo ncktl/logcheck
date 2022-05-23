@@ -1,10 +1,10 @@
-from tree_sitter import Language, Parser
+from tree_sitter import Language, Parser, Tree
 import logging
 from pathlib import Path
 
 
 class PythonAnalyzer:
-    def __init__(self, src, lang: Language, file_path: Path):
+    def __init__(self, src, lang: Language, tree: Tree, file_path: Path):
         """
         :param src: Source code to analyze
         :param lang: Treesitter language object
@@ -12,11 +12,8 @@ class PythonAnalyzer:
         """
         self.src = src
         self.lang = lang
+        self.tree = tree
         self.file_path = file_path
-        self.parser = Parser()
-        self.parser.set_language(lang)
-        # Create abstract syntax tree
-        self.tree = self.parser.parse(bytes(src, "utf8"))
         logging.basicConfig(
             filename=file_path.with_name("analysis-of-" + file_path.name + ".log"),
             filemode="w",

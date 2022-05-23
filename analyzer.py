@@ -1,6 +1,6 @@
 import logging
 
-from tree_sitter import Language, Parser
+from tree_sitter import Language, Parser, Tree
 import sys
 from pathlib import Path
 from PythonAnalyzer import PythonAnalyzer
@@ -120,12 +120,11 @@ def main(argv):
     tree = parser.parse(bytes(sourcecode, "utf8"))
     #print(file_path.is)
     if prog_lang == "python":
-        py_analyzer = PythonAnalyzer(sourcecode, tree_lang, file_path)
-        py_analyzer.analyze()
+        analyzer = PythonAnalyzer(sourcecode, tree_lang, tree, file_path)
     if prog_lang == "javascript":
-        #js_exception_handling(tree_lang, tree)
+        analyzer = []
         pass
-
+    analyzer.analyze()
 
 
 if __name__ == "__main__":
