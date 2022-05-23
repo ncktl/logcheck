@@ -94,9 +94,9 @@ def main(argv):
     if prog_lang not in supported_languages:
         print_supported_languages()
         sys.exit()
-    file = open(argv[-1], "r")
-    sourcecode = file.read()
-    file.close()
+    with open(argv[-1]) as file:
+        sourcecode = file.read()
+        file.close()
     # Treesitter Language object
     tree_lang = create_ts_lang_obj(prog_lang)
     parser = Parser()
