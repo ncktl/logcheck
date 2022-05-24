@@ -112,6 +112,8 @@ class PythonAnalyzer:
                                     self.logger.warning(
                                         f"No logging in the exception handling starting in line {i+1}:"
                                     )
+                                    # Multi-line debug message is not indented correctly
+                                    self.logger.debug("\n".join(lines[i:i+j+1]))
                                     break
             self.logger.info(f"The logging module has been used {logging_count} time[s].")
             self.logger.info(f"Logging used in {exceptions_logged} out of {exception_count} exception handling blocks.")
