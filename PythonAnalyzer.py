@@ -76,6 +76,8 @@ class PythonAnalyzer:
         self.logger.info("Manual analysis of logging in exception handling:")
         if "import logging" in self.src:
             logging_count = 0
+            exception_count = 0
+            exceptions_logged = 0
             past_import = False
             lines = self.src.splitlines()
             # Go through the sourcecode
@@ -94,6 +96,7 @@ class PythonAnalyzer:
                         except_index = line.find("except")
                         before = line[0:except_index]
                         if "#" not in before and not before.endswith("."):
+                            exception_count += 1
                             # Go through the lines after the except statement in an inner loop:
                             for j, nested_line in enumerate(lines[i+1:]):
                                 nested_before = nested_line[0:except_index + 1]
@@ -102,6 +105,7 @@ class PythonAnalyzer:
                                 if nested_before == before + "\t":
                                     # and the keyword, logging was used in this exception handling
                                     if self.keyword in nested_line:
+                                        exceptions_logged += 1
                                         break
                                 # If instead a line with the same indentation is found, no logging was used
                                 else:
@@ -110,5 +114,6 @@ class PythonAnalyzer:
                                     )
                                     break
             self.logger.info(f"The logging module has been used {logging_count} time[s].")
+            self.logger.info(f"Logging used in {exceptions_logged} out of {exception_count} exception handling blocks.")
         else:
             self.logger.info("The logging module is not used in this file.")
