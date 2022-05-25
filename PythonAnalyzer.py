@@ -83,31 +83,36 @@ class PythonAnalyzer:
             # Go through the sourcecode
             for i, line in enumerate(lines):
                 # Look for the logging module
-                if not past_import and "import logging" in line:
-                    if "import logging as" in line:
-                        # Possibly find the alias
-                        self.keyword = line.split(" ")[-1]
-                    past_import = True
+                if not past_import:
+                    if "import logging" in line:
+                        if "import logging as" in line:
+                            # Possibly find the alias
+                            self.keyword = line.split(" ")[-1]
+                        past_import = True
                 # After the logging module import:
-                if past_import:
+                else:
                     if self.keyword in line:
                         logging_count += 1
+                    # Search for exception statements
                     if "except" in line:
                         except_index = line.find("except")
-                        before = line[0:except_index]
-                        if "#" not in before and not before.endswith("."):
+                        # Substring of the line before the "except" keyword
+                        exc_line_prefix = line[0:except_index]
+                        # Avoid comments and "logging.exception()"
+                        if "#" not in exc_line_prefix and not exc_line_prefix.endswith("."):
                             exception_count += 1
                             # Go through the lines after the except statement in an inner loop:
                             for j, nested_line in enumerate(lines[i+1:]):
-                                nested_before = nested_line[0:except_index + 1]
-                                # If we find a line with one more level of indentation
+                                nested_line_prefix = nested_line[0:except_index + 1]
                                 # Assumption: Tabs used
-                                if nested_before == before + "\t":
-                                    # and the keyword, logging was used in this exception handling
+                                # If we find a line with one more level of indentation
+                                if nested_line_prefix == exc_line_prefix + "\t":
+                                    # and the keyword (default: "logging") was used in this exception handling
                                     if self.keyword in nested_line:
                                         exceptions_logged += 1
                                         break
-                                # If instead a line with the same indentation is found, no logging was used
+                                # If instead a line with the same indentation is found, the exception block is
+                                # over and no logging was used.
                                 else:
                                     self.logger.warning(
                                         f"No logging in the exception handling starting in line {i+1}:"

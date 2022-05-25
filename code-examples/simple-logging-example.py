@@ -75,3 +75,14 @@ if True:
 		except:
 			bar()
 		logging.info("Test")
+
+# Nested try..except inside except block
+# Also throws off exception handling counting
+try:
+	foo()
+except Exception as e:
+	# There is no logging here but it not detected
+	try:
+		bar()
+	except Exception as ee:
+		logging.info("Exception within an exception")
