@@ -1,10 +1,12 @@
 # import logging
-from tree_sitter import Language, Parser
+from tree_sitter import Language, Parser, Node
 import sys
 from pathlib import Path
 from PythonAnalyzer import PythonAnalyzer
+from JavaAnalyzer import JavaAnalyzer
 
 supported_languages = ["javascript", "python"]
+
 
 def create_ts_lang_obj(language):
     """
@@ -36,8 +38,10 @@ def infer_language(file_path):
     """
     if file_path.suffix == ".py":
         return "python"
-    elif file_path.suffix == ".js":
-        return "javascript"
+    elif file_path.suffix == ".java":
+        return "java"
+    # elif file_path.suffix == ".js":
+    #    return "javascript"
     else:
         print_supported_languages()
         sys.exit()
@@ -76,9 +80,8 @@ def main(argv):
     analyzer = []
     if prog_lang == "python":
         analyzer = PythonAnalyzer(sourcecode, tree_lang, tree, file_path)
-    if prog_lang == "javascript":
-        analyzer = []
-        pass
+    if prog_lang == "java":
+        analyzer = JavaAnalyzer(sourcecode, tree_lang, tree, file_path)
     analyzer.analyze()
 
 

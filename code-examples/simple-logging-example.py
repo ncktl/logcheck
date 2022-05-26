@@ -1,88 +1,105 @@
+import numpy as np
+from pathlib import Path
+from time import perf_counter as pf
 import logging
 
 logging.basicConfig(filename="py-ex.log", filemode="w", level=logging.DEBUG)
 
 def foo():
-	pass
+    return True
 
 def bar():
-	pass
+    pass
+
+loggem = logging.getLogger()
 
 # Logging only in except, no finally
 try:
-	foo()
-	#unknownfunction()
-except Exception as Argument:
-	foo()
-	logging.exception("Hello World")
+    foo()
+#unknownfunction()
+except Exception as e:
+    foo()
+    logging.exception("Hello World")
+    np.array([1,2])
+    loggem.info("object")
+    logging.info("Second logging")
 
 # Logging only in except
 try:
-	foo()
-	#unknownfunction()
-except Exception as Argument:
-	foo()
-	logging.exception("Hello World")
+    foo()
+#unknownfunction()
+except Exception as e:
+    foo()
+    logging.exception("Hello World")
 finally:
-	bar()
+    bar()
 
 # Logging only in finally
 try:
-	foo()
-except Exception as errormsg:
-	foo()
+    foo()
+except Exception as e:
+    foo()
 finally:
-	bar()
-	logging.info("Test")
+    bar()
+    logging.info("Test")
 
 # No logging
 try:
-	foo()
-except:
-	bar()
+    foo()
+except Exception as e:
+    bar()
 finally:
-	pass
+    pass
 
-# Nested logging in except, no finally
+# Nested logging in except. This is not guaranteed to be reached!
 try:
-	foo()
-except Exception as errormsg:
-	bar()
-	if True:
-		logging.exception("Nested logging")
+    foo()
+except Exception as e:
+    bar()
+    if foo():
+        logging.exception("Nested logging")
 
 # Nested except with logging
 if True:
-	try:
-		foo()
-	except:
-		bar()
-		logging.info("Test")
+    try:
+        foo()
+    except Exception as e:
+        bar()
+        logging.info("Test")
 
 # Nested except without logging
 if True:
-	try:
-		foo()
-	except:
-		bar()
-	logging.info("Test")
+    try:
+        foo()
+    except Exception as e:
+        bar()
+    logging.info("Test")
 
-# Nested except without logging
+# Double nested except without logging
 if True:
-	if True:
-		try:
-			foo()
-		except:
-			bar()
-		logging.info("Test")
+    if True:
+        try:
+            foo()
+        except Exception as e:
+            bar()
+        logging.info("Test")
 
 # Nested try..except inside except block
-# Also throws off exception handling counting
+# Throws off manual exception handling counting
 try:
-	foo()
+    foo()
 except Exception as e:
-	# There is no logging here but it not detected
-	try:
-		bar()
-	except Exception as ee:
-		logging.info("Exception within an exception")
+    # There is no logging here but this is not detected,
+    # would be ok if the nested logging is guaranteed to be reached
+    # (i.e., not like here but e.g. in a "finally" block
+    try:
+        bar()
+    except Exception as ee:
+        logging.info("Exception within an exception")
+
+# Logging object
+logger = logging.getLogger()
+try:
+    foo()
+except Exception as e:
+    logger.info("Logger")
