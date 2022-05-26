@@ -106,39 +106,6 @@ class PythonAnalyzer:
         self.logger.info(f"Logging used in {len(exceptions_with_direct_logging)} "
                          f"out of {len(all_exceptions)} exception handling blocks.")
 
-    def deprecated_exception_handling_via_treesitter(self):
-        """ Checks for logging in the children of the exception nodes of the ast """
-        self.logger.info("Old Treesitter analysis of logging in exception handling:")
-        # Query to find exception handling nodes in the ast
-        exception_query = self.lang.query("(except_clause) @b")
-        # Query to find function call nodes in the ast
-        call_query = self.lang.query("(call (attribute . (identifier) @c))")
-        #  handle nested logging that is not guaranteed to be reached
-        # call_query = self.lang.query("(!except_clause (call (attribute . (identifier) @c)))")
-        # Find the exception handling nodes
-        exception_occurrences = exception_query.captures(self.tree.root_node)
-
-        exception_count = len(exception_occurrences)
-        exceptions_logged = 0
-
-        for node, tag in exception_occurrences:
-            # Find function call nodes among the children of the current exception node
-            possible_log_occurrences = call_query.captures(node)
-            used_logging = False
-            for node2, _ in possible_log_occurrences:
-                # Check if the identifier on which a function is called matches the logging module name
-                if node2.text.decode("UTF-8") == self.keyword:
-                    # print_children(i[0])
-                    used_logging = True
-                    break
-            if used_logging:
-                exceptions_logged += 1
-            else:
-                self.logger.warning(f"No logging in the exception handling starting in line {node.start_point[0] + 1}:")
-                # Multi-line debug message is not indented correctly
-                self.logger.debug(node.text.decode("UTF-8"))
-        self.logger.info(f"Logging used in {exceptions_logged} out of {exception_count} exception handling blocks.")
-
     def exception_handling_manually(self):
         """ Searches the source code for indications of logging and checks the exception handling for logging """
         self.logger.info("Manual analysis of logging in exception handling:")
