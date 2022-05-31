@@ -18,6 +18,7 @@ class PythonAnalyzer:
         :param lang: Treesitter language object
         :param file_path: Pathlib object of the file to analyze
         """
+
         self.src = src
         self.lang = lang
         self.tree = tree
@@ -35,11 +36,13 @@ class PythonAnalyzer:
 
     def analyze(self):
         """ Starts the analyses """
+
         if not self.check_for_module_import():
             self.logger.info(f"The {self.keyword} module is not used in this file.")
             return
         # a = perf_counter()
         self.exception_handling_manually()
+        self.logger.info("\n" * 3)
         # b = perf_counter()
         self.exception_handling_via_treesitter()
         # c = perf_counter()
@@ -52,6 +55,7 @@ class PythonAnalyzer:
         Currently only full (aliased) module imports are supported,
         but not "from x import y [as z]" imports.
         """
+
         # Query to find import statements
         import_query = self.lang.query("(import_statement) @a1")
         # Find import statements
