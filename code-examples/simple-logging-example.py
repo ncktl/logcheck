@@ -89,7 +89,7 @@ if True:
 try:
     foo()
 except Exception as e:
-    # There is no logging here but this is not detected,
+    # There is no logging here,
     # would be ok if the nested logging is guaranteed to be reached
     # (i.e., not like here but e.g. in a "finally" block
     try:
