@@ -12,18 +12,9 @@ class JavaAnalyzer:
         :param lang: Treesitter language object
         :param file_path: Pathlib object of the file to analyze
         """
-        self.src = src
-        self.lang = lang
-        self.tree = tree
-        self.file_path = file_path
-        logging.basicConfig(
-            filename=file_path.with_name("analysis-of-" + file_path.name + ".log"),
-            filemode="w",
-            level=logging.DEBUG,
-            encoding="utf-8",
-            format="%(levelname)s:%(message)s"
-        )
-        self.logger = logging.getLogger(__name__)
+        super().__init__(src, lang, tree, file_path)
+        # Name of the log4j object in the example, hardcoded for now
+        self.keyword = "logger"
 
     def analyze(self):
         """

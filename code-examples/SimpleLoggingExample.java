@@ -1,5 +1,6 @@
 // Example from https://logging.apache.org/log4j/2.x/manual/configuration.html
 import com.foo.Bar;
+import java.util.Scanner;
 
 // Import log4j classes.
 import org.apache.logging.log4j.Logger;
@@ -21,5 +22,20 @@ public class SimpleLoggingExample {
             logger.error("Didn't do it.");
         }
         logger.trace("Exiting application.");
+    }
+
+    public void one() throws IOException {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("How are you doing?");
+        String message = scanner.nextLine();
+        System.out.print("So... you are doing ");
+        System.out.println(message);
+    }
+
+    public void two() {
+        try {
+            this.one();
+        }
+        catch
     }
 }

@@ -1,4 +1,3 @@
-# import logging
 from tree_sitter import Language, Parser
 import sys
 from pathlib import Path
