@@ -23,7 +23,7 @@ public class SimpleLoggingExample {
         }
         logger.trace("Exiting application.");
     }
-
+    // End of example
     public void one() throws IOException {
         Scanner scanner = new Scanner(System.in);
         System.out.println("How are you doing?");
@@ -36,6 +36,17 @@ public class SimpleLoggingExample {
         try {
             this.one();
         }
-        catch
+        catch (IOException e) {
+            System.out.println("No logging!");
+        }
+        try {
+            this.one();
+        }
+        catch (IOException e) {
+            logger.error("Caught exception");
+        }
+        try {
+            this.one();
+        } catch (IOException e) {logger.error("Caught exception");}
     }
 }

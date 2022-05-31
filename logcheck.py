@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import importlib
 
-supported_languages = ["javascript", "python"]
+supported_languages = ["java", "python"]
 
 
 def create_ts_lang_obj(language: str):
@@ -13,7 +13,7 @@ def create_ts_lang_obj(language: str):
     :param language: string containing the programming language to be analyzed
     :return: treesitter language object
     """
-    Language.build_library("build/my-languages.so", ["tree-sitter-" + language])
+    Language.build_library("build/my-languages.so", list("tree-sitter-" + lang for lang in supported_languages))
     ts_lang = Language("build/my-languages.so", language)
     return ts_lang
 

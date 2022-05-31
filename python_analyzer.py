@@ -66,7 +66,7 @@ class PythonAnalyzer(Analyzer):
         accepted as it is not guaranteed to be reached.
         """
         self.logger.info("Treesitter analysis of logging in exception handling:")
-        # Query to find logging calls inside exception handling of the form keyword.function(), e.g. logging.info()
+        # Query to find logging calls inside exception handling of the form of  keyword.function(), e.g. logging.info()
         call_in_exc_query = self.lang.query("(except_clause"
                                             "(block"
                                             "(expression_statement"

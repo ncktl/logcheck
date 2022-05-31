@@ -29,7 +29,6 @@ try:
     foo()
 #unknownfunction()
 except Exception as e:
-    foo()
     logging.exception("Hello World")
 finally:
     bar()
