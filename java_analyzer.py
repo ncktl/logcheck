@@ -2,6 +2,7 @@ from tree_sitter import Language, Tree
 import logging
 from pathlib import Path
 from time import perf_counter
+from analyzer import Analyzer, print_children
 
 
 class JavaAnalyzer:

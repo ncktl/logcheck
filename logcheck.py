@@ -2,8 +2,8 @@
 from tree_sitter import Language, Parser, Node
 import sys
 from pathlib import Path
-from PythonAnalyzer import PythonAnalyzer
-from JavaAnalyzer import JavaAnalyzer
+from python_analyzer import PythonAnalyzer
+from java_analyzer import JavaAnalyzer
 
 supported_languages = ["javascript", "python"]
 
