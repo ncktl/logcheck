@@ -1,14 +1,13 @@
 # import logging
-from tree_sitter import Language, Parser, Node
+from tree_sitter import Language, Parser
 import sys
 from pathlib import Path
-from python_analyzer import PythonAnalyzer
-from java_analyzer import JavaAnalyzer
+import importlib
 
 supported_languages = ["javascript", "python"]
 
 
-def create_ts_lang_obj(language):
+def create_ts_lang_obj(language: str):
     """
     Creates a treesitter language library in the 'build' directory
     A given language library only needs to be built once across many executions.
@@ -30,7 +29,7 @@ def print_usage():
     print_supported_languages()
 
 
-def infer_language(file_path):
+def infer_language(file_path: Path):
     """
     Detects the programming language from the file extension
     :param file_path:
@@ -77,11 +76,10 @@ def main(argv):
     parser.set_language(tree_lang)
     # Create abstract syntax tree
     tree = parser.parse(bytes(sourcecode, "utf8"))
-    analyzer = []
-    if prog_lang == "python":
-        analyzer = PythonAnalyzer(sourcecode, tree_lang, tree, file_path)
-    if prog_lang == "java":
-        analyzer = JavaAnalyzer(sourcecode, tree_lang, tree, file_path)
+    # Import the appropriate analyzer and instantiate it
+    analysis_class = getattr(importlib.import_module(prog_lang + "_analyzer"), prog_lang.capitalize() + "Analyzer")
+    analyzer = analysis_class(sourcecode, tree_lang, tree, file_path)
+    # Start the analysis
     analyzer.analyze()
 
 
