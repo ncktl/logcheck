@@ -24,3 +24,17 @@ Finally, the grammars of the currently supported languages need to be cloned as 
 git clone https://github.com/tree-sitter/tree-sitter-python.git
 git clone https://github.com/tree-sitter/tree-sitter-java.git
 ```
+
+## Usage
+
+```sh
+python3 logcheck.py <file to be analyzed>
+```
+
+Logcheck will analyze the file and create a log file in the location of the provided code file with the name "analysis-of-filename.log"
+
+Example code files for the currently provided languages are provided in the code-examples folder. Run the Python example like this:
+
+```sh
+python3 logcheck.py code-examples/simple-logging-example.py
+```
