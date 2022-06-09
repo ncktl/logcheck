@@ -38,3 +38,8 @@ Example code files for the currently provided languages are provided in the code
 ```sh
 python3 logcheck.py code-examples/simple-logging-example.py
 ```
+
+and the Java example like this:
+```sh
+python3 logcheck.py code-examples/SimpleLoggingExample.java
+```

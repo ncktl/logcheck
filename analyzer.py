@@ -29,4 +29,4 @@ class Analyzer:
             encoding="utf-8",
             format="%(levelname)s:%(message)s"
         )
-        self.logger = logging.getLogger(__name__)
+        self.logger: Logger = logging.getLogger(__name__)
