@@ -26,7 +26,6 @@ class Analyzer:
             filename=file_path.with_name("analysis-of-" + file_path.name + ".log"),
             filemode="w",
             level=logging.DEBUG,
-            encoding="utf-8",
             format="%(levelname)s:%(message)s"
         )
         self.logger: Logger = logging.getLogger(__name__)
