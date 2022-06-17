@@ -21,6 +21,9 @@ class PythonAnalyzer(Analyzer):
     def analyze(self):
         """ Starts the analyses """
 
+        # Method to demonstrate Tree-sitter with a special example python program
+        #self.ts_example()
+
         if not self.check_for_module_import():
             self.logger.info(f"The {self.keyword} module is not used in this file.")
             return
@@ -31,6 +34,7 @@ class PythonAnalyzer(Analyzer):
         self.exception_handling_via_treesitter()
         # c = perf_counter()
         # print(f"Manual: {b - a}, Treesitter: {c - b}")
+
 
     def check_for_module_import(self) -> bool:
         """
@@ -66,14 +70,18 @@ class PythonAnalyzer(Analyzer):
         accepted as it is not guaranteed to be reached.
         """
         self.logger.info("Treesitter analysis of logging in exception handling:")
-        # Query to find logging calls inside exception handling of the form of  keyword.function(), e.g. logging.info()
+        # Query to find logging calls inside exception handling of the form of
+        # keyword.function(), e.g. logging.info("Text")
+        # The first identifier of the method call, "logging", is selected via the dot (".") as the first child of
+        # the attribute node (which is "logging.info", i.e. without the parentheses and parameters)
+        # The identifier node is captured with the "@identifier" tag (name is arbitrary)
         call_in_exc_query = self.lang.query("(except_clause"
                                             "(block"
                                             "(expression_statement"
                                             "(call"
                                             "(attribute ."
                                             "(identifier) @identifier)))))")
-        # Execute query
+        # Execute query. Creates a list of (node, tag) tuples of the captured nodes
         call_identifiers = call_in_exc_query.captures(self.tree.root_node)
         exceptions_with_direct_logging = set()
         for node, tag in call_identifiers:
@@ -144,3 +152,44 @@ class PythonAnalyzer(Analyzer):
                                 break
         self.logger.info(f"The logging module has been mentioned {logging_count} time[s].")
         self.logger.info(f"Logging used in {exceptions_logged} out of {exception_count} exception handling blocks.")
+
+    def ts_example(self):
+        # Recursively print the whole ast in stdout
+        print("Abstract syntax tree of ts_py_example.py. Start and end points of nodes are 0-indexed.")
+        print("Below the ast are the non-import logging occurrences and their logical parent's ast subtree.")
+        print_children(self.tree.root_node)
+
+        # Query to find logging calls of the form of
+        # keyword.function(), e.g. logging.info("Text")
+        # The first identifier of the method call, "logging", is selected via the dot (".") as the first child of
+        # the attribute node (which is "logging.info", i.e. without the parentheses and parameters)
+        # The identifier node is captured with the "@a" tag (name is arbitrary)
+        call_in_exc_query = self.lang.query("(call"
+                                            "(attribute ."
+                                            "(identifier) @identifier))")
+
+        # Execute query. Creates a list of (node, tag) tuples of the captured nodes
+        call_identifiers = call_in_exc_query.captures(self.tree.root_node)
+
+        for node, tag in call_identifiers:
+            if node.text.decode("UTF-8") == "logging":
+                # Parent of the great-grandparent expression node
+                # Usually a block node, can also be the whole module if logging statement is top level
+                # First parent is attribute, second is call, third is expression, fourth is block
+                block_parent: Node = node.parent.parent.parent.parent
+                # Avoid top level occurrences of the logging module, including import
+                if block_parent.type != "module":
+                    # If the logging statement isn't a top level statement (i.e. is a child of the whole module)
+                    # its parent expression statement's parent should be a block node,
+                    # of which the parent is what we normally consider the parent of the logging statement,
+                    # like a function declaration or an if-statement.
+                    assert block_parent.type == "block"
+                    # Text of the logging statement
+                    code_line = node.parent.parent.parent.text.decode("UTF-8")
+                    print("#" * 80)
+                    print(f"Line {node.start_point[0] + 1}: {code_line}")
+                    # Recursively print the subtree of the logging statement's logical parent
+                    # Note that the result depends on the logical parent's type because
+                    # if the logical parent is an except clause, its father is a try statement,
+                    # but if the logical parent is an if-statement, its father is a block (or the module)
+                    print_children(block_parent.parent)

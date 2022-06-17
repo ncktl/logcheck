@@ -3,11 +3,16 @@ import logging
 from pathlib import Path
 
 
-def print_children(node: Node, indent=0):
-    print(indent * 2 * " ", node)
+def print_children(node: Node, level=0, maxdepth=999):
+    if level > maxdepth:
+        return
+    if level == 0:
+        print(node)
+    else:
+        print(((level * 2) - 1) * " ", node)
     for child in node.children:
         if child.is_named:
-            print_children(child, indent + 1)
+            print_children(child, level + 1)
 
 
 class Analyzer:

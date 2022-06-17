@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import importlib
 
-supported_languages = ["java", "python", "haskell"]
+supported_languages = ["java", "python"]
 
 
 def create_ts_lang_obj(language: str):
@@ -40,8 +40,8 @@ def infer_language(file_path: Path):
         return "java"
     # elif file_path.suffix == ".js":
     #    return "javascript"
-    elif file_path.suffix == ".hs":
-        return "haskell"
+    #elif file_path.suffix == ".hs":
+    #    return "haskell"
     else:
         print_supported_languages()
         sys.exit()
