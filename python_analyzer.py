@@ -24,20 +24,26 @@ class PythonAnalyzer(Analyzer):
         # Method to demonstrate Tree-sitter with a special example python program
         #self.ts_example()
 
-        if not self.check_for_module_import():
-            self.logger.info(f"The {self.keyword} module is not used in this file.")
-            return
+        # if not self.check_for_module_import():
+            # self.logger.info(f"The {self.keyword} module is not used in this file.")
+            # return
         # a = perf_counter()
-        self.exception_handling_manually()
-        self.logger.info("\n" * 3)
+        # self.exception_handling_manually()
+        # self.logger.info("\n" * 3)
         # b = perf_counter()
         self.exception_handling_via_treesitter()
         # c = perf_counter()
         # print(f"Manual: {b - a}, Treesitter: {c - b}")
 
 
+    # TODO
+
+
     def check_for_module_import(self) -> bool:
         """
+        DEPRECATED: Detecting the logging framework is out of scope.
+        The user will have to supply the name of the logging framework.
+        ############
         Checks if the logging module is imported.
         Also finds alias of logging module if used and updates self.keyword accordingly
         Currently only full (aliased) module imports are supported,
