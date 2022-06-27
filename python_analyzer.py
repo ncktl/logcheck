@@ -53,7 +53,7 @@ class PythonAnalyzer(Analyzer):
         self.fill_param_vecs_sliding()
 
     # Sliding code window approach
-    def fill_param_vecs_sliding(self, vert_range: int = 3):
+    def fill_param_vecs_sliding(self, vert_range: int = 3) -> list:
         """
         Fill parameter vectors using a sliding code window.
         Interesting nodes are found. Their context is the lines above and below, specified by the range
@@ -62,55 +62,73 @@ class PythonAnalyzer(Analyzer):
         :param vert_range: Determines the size of the sliding code window in up and down directions
         """
 
-        # Query to find if-statements
-        if_query = self.lang.query("(if_statement) @if")
-        if_nodes = if_query.captures(self.tree.root_node)
+        param_vectors = []
 
-        for node, tag in if_nodes:
+        interesting_node_types = ["if_statement", "except_clause", "function_definition"]
+        for node_type in interesting_node_types:
 
-            # Parameter vector
-            param_vec = {
-                "if_": False,
-                "try_": False,
-                "logging_": False
-            }
+            # Query to find the node type
+            node_query = self.lang.query("(" + node_type + ") @a")
+            nodes = node_query.captures(self.tree.root_node)
+            # if_query = self.lang.query("(if_statement) @if")
+            # if_nodes = if_query.captures(self.tree.root_node)
 
-            print("#" * 50)
-            print(node)
-            # Check the context range and check for function definitions therein
-            # Context start and end are inclusive
+            for node, tag in nodes:
 
-            # First make sure context is within the file
-            context_start = max(node.start_point[0] - vert_range, 0)
-            context_end = min(node.start_point[0] + vert_range, len(self.lines) - 1)
-            # print(context_start, context_end)
+                # Parameter vector
+                param_vec = {
+                    "line": node.start_point[0],
+                    "if_": False,
+                    "try_": False,
+                    "logging_": False
+                }
 
-            # Check upwards
-            for i in range(node.start_point[0] - 1, context_start - 1, -1):
-                # print(i)
-                if "def " in self.lines[i]:
-                    context_start = i + 1
-                    break
 
-            # Check downwards
-            for i in range(node.start_point[0] + 1, context_end + 1):
-                # print(i)
-                if "def " in self.lines[i]:
-                    context_end = i - 1
-                    break
+                print(node)
+                # Check the context range and check for function definitions therein
+                # Context start and end are inclusive
 
-            context = "\n".join(self.lines[context_start:context_end + 1])
-            print(context)
+                # First make sure context is within the file
+                context_start = max(node.start_point[0] - vert_range, 0)
+                context_end = min(node.start_point[0] + vert_range, len(self.lines) - 1)
+                # print(context_start, context_end)
 
-            if "if " in context:
-                param_vec["if_"] = True
-            if "try " in context:
-                param_vec["try_"] = True
-            # Just checking for "logging" is esp. susceptible to comments
-            if "logging." in context:
-                param_vec["logging_"] = True
+                # Check upwards for function defs
+                # unless node is a function def itself
+                if node_type == "function_definition":
+                    context_start = node.start_point[0]
+                else:
+                    for i in range(node.start_point[0] - 1, context_start - 1, -1):
+                        # print(i)
+                        if "def " in self.lines[i]:
+                            context_start = i + 1
+                            break
 
-            print(list(param_vec.values()))
+                # Check downwards for function defs:
+                for i in range(node.start_point[0] + 1, context_end + 1):
+                    # print(i)
+                    if "def " in self.lines[i]:
+                        context_end = i - 1
+                        break
+
+                context = "\n".join(self.lines[context_start:context_end + 1])
+                print(context)
+
+                if "if " in context:
+                    param_vec["if_"] = True
+                if "try " in context:
+                    param_vec["try_"] = True
+                # Just checking for "logging" is esp. susceptible to comments
+                if "logging." in context:
+                    param_vec["logging_"] = True
+
+                print(list(param_vec.values()))
+                param_vectors.append(list(param_vec.values()))
+                print("#" * 50)
+
+            for vec in param_vectors:
+                print(vec)
+            return param_vectors
 
 
 
