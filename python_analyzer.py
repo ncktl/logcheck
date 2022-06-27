@@ -3,21 +3,6 @@ import logging
 from pathlib import Path
 from time import perf_counter
 from analyzer import Analyzer, print_children
-from dataclasses import dataclass
-
-
-
-@dataclass
-class ParamVec:
-    def __init__(self):
-        self.if_: bool = False
-        self.try_: bool = False
-        self.logging_: bool = False
-
-
-
-    def __str__(self):
-        return repr(self)
 
 
 class PythonAnalyzer(Analyzer):
@@ -50,7 +35,8 @@ class PythonAnalyzer(Analyzer):
         # c = perf_counter()
         # print(f"Manual: {b - a}, Treesitter: {c - b}")
 
-        self.fill_param_vecs_sliding()
+        # self.fill_param_vecs_sliding()
+        self.fill_param_vecs_ast()
 
     # Sliding code window approach
     def fill_param_vecs_sliding(self, vert_range: int = 3) -> list:
@@ -60,22 +46,19 @@ class PythonAnalyzer(Analyzer):
         Function definitions are treated as an additional boundary of the context
         Problem: Comments in the code
         :param vert_range: Determines the size of the sliding code window in up and down directions
+        :return: parameter vectors
         """
 
         param_vectors = []
 
         interesting_node_types = ["if_statement", "except_clause", "function_definition"]
         for node_type in interesting_node_types:
-
             # Query to find the node type
-            node_query = self.lang.query("(" + node_type + ") @a")
+            node_query = self.lang.query("(" + node_type + ") @" + node_type)
             nodes = node_query.captures(self.tree.root_node)
-            # if_query = self.lang.query("(if_statement) @if")
-            # if_nodes = if_query.captures(self.tree.root_node)
 
             for node, tag in nodes:
-
-                # Parameter vector
+                # Parameter vector. Needs more entries
                 param_vec = {
                     "line": node.start_point[0],
                     "if_": False,
@@ -83,8 +66,8 @@ class PythonAnalyzer(Analyzer):
                     "logging_": False
                 }
 
+                # print(node)
 
-                print(node)
                 # Check the context range and check for function definitions therein
                 # Context start and end are inclusive
 
@@ -112,7 +95,7 @@ class PythonAnalyzer(Analyzer):
                         break
 
                 context = "\n".join(self.lines[context_start:context_end + 1])
-                print(context)
+                # print(context)
 
                 if "if " in context:
                     param_vec["if_"] = True
@@ -122,15 +105,102 @@ class PythonAnalyzer(Analyzer):
                 if "logging." in context:
                     param_vec["logging_"] = True
 
-                print(list(param_vec.values()))
+                # print(list(param_vec.values()))
                 param_vectors.append(list(param_vec.values()))
-                print("#" * 50)
+                # print("#" * 50)
 
-            for vec in param_vectors:
-                print(vec)
-            return param_vectors
+        for vec in param_vectors:
+            print(vec)
+        return param_vectors
+
+    def fill_param_vecs_ast(self) -> list:
+        """
+        Fill parameter vectors using the ast but not sliding code window
+
+        For the interesting nodes, their context is considered,
+        which for now is their siblings (i.e. the parent's children)
+
+        Should we consider the node's children as well?
+
+        Due to different grammatical structures of the nodes,
+        special handling of the different node types will be required
+
+        Are function definition nodes suited for this approach? Can only work with children
+
+        :return: parameter vectors
+        """
+
+        param_vectors = []
+
+        # The number in the tuple indicates which level parent is
+        # the parent of similarly nested siblings (motivation: parent of except is try)
+        interesting_node_types = [("if_statement", 1), ("except_clause", 2)]
+
+        for node_type, seniority in interesting_node_types:
+
+            # Query to find the node type
+            node_query = self.lang.query("(" + node_type + ") @a")
+            nodes = node_query.captures(self.tree.root_node)
+
+            for node, tag in nodes:
+
+                # Parameter vector. Needs more entries
+                param_vec = {
+                    "line": node.start_point[0],
+                    "if_": False,
+                    "try_": False,
+                    "logging_": False
+                }
+
+                # print(node)
+
+                parent = node
+                for _ in range(seniority):
+                    parent = parent.parent
+                # Parent might be module, i.e. all top level statements are the context.
+                # Is this a problem?
+                # How would ignoring these nodes affect our results?
+                # print(parent.children)
+
+                for sibling in parent.children:
+
+                    # If all param vector entries are True, we are done with the node
+                    if param_vec["if_"] and param_vec["try_"] and param_vec["logging_"]:
+                        break
+
+                    # Unlike the code window approach, we can easily filter out comments
+                    if sibling.type == "comment":
+                        continue
+
+                    # internal code line approach
+                    code_line = self.lines[sibling.start_point[0]]
 
 
+                    if "if " in code_line:
+                        param_vec["if_"] = True
+                        continue
+                    if "try " in code_line:
+                        param_vec["try_"] = True
+                        continue
+
+                    if "logging." in code_line:
+                        param_vec["logging_"] = True
+                        continue
+
+                    # Alternative: internal ast approach. TODO: Test which is faster
+                    '''
+                    if sibling.type == "if_statement":
+                        param_vec["if_"] = True
+                        continue
+                    if sibling.type == "try_statement":
+                        param_vec["try_"] = True
+                        continue
+                    '''
+                param_vectors.append(list(param_vec.values()))
+                # print("#" * 50)
+        for vec in param_vectors:
+            print(vec)
+        return param_vectors
 
 
     def check_for_module_import(self) -> bool:

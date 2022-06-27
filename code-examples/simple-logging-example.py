@@ -58,6 +58,15 @@ except Exception as e:
     if foo():
         logging.exception("Nested logging")
 
+# Nested logging in except. This is not guaranteed to be reached! 2
+try:
+    foo()
+except Exception as e:
+    bar()
+    if foo():
+        logging.exception("Nested logging")
+    logging.exception("Direct logging")
+
 # Nested except with logging
 if True:
     try:
@@ -110,3 +119,8 @@ if True:
     def fooba():
         pass
     logging.info("hi")
+    try:
+        foo()
+    except Exception as e:
+        bar()
+    logging.info("o")
