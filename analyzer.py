@@ -34,3 +34,4 @@ class Analyzer:
             format="%(levelname)s:%(message)s"
         )
         self.logger: Logger = logging.getLogger(__name__)
+        self.lines: list = src.splitlines()

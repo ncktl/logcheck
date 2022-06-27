@@ -102,3 +102,11 @@ try:
     foo()
 except Exception as e:
     logger.info("Logger")
+# A
+# B
+# C
+
+if True:
+    def fooba():
+        pass
+    logging.info("hi")

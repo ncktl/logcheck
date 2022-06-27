@@ -3,6 +3,21 @@ import logging
 from pathlib import Path
 from time import perf_counter
 from analyzer import Analyzer, print_children
+from dataclasses import dataclass
+
+
+
+@dataclass
+class ParamVec:
+    def __init__(self):
+        self.if_: bool = False
+        self.try_: bool = False
+        self.logging_: bool = False
+
+
+
+    def __str__(self):
+        return repr(self)
 
 
 class PythonAnalyzer(Analyzer):
@@ -22,21 +37,82 @@ class PythonAnalyzer(Analyzer):
         """ Starts the analyses """
 
         # Method to demonstrate Tree-sitter with a special example python program
-        #self.ts_example()
+        # self.ts_example()
 
         # if not self.check_for_module_import():
-            # self.logger.info(f"The {self.keyword} module is not used in this file.")
-            # return
+        # self.logger.info(f"The {self.keyword} module is not used in this file.")
+        # return
         # a = perf_counter()
         # self.exception_handling_manually()
         # self.logger.info("\n" * 3)
         # b = perf_counter()
-        self.exception_handling_via_treesitter()
+        # self.exception_handling_via_treesitter()
         # c = perf_counter()
         # print(f"Manual: {b - a}, Treesitter: {c - b}")
 
+        self.fill_param_vecs_sliding()
 
-    # TODO
+    # Sliding code window approach
+    def fill_param_vecs_sliding(self, vert_range: int = 3):
+        """
+        Fill parameter vectors using a sliding code window.
+        Interesting nodes are found. Their context is the lines above and below, specified by the range
+        Function definitions are treated as an additional boundary of the context
+        Problem: Comments in the code
+        :param vert_range: Determines the size of the sliding code window in up and down directions
+        """
+
+        # Query to find if-statements
+        if_query = self.lang.query("(if_statement) @if")
+        if_nodes = if_query.captures(self.tree.root_node)
+
+        for node, tag in if_nodes:
+
+            # Parameter vector
+            param_vec = {
+                "if_": False,
+                "try_": False,
+                "logging_": False
+            }
+
+            print("#" * 50)
+            print(node)
+            # Check the context range and check for function definitions therein
+            # Context start and end are inclusive
+
+            # First make sure context is within the file
+            context_start = max(node.start_point[0] - vert_range, 0)
+            context_end = min(node.start_point[0] + vert_range, len(self.lines) - 1)
+            # print(context_start, context_end)
+
+            # Check upwards
+            for i in range(node.start_point[0] - 1, context_start - 1, -1):
+                # print(i)
+                if "def " in self.lines[i]:
+                    context_start = i + 1
+                    break
+
+            # Check downwards
+            for i in range(node.start_point[0] + 1, context_end + 1):
+                # print(i)
+                if "def " in self.lines[i]:
+                    context_end = i - 1
+                    break
+
+            context = "\n".join(self.lines[context_start:context_end + 1])
+            print(context)
+
+            if "if " in context:
+                param_vec["if_"] = True
+            if "try " in context:
+                param_vec["try_"] = True
+            # Just checking for "logging" is esp. susceptible to comments
+            if "logging." in context:
+                param_vec["logging_"] = True
+
+            print(list(param_vec.values()))
+
+
 
 
     def check_for_module_import(self) -> bool:
