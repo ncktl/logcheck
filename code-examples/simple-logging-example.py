@@ -5,6 +5,12 @@ import logging
 
 logging.basicConfig(filename="py-ex.log", filemode="w", level=logging.DEBUG)
 
+if True:
+    try:
+        pass
+    except:
+        pass
+
 def foo():
     return True
 

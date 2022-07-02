@@ -21,22 +21,34 @@ class PythonAnalyzer(Analyzer):
     def analyze(self):
         """ Starts the analyses """
 
-        # Method to demonstrate Tree-sitter with a special example python program
-        # self.ts_example()
+        build_param_vecs = True
+        if build_param_vecs:
+            # a = perf_counter()
+            param_vectors = self.fill_param_vecs_sliding()
+            # param_vectors = self.fill_param_vecs_ast()
+            # b = perf_counter()
+            # print(f"Runtime: {b - a}")
+            # param_vectors = self.fill_param_vecs_ast()
+            # c = perf_counter()
+            # print(f"Sliding: {b - a}, Pure ast: {c - b}")
 
-        # if not self.check_for_module_import():
-        # self.logger.info(f"The {self.keyword} module is not used in this file.")
-        # return
-        # a = perf_counter()
-        # self.exception_handling_manually()
-        # self.logger.info("\n" * 3)
-        # b = perf_counter()
-        # self.exception_handling_via_treesitter()
-        # c = perf_counter()
-        # print(f"Manual: {b - a}, Treesitter: {c - b}")
+            strlist = [str(x) for x in param_vectors]
+            self.logger.info("\n".join(strlist))
+        else:
+            # Method to demonstrate Tree-sitter with a special example python program
+            # self.ts_example()
+            print(self.tree.root_node.sexp())
 
-        # self.fill_param_vecs_sliding()
-        self.fill_param_vecs_ast()
+            # if not self.check_for_module_import():
+            # self.logger.info(f"The {self.keyword} module is not used in this file.")
+            # return
+            # a = perf_counter()
+            # self.exception_handling_manually()
+            # self.logger.info("\n" * 3)
+            # b = perf_counter()
+            # self.exception_handling_via_treesitter()
+            # c = perf_counter()
+            # print(f"Manual: {b - a}, Treesitter: {c - b}")
 
     # Sliding code window approach
     def fill_param_vecs_sliding(self, vert_range: int = 3) -> list:
@@ -48,16 +60,14 @@ class PythonAnalyzer(Analyzer):
         :param vert_range: Determines the size of the sliding code window in up and down directions
         :return: parameter vectors
         """
-
         param_vectors = []
-
         interesting_node_types = ["if_statement", "except_clause", "function_definition"]
         for node_type in interesting_node_types:
             # Query to find the node type
             node_query = self.lang.query("(" + node_type + ") @" + node_type)
             nodes = node_query.captures(self.tree.root_node)
-
             for node, tag in nodes:
+                # print(node)
                 # Parameter vector. Needs more entries
                 param_vec = {
                     "line": node.start_point[0],
@@ -65,12 +75,8 @@ class PythonAnalyzer(Analyzer):
                     "try_": False,
                     "logging_": False
                 }
-
-                # print(node)
-
                 # Check the context range and check for function definitions therein
                 # Context start and end are inclusive
-
                 # First make sure context is within the file
                 context_start = max(node.start_point[0] - vert_range, 0)
                 context_end = min(node.start_point[0] + vert_range, len(self.lines) - 1)
@@ -83,13 +89,14 @@ class PythonAnalyzer(Analyzer):
                 else:
                     for i in range(node.start_point[0] - 1, context_start - 1, -1):
                         # print(i)
+                        # Assumption: def not in comment at end of line
                         if "def " in self.lines[i]:
                             context_start = i + 1
                             break
-
                 # Check downwards for function defs:
                 for i in range(node.start_point[0] + 1, context_end + 1):
                     # print(i)
+                    # Assumption: def not in comment at end of line
                     if "def " in self.lines[i]:
                         context_end = i - 1
                         break
@@ -99,51 +106,43 @@ class PythonAnalyzer(Analyzer):
 
                 if "if " in context:
                     param_vec["if_"] = True
-                if "try " in context:
+                if "try:" in context:
                     param_vec["try_"] = True
                 # Just checking for "logging" is esp. susceptible to comments
-                if "logging." in context:
+                ############################
+                # CHANGED ##################
+                if "logger" in context:
+                ############################
                     param_vec["logging_"] = True
 
                 # print(list(param_vec.values()))
                 param_vectors.append(list(param_vec.values()))
                 # print("#" * 50)
-
-        for vec in param_vectors:
-            print(vec)
+        # for vec in param_vectors:
+            # print(vec)
         return param_vectors
 
     def fill_param_vecs_ast(self) -> list:
         """
         Fill parameter vectors using the ast but not sliding code window
-
         For the interesting nodes, their context is considered,
         which for now is their siblings (i.e. the parent's children)
 
         Should we consider the node's children as well?
-
         Due to different grammatical structures of the nodes,
         special handling of the different node types will be required
-
-        Are function definition nodes suited for this approach? Can only work with children
-
+        Are function def nodes suited for this approach? Can only work with children
         :return: parameter vectors
         """
-
         param_vectors = []
-
-        # The number in the tuple indicates which level parent is
-        # the parent of similarly nested siblings (motivation: parent of except is try)
+        # The seniority in the tuple indicates which level parent is the parent
+        # of similarly nested siblings (motivation: parent of except is try)
         interesting_node_types = [("if_statement", 1), ("except_clause", 2)]
-
         for node_type, seniority in interesting_node_types:
-
             # Query to find the node type
             node_query = self.lang.query("(" + node_type + ") @a")
             nodes = node_query.captures(self.tree.root_node)
-
             for node, tag in nodes:
-
                 # Parameter vector. Needs more entries
                 param_vec = {
                     "line": node.start_point[0],
@@ -151,9 +150,8 @@ class PythonAnalyzer(Analyzer):
                     "try_": False,
                     "logging_": False
                 }
-
                 # print(node)
-
+                # Find the parent node we care about, using the given seniority
                 parent = node
                 for _ in range(seniority):
                     parent = parent.parent
@@ -161,29 +159,24 @@ class PythonAnalyzer(Analyzer):
                 # Is this a problem?
                 # How would ignoring these nodes affect our results?
                 # print(parent.children)
-
                 for sibling in parent.children:
-
                     # If all param vector entries are True, we are done with the node
                     if param_vec["if_"] and param_vec["try_"] and param_vec["logging_"]:
                         break
-
                     # Unlike the code window approach, we can easily filter out comments
                     if sibling.type == "comment":
                         continue
-
-                    # internal code line approach
+                    # internally use something like a code window approach, however
                     code_line = self.lines[sibling.start_point[0]]
-
 
                     if "if " in code_line:
                         param_vec["if_"] = True
                         continue
-                    if "try " in code_line:
+                    if "try:" in code_line:
                         param_vec["try_"] = True
                         continue
-
-                    if "logging." in code_line:
+                    # Assumption: logging statement not in condition of if-statement
+                    if "logger" in code_line:
                         param_vec["logging_"] = True
                         continue
 
@@ -198,8 +191,8 @@ class PythonAnalyzer(Analyzer):
                     '''
                 param_vectors.append(list(param_vec.values()))
                 # print("#" * 50)
-        for vec in param_vectors:
-            print(vec)
+        # for vec in param_vectors:
+        #     print(vec)
         return param_vectors
 
 
