@@ -3,8 +3,7 @@ import sys
 from pathlib import Path
 import importlib
 import argparse
-
-# from extractor import par_vec
+from extractor import par_vec
 
 supported_languages = ["java", "python"]
 suf = {
@@ -46,8 +45,10 @@ def extract():
             file_param_vecs = analyzer.fill_param_vecs_sliding()
             param_vectors += file_param_vecs
     # TODO: Output argument handling
-    with open("./features/demofile.txt", "w") as out:
-        out.write("\n".join([str(x) for x in param_vectors]))
+    with open("./features/demofile.csv", "w") as out:
+        out.write(str(list(par_vec.keys()))[1:-1])
+        out.write("\n")
+        out.write("\n".join([str(x)[1:-1] for x in param_vectors]))
         out.write("\n")
         out.close()
 

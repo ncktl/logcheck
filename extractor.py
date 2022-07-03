@@ -2,7 +2,7 @@ from tree_sitter import Language, Tree, Node
 from pathlib import Path
 
 par_vec = {
-    "line": -1,
+    # "line": -1,
     "if_": False,
     "try_": False,
     "logging_": False

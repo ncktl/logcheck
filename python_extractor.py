@@ -38,7 +38,8 @@ class PythonExtractor(Extractor):
                 # print(node)
                 # Parameter vector
                 param_vec = copy(par_vec)
-                param_vec["line"] = node.start_point[0]
+                # param_vec["line"] = node.start_point[0]
+
                 # Check the context range and check for function definitions therein
                 # Context start and end are inclusive
                 # First make sure context is within the file
@@ -110,7 +111,8 @@ class PythonExtractor(Extractor):
             for node, tag in nodes:
                 # Parameter vector
                 param_vec = copy(par_vec)
-                param_vec["line"] = node.start_point[0]
+                # param_vec["line"] = node.start_point[0]
+
                 # print(node)
                 # Find the parent node we care about, using the given seniority
                 parent = node

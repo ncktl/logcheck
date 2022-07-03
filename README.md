@@ -54,7 +54,7 @@ To extract parameter vectors from files, use the -e option like this:
 python3 logcheck.py -e <file to extract features from>
 ```
 
-The parameters are saved in features/demofile.txt (for now).
+The parameters are saved in features/demofile.csv (for now).
 
 ### Analysis
 
