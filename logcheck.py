@@ -79,7 +79,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("path", type=Path)
     arg_parser.add_argument("-b", "--batch", action="store_true",
                             help="Enable batch mode. Logcheck will be run on all source code files of"
-                                 "the given programming language found in the specified directory and "
+                                 " the given programming language found in the specified directory and "
                                  "subdirectories. Requires the -l / --language argument.")
     arg_parser.add_argument("-e", "--extract", action="store_true",
                             help="Enables feature extraction mode. Logcheck will output parameter "

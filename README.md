@@ -35,10 +35,11 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -b, --batch           Enable batch mode. Logcheck will be run on all source code files ofthe given programming language found in the specified
+  -b, --batch           Enable batch mode. Logcheck will be run on all source code files of the
+                        given programming language found in the specified
                         directory and subdirectories. Requires the -l / --language argument.
-  -e, --extract         Enables feature extraction mode. Logcheck will output parameter vectors from its analysis instead of logging
-                        recommendations.
+  -e, --extract         Enables feature extraction mode. Logcheck will output parameter vectors
+                        from its analysis instead of logging recommendations.
   -o OUTPUT, --output OUTPUT
                         Specify the output file. NYI
   -f, --force           Force overwrite of output file
