@@ -1,5 +1,4 @@
 from tree_sitter import Language, Tree, Node
-import logging
 from pathlib import Path
 
 par_vec = {
@@ -8,6 +7,7 @@ par_vec = {
     "try_": False,
     "logging_": False
 }
+
 
 def print_children(node: Node, level=0, maxdepth=999):
     if level > maxdepth:
@@ -21,10 +21,10 @@ def print_children(node: Node, level=0, maxdepth=999):
             print_children(child, level + 1)
 
 
-class Analyzer:
+class Extractor:
     def __init__(self, src: str, lang: Language, tree: Tree, file_path: Path):
         """
-        :param src: Source code to analyze
+        :param src: Source code to extract paramaeter vectors from
         :param lang: Tree-sitter language object
         :param tree: Treesitter tree object
         :param file_path: Pathlib object of the file to analyze
@@ -34,12 +34,4 @@ class Analyzer:
         self.lang: Language = lang
         self.tree: Tree = tree
         self.file_path: Path = file_path
-        logging.basicConfig(
-            filename=file_path.with_name("analysis-of-" + file_path.name + ".log"),
-            filemode="w",
-            level=logging.DEBUG,
-            # format="%(levelname)s:%(message)s"
-            format="%(message)s"
-        )
-        self.logger: logging.Logger = logging.getLogger(__name__)
         self.lines: list = src.splitlines()
