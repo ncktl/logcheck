@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 import importlib
 import argparse
+from analyzer import par_vec
 
 supported_languages = ["java", "python"]
 suf = {

@@ -2,8 +2,9 @@ from tree_sitter import Language, Tree, Node
 import logging
 from pathlib import Path
 from time import perf_counter
-from analyzer import Analyzer, print_children
+from analyzer import Analyzer, print_children, par_vec
 import re
+from copy import deepcopy
 
 
 class PythonAnalyzer(Analyzer):
@@ -69,13 +70,9 @@ class PythonAnalyzer(Analyzer):
             nodes = node_query.captures(self.tree.root_node)
             for node, tag in nodes:
                 # print(node)
-                # Parameter vector. Needs more entries
-                param_vec = {
-                    "line": node.start_point[0],
-                    "if_": False,
-                    "try_": False,
-                    "logging_": False
-                }
+                # Parameter vector
+                param_vec = deepcopy(par_vec)
+                par_vec["line"] = node.start_point[0]
                 # Check the context range and check for function definitions therein
                 # Context start and end are inclusive
                 # First make sure context is within the file
@@ -145,13 +142,9 @@ class PythonAnalyzer(Analyzer):
             node_query = self.lang.query("(" + node_type + ") @a")
             nodes = node_query.captures(self.tree.root_node)
             for node, tag in nodes:
-                # Parameter vector. Needs more entries
-                param_vec = {
-                    "line": node.start_point[0],
-                    "if_": False,
-                    "try_": False,
-                    "logging_": False
-                }
+                # Parameter vector
+                param_vec = deepcopy(par_vec)
+                par_vec["line"] = node.start_point[0]
                 # print(node)
                 # Find the parent node we care about, using the given seniority
                 parent = node
