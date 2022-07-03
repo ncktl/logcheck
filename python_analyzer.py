@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 from time import perf_counter
 from analyzer import Analyzer, print_children
+import re
 
 
 class PythonAnalyzer(Analyzer):
@@ -111,8 +112,9 @@ class PythonAnalyzer(Analyzer):
                 # Just checking for "logging" is esp. susceptible to comments
                 ############################
                 # CHANGED ##################
-                if "logger" in context:
-                ############################
+                # if "logger" in context:
+                if re.search("logg[ing|er]", context):
+                    ############################
                     param_vec["logging_"] = True
 
                 # print(list(param_vec.values()))
@@ -176,7 +178,7 @@ class PythonAnalyzer(Analyzer):
                         param_vec["try_"] = True
                         continue
                     # Assumption: logging statement not in condition of if-statement
-                    if "logger" in code_line:
+                    if re.search("logg[ing|er]", code_line):
                         param_vec["logging_"] = True
                         continue
 

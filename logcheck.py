@@ -24,87 +24,6 @@ def create_ts_lang_obj(language: str) -> Language:
     return ts_lang
 
 
-# Deprecated
-def print_supported_languages():
-    print(f"Supported languages: {supported_languages}", file=sys.stderr)
-
-
-# Deprecated
-def print_usage():
-    print(f"Usage: python3 {__file__} [-[B|L] <language>] <filepath>", file=sys.stderr)
-    print(f"Options: -B\t Batch mode", file=sys.stderr)
-    print("If no language is specified, the analyzer will attempt to infer the language.", file=sys.stderr)
-    print_supported_languages()
-
-
-# Deprecated
-def infer_language(file_path: Path):
-    """
-    Detects the programming language from the file extension
-    :param file_path:
-    :return: String containing programming language name
-    """
-    if file_path.suffix == ".py":
-        return "python"
-    elif file_path.suffix == ".java":
-        return "java"
-    # elif file_path.suffix == ".js":
-    #    return "javascript"
-    # elif file_path.suffix == ".hs":
-    #    return "haskell"
-    # Deprecated:
-    else:
-        print_supported_languages()
-        sys.exit()
-
-
-# Deprecated
-def main(argv):
-    """
-    main program execution
-    """
-    arglen = len(argv)
-    if arglen not in [2, 3, 4]:
-        print_usage()
-        sys.exit()
-    file_path = Path(argv[-1])
-    if not file_path.exists():
-        print("File or path doesn't exist.", file=sys.stderr)
-        print_usage()
-        sys.exit()
-    # python3 logcheck.py <file>
-    if arglen == 2:
-        prog_lang = infer_language(file_path)
-    else:  # -> arglen == 4
-        # python3 logcheck.py -L <language> <file>
-        if argv[1].lower() in [(x + y) for x in ["", "-", "--"] for y in ["l", "lang", "language"]]:
-            batch = False
-        # python3 logcheck.py -B <language> <file>
-        elif argv[1].lower() in [(x + y) for x in ["", "-", "--"] for y in ["b", "batch"]]:
-            batch = True
-        else:
-            print_usage()
-            sys.exit()
-        prog_lang = argv[2].lower()
-        if prog_lang not in supported_languages:
-            print_supported_languages()
-            sys.exit()
-    with open(argv[-1]) as file:
-        sourcecode = file.read()
-        file.close()
-    # Treesitter Language object
-    tree_lang = create_ts_lang_obj(prog_lang)
-    parser = Parser()
-    parser.set_language(tree_lang)
-    # Create abstract syntax tree
-    tree = parser.parse(bytes(sourcecode, "utf8"))
-    # Import the appropriate analyzer and instantiate it
-    analysis_class = getattr(importlib.import_module(prog_lang + "_analyzer"), prog_lang.capitalize() + "Analyzer")
-    analyzer = analysis_class(sourcecode, tree_lang, tree, file_path)
-    # Start the analysis
-    analyzer.analyze()
-
-
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("path", type=Path)
@@ -157,14 +76,10 @@ if __name__ == "__main__":
                                      args.language.capitalize() + "Analyzer")
             analyzer = analysis_class(sourcecode, tree_lang, tree, args.path)
             # Start the analysis
-            # TODO: Check for feature extraction here instead
             if args.feature:
                 file_param_vecs = analyzer.fill_param_vecs_sliding()
-                # param_vectors.append(file_param_vecs)
                 param_vectors += file_param_vecs
-                # for i in file_param_vecs:
-                #     print(i)
-    # print(param_vectors)
+    # TODO: Output argument handling
     with open("./features/demofile.txt", "w") as out:
         out.write("\n".join([str(x) for x in param_vectors]))
         out.write("\n")
