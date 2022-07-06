@@ -28,23 +28,25 @@ git clone https://github.com/tree-sitter/tree-sitter-java.git
 ## Usage
 
 ```sh
-usage: logcheck.py [-h] [-b] [-e] [-o OUTPUT] [-f] [-l {java,python}] path
+usage: logcheck.py [-h] [-b] [-e] [-o OUTPUT] [-f] [-l {java,python}] [-m {ast,sliding}] [-d] [-a] path
 
 positional arguments:
   path
 
 optional arguments:
   -h, --help            show this help message and exit
-  -b, --batch           Enable batch mode. Logcheck will be run on all source code files of the
-                        given programming language found in the specified
-                        directory and subdirectories. Requires the -l / --language argument.
-  -e, --extract         Enables feature extraction mode. Logcheck will output parameter vectors
-                        from its analysis instead of logging recommendations.
+  -b, --batch           Enable batch mode. Logcheck will be run on all source code files of the given programming language found in the specified directory and subdirectories.
+                        Requires the -l / --language argument.
+  -e, --extract         Enables feature extraction mode. Logcheck will output parameter vectors from its analysis instead of logging recommendations.
   -o OUTPUT, --output OUTPUT
-                        Specify the output file. NYI
+                        Specify the output file.
   -f, --force           Force overwrite of output file
   -l {java,python}, --language {java,python}
                         Specify the language. This is required in batch mode.
+  -m {ast,sliding}, --mode {ast,sliding}
+                        Mode of extraction. Default: sliding
+  -d, --debug           Enable debug mode
+  -a, --alt             Use alternative / old functions
 ```
 
 ### Feature extraction
