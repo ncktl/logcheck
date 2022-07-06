@@ -38,13 +38,17 @@ def extract():
             # Create abstract syntax tree
             tree = parser.parse(bytes(sourcecode, "utf8"))
             # Import the appropriate extractor and instantiate it
-            analysis_class = getattr(importlib.import_module(args.language + "_extractor"),
+            extractor_class = getattr(importlib.import_module(args.language + "_extractor"),
                                      args.language.capitalize() + "Extractor")
-            analyzer = analysis_class(sourcecode, tree_lang, tree, args.path)
+            extractor = extractor_class(sourcecode, tree_lang, tree, args.path, args)
             # Start the extraction
-            file_param_vecs = analyzer.fill_param_vecs_sliding()
+            if args.mode == "sliding":
+                file_param_vecs = extractor.fill_param_vecs_sliding()
+            else:
+                file_param_vecs = extractor.fill_param_vecs_ast()
+            if args.debug:
+                param_vectors += [f" {file} "]
             param_vectors += file_param_vecs
-    # TODO: Output argument handling
     with open(args.output, "w") as out:
         out.write(str(list(par_vec.keys()))[1:-1])
         out.write("\n")
@@ -85,11 +89,15 @@ if __name__ == "__main__":
                             help="Enables feature extraction mode. Logcheck will output parameter "
                                  "vectors from its analysis instead of logging recommendations.")
     arg_parser.add_argument("-o", "--output", type=Path,
-                            help="Specify the output file. NYI")
+                            help="Specify the output file.")
     arg_parser.add_argument("-f", "--force", action="store_true",
                             help="Force overwrite of output file")
     arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages,
                             help="Specify the language. This is required in batch mode.")
+    arg_parser.add_argument("-m", "--mode", type=str, choices=["ast", "sliding"], default="sliding",
+                            help="Mode of extraction. Default: sliding")
+    arg_parser.add_argument("-d", "--debug", action="store_true",
+                            help="Enable debug mode")
     args = arg_parser.parse_args()
     # Check arguments
     if not args.path.exists():

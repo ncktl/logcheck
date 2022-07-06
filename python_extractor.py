@@ -1,12 +1,12 @@
 from tree_sitter import Language, Tree, Node
 from pathlib import Path
-from extractor import Extractor, par_vec
+from extractor import Extractor, par_vec, par_vec_debug
 import re
 from copy import copy
 
 
 class PythonExtractor(Extractor):
-    def __init__(self, src: str, lang: Language, tree: Tree, file_path: Path):
+    def __init__(self, src: str, lang: Language, tree: Tree, file_path: Path, args):
         """
         :param src: Source code to extract paramaeter vectors from
         :param lang: Treesitter language object
@@ -14,9 +14,9 @@ class PythonExtractor(Extractor):
         :param file_path: Pathlib object of the file to analyze
         """
 
-        super().__init__(src, lang, tree, file_path)
+        super().__init__(src, lang, tree, file_path, args)
         # Name of the Python logging module
-        self.keyword = "logging"
+        self.keyword = "logg(ing|er)"
 
     # Sliding code window approach
     def fill_param_vecs_sliding(self, vert_range: int = 3) -> list:
@@ -77,7 +77,7 @@ class PythonExtractor(Extractor):
                 ############################
                 # CHANGED ##################
                 # if "logger" in context:
-                if re.search("logg(ing|er)", context):
+                if re.search(self.keyword, context):
                     ############################
                     param_vec["logging_"] = True
 
@@ -110,9 +110,11 @@ class PythonExtractor(Extractor):
             nodes = node_query.captures(self.tree.root_node)
             for node, tag in nodes:
                 # Parameter vector
-                param_vec = copy(par_vec)
-                # param_vec["line"] = node.start_point[0]
-
+                if self.args.debug:
+                    param_vec = copy(par_vec_debug)
+                    param_vec["line"] = node.start_point[0] + 1
+                else:
+                    param_vec = copy(par_vec)
                 # print(node)
                 # Find the parent node we care about, using the given seniority
                 parent = node
@@ -124,26 +126,30 @@ class PythonExtractor(Extractor):
                 # print(parent.children)
                 for sibling in parent.children:
                     # If all param vector entries are True, we are done with the node
-                    if param_vec["if_"] and param_vec["try_"] and param_vec["logging_"]:
+                    # Doesn't work with debug param vec
+                    if not self.args.debug and False not in param_vec.values():
                         break
                     # Unlike the code window approach, we can easily filter out comments
                     if sibling.type == "comment":
                         continue
                     # internally use something like a code window approach, however
                     code_line = self.lines[sibling.start_point[0]]
-
+                    # '''
                     if "if " in code_line:
                         param_vec["if_"] = True
-                        continue
+                        # continue
                     if "try:" in code_line:
                         param_vec["try_"] = True
-                        continue
+                        # continue
+                    # '''
                     # Assumption: logging statement not in condition of if-statement
-                    if re.search("logg(ing|er)", code_line):
+                    # Bad example: 	/Users/nickkeutel/code/python/marepos/web2py/gluon/widget.py line 714
+                    # -> No continues
+                    if re.search(self.keyword, code_line):
                         param_vec["logging_"] = True
-                        continue
+                        # continue
 
-                    # Alternative: internal ast approach. TODO: Test which is faster
+                    # Alternative: internal ast approach.
                     '''
                     if sibling.type == "if_statement":
                         param_vec["if_"] = True
