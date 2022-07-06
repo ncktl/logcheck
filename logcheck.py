@@ -45,7 +45,10 @@ def extract():
             if args.mode == "sliding":
                 file_param_vecs = extractor.fill_param_vecs_sliding()
             else:
-                file_param_vecs = extractor.fill_param_vecs_ast()
+                if args.alt:
+                    file_param_vecs = extractor.fill_param_vecs_ast()
+                else:
+                    file_param_vecs = extractor.fill_param_vecs_ast_new()
             if args.debug:
                 param_vectors += [f" {file} "]
             param_vectors += file_param_vecs
@@ -98,6 +101,8 @@ if __name__ == "__main__":
                             help="Mode of extraction. Default: sliding")
     arg_parser.add_argument("-d", "--debug", action="store_true",
                             help="Enable debug mode")
+    arg_parser.add_argument("-a", "--alt", action="store_true",
+                            help="Use alternative / old functions")
     args = arg_parser.parse_args()
     # Check arguments
     if not args.path.exists():

@@ -5,7 +5,6 @@ from time import perf_counter
 from analyzer import Analyzer, print_children
 
 
-
 class PythonAnalyzer(Analyzer):
     def __init__(self, src: str, lang: Language, tree: Tree, file_path: Path):
         """
@@ -22,6 +21,9 @@ class PythonAnalyzer(Analyzer):
     def analyze(self):
         """ Starts the analyses """
         print_children(self.tree.root_node)
+        # self.get_all_named_children_with_parent_of_type("function_definition")
+
+
         # Method to demonstrate Tree-sitter with a special example python program
         # self.ts_example()
         # print(self.tree.root_node.sexp())
@@ -37,10 +39,11 @@ class PythonAnalyzer(Analyzer):
         # c = perf_counter()
         # print(f"Manual: {b - a}, Treesitter: {c - b}")
 
-
-
-
-
+    def get_all_named_children_with_parent_of_type(self, node_type: str):
+        query = self.lang.query("(" + node_type + " (_) @inner)")
+        nodes = query.captures(self.tree.root_node)
+        for node in nodes:
+            print(node)
 
     def check_for_module_import(self) -> bool:
         """
