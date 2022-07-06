@@ -21,7 +21,7 @@ class PythonAnalyzer(Analyzer):
 
     def analyze(self):
         """ Starts the analyses """
-
+        print_children(self.tree.root_node)
         # Method to demonstrate Tree-sitter with a special example python program
         # self.ts_example()
         # print(self.tree.root_node.sexp())
@@ -33,7 +33,7 @@ class PythonAnalyzer(Analyzer):
         # self.exception_handling_manually()
         # self.logger.info("\n" * 3)
         # b = perf_counter()
-        self.exception_handling_via_treesitter()
+        # self.exception_handling_via_treesitter()
         # c = perf_counter()
         # print(f"Manual: {b - a}, Treesitter: {c - b}")
 

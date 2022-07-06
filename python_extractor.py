@@ -77,7 +77,7 @@ class PythonExtractor(Extractor):
                 ############################
                 # CHANGED ##################
                 # if "logger" in context:
-                if re.search("logg[ing|er]", context):
+                if re.search("logg(ing|er)", context):
                     ############################
                     param_vec["logging_"] = True
 
@@ -139,7 +139,7 @@ class PythonExtractor(Extractor):
                         param_vec["try_"] = True
                         continue
                     # Assumption: logging statement not in condition of if-statement
-                    if re.search("logg[ing|er]", code_line):
+                    if re.search("logg(ing|er)", code_line):
                         param_vec["logging_"] = True
                         continue
 
