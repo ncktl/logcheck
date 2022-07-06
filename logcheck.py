@@ -101,12 +101,16 @@ if __name__ == "__main__":
             arg_parser.error("Output file exists. Use the -f argument to overwrite.")
     else:
         # Default output
-        args.output = Path("./features/demofile.csv")
+        if args.batch:
+            args.output = Path("features/demofile.csv.csv")
+        else:
+            args.output = Path("features/" + args.path.name + ".csv")
     # Catch permission errors before program execution
-    try:
-        args.output.touch()
-    except PermissionError as e:
-        arg_parser.error(e)
+    if args.extract:
+        try:
+            args.output.touch()
+        except PermissionError as e:
+            arg_parser.error(e)
     if args.batch:
         if args.language is None:
             arg_parser.error("Batch option requires specification of language.")
