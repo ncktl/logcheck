@@ -45,7 +45,7 @@ def extract():
             file_param_vecs = analyzer.fill_param_vecs_sliding()
             param_vectors += file_param_vecs
     # TODO: Output argument handling
-    with open("./features/demofile.csv", "w") as out:
+    with open(args.output, "w") as out:
         out.write(str(list(par_vec.keys()))[1:-1])
         out.write("\n")
         out.write("\n".join([str(x)[1:-1] for x in param_vectors]))
@@ -70,7 +70,7 @@ def analyze():
             analyzer = analysis_class(sourcecode, tree_lang, tree, args.path)
             # Start the analysis
             analyzer.analyze()
-            # Todo: Output handling
+            # Todo: Output handling?
 
 
 if __name__ == "__main__":
@@ -84,7 +84,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("-e", "--extract", action="store_true",
                             help="Enables feature extraction mode. Logcheck will output parameter "
                                  "vectors from its analysis instead of logging recommendations.")
-    arg_parser.add_argument("-o", "--output", help="Specify the output file. NYI")
+    arg_parser.add_argument("-o", "--output", type=Path,
+                            help="Specify the output file. NYI")
     arg_parser.add_argument("-f", "--force", action="store_true",
                             help="Force overwrite of output file")
     arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages,
@@ -95,10 +96,21 @@ if __name__ == "__main__":
         arg_parser.error("Path does not exist.")
     if not args.batch and args.path.is_dir():
         arg_parser.error("Use batch mode when specifying directories.")
+    if args.output:
+        if args.output.is_file() and not args.force:
+            arg_parser.error("Output file exists. Use the -f argument to overwrite.")
+    else:
+        # Default output
+        args.output = Path("./features/demofile.csv")
+    # Catch permission errors before program execution
+    try:
+        args.output.touch()
+    except PermissionError as e:
+        arg_parser.error(e)
     if args.batch:
         if args.language is None:
             arg_parser.error("Batch option requires specification of language.")
-    # Determine language if not specified
+    # Without batch mode, determine language if not specified
     elif args.language is None:
         try:
             args.language = rev_suf[args.path.suffix]

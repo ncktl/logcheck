@@ -2,12 +2,6 @@ from tree_sitter import Language, Tree, Node
 import logging
 from pathlib import Path
 
-par_vec = {
-    "line": -1,
-    "if_": False,
-    "try_": False,
-    "logging_": False
-}
 
 def print_children(node: Node, level=0, maxdepth=999):
     if level > maxdepth:
