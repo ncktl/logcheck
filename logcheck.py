@@ -102,7 +102,7 @@ if __name__ == "__main__":
     else:
         # Default output
         if args.batch:
-            args.output = Path("features/demofile.csv.csv")
+            args.output = Path("features/demofile.csv")
         else:
             args.output = Path("features/" + args.path.name + ".csv")
     # Catch permission errors before program execution
