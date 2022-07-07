@@ -236,7 +236,7 @@ class PythonExtractor(Extractor):
         param_vectors = []
         # The seniority in the tuple indicates which level parent is the parent
         # of similarly nested siblings (motivation: parent of except is try)
-        interesting_node_types = [("if_statement", 1), ("except_clause", 2)]
+        interesting_node_types = [("if_statement", 1), ("except_clause", 2), ("function_definition", 0)]
         for node_type, seniority in interesting_node_types:
             # Query to find the node type
             node_query = self.lang.query("(" + node_type + ") @a")
