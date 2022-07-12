@@ -182,48 +182,41 @@ class PythonExtractor(Extractor):
 
     def fill_param_vecs_ast_new(self) -> list:
         param_vectors = []
-
-        if_query = self.lang.query("(if_statement) @a")
-        if_nodes = if_query.captures(self.tree.root_node)
-        for node, tag in if_nodes:
-            if self.args.debug:
-                param_vec = copy(par_vec_debug)
-                param_vec["line"] = node.start_point[0] + 1
-            else:
-                param_vec = copy(par_vec)
-            param_vec["if_"] = True
-            self.check_if_node(node, param_vec)
-            param_vectors.append(list(param_vec.values()))
-
-        try_query = self.lang.query("(try_statement) @a")
-        try_nodes = try_query.captures(self.tree.root_node)
-        for node, tag in try_nodes:
-            if self.args.debug:
-                param_vec = copy(par_vec_debug)
-                param_vec["line"] = node.start_point[0] + 1
-            else:
-                param_vec = copy(par_vec)
-            param_vec["try_"] = True
-            self.check_try(node, param_vec)
-            param_vectors.append(list(param_vec.values()))
-
-        def_query = self.lang.query("(function_definition) @a")
-        def_nodes = def_query.captures(self.tree.root_node)
-        for node, tag in def_nodes:
-            if self.args.debug:
-                param_vec = copy(par_vec_debug)
-                param_vec["line"] = node.start_point[0] + 1
-            else:
-                param_vec = copy(par_vec)
-            self.check_def(node, param_vec)
-            param_vectors.append(list(param_vec.values()))
-
+        visited_nodes = set()
+        interesting_node_types = ["if_statement", "try_statement", "function_definition"]
+        for node_type in interesting_node_types:
+            node_query = self.lang.query("(" + node_type + ") @" + node_type)
+            nodes = node_query.captures(self.tree.root_node)
+            for node, tag in nodes:
+                # Uniqueness check is unnecessary?
+                if (node.start_byte, node.end_byte) in visited_nodes:
+                    raise RuntimeError
+                else:
+                    visited_nodes.add((node.start_byte, node.end_byte))
+                if not node.is_named:
+                    continue
+                # Parameter vector for this node
+                if self.args.debug:
+                    param_vec = copy(par_vec_debug)
+                    param_vec["line"] = node.start_point[0] + 1
+                else:
+                    param_vec = copy(par_vec)
+                # Check parent?
+                if node_type == "if_statement":
+                    param_vec["if_"] = True
+                    self.check_if_node(node, param_vec)
+                elif node_type == "try_statement":
+                    param_vec["try_"] = True
+                    self.check_try(node, param_vec)
+                elif node_type == "function_definition":
+                    self.check_def(node, param_vec)
+                param_vectors.append(list(param_vec.values()))
         return param_vectors
 
 
 ######## Old ast approach: siblings
 
-
+    # DEPRECATED
     def fill_param_vecs_ast(self) -> list:
         """
         Fill parameter vectors using the ast but not sliding code window
