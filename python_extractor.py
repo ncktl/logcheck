@@ -1,6 +1,6 @@
 from tree_sitter import Language, Tree, Node
 from pathlib import Path
-from extractor import Extractor, par_vec, par_vec_debug
+from extractor import Extractor, par_vec, par_vec_debug, par_vec_extended, par_vec_extended_debug
 import re
 from copy import copy
 
@@ -131,7 +131,7 @@ class PythonExtractor(Extractor):
 
 ######## New ast Approach: Children of nodes, only depth of "one" level
 
-    def check_if_node(self, node: Node, param_vec: dict):
+    def check_if(self, node: Node, param_vec: dict):
         for child in node.children:
             if not self.args.debug and False not in param_vec.values():
                 return
@@ -197,14 +197,15 @@ class PythonExtractor(Extractor):
                     continue
                 # Parameter vector for this node
                 if self.args.debug:
-                    param_vec = copy(par_vec_debug)
+                    param_vec = copy(par_vec_extended_debug)
                     param_vec["line"] = node.start_point[0] + 1
                 else:
-                    param_vec = copy(par_vec)
+                    param_vec = copy(par_vec_extended)
+                param_vec["type"] = node_type
                 # Check parent?
                 if node_type == "if_statement":
                     param_vec["if_"] = True
-                    self.check_if_node(node, param_vec)
+                    self.check_if(node, param_vec)
                 elif node_type == "try_statement":
                     param_vec["try_"] = True
                     self.check_try(node, param_vec)

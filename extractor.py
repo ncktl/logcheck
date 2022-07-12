@@ -16,6 +16,22 @@ par_vec_debug = {
     "logging_": False
 }
 
+par_vec_extended = {
+    # "line": -1,
+    "type": "",
+    "if_": False,
+    "try_": False,
+    "logging_": False
+}
+
+par_vec_extended_debug = {
+    "line": -1,
+    "type": "",
+    "if_": False,
+    "try_": False,
+    "logging_": False
+}
+
 
 def print_children(node: Node, level=0, maxdepth=999):
     if level > maxdepth:
