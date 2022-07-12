@@ -131,16 +131,26 @@ class PythonExtractor(Extractor):
 
 ######## New ast Approach: Children of nodes, only depth of "one" level
 
+    # def check_if(self, node: Node, param_vec: dict):
+    #     for child in node.children:
+    #         if not self.args.debug and False not in param_vec.values():
+    #             return
+    #         if child.type == "block":
+    #             self.check_block(child, param_vec)
+    #         elif child.type == "elif_clause":
+    #             self.check_block(child.child_by_field_name("consequence"), param_vec)
+    #         elif child.type == "else_clause":
+    #             self.check_block(child.child_by_field_name("body"), param_vec)
+
     def check_if(self, node: Node, param_vec: dict):
-        for child in node.children:
-            if not self.args.debug and False not in param_vec.values():
-                return
-            if child.type == "block":
-                self.check_block(child, param_vec)
-            elif child.type == "elif_clause":
-                self.check_block(child.child_by_field_name("consequence"), param_vec)
-            elif child.type == "else_clause":
-                self.check_block(child.child_by_field_name("body"), param_vec)
+        self.check_block(node.child_by_field_name("consequence"), param_vec)
+        # for child in node.children:
+        #     if not self.args.debug and False not in param_vec.values():
+        #         return
+        #     if child.type == "elif_clause":
+        #         self.check_block(child.child_by_field_name("consequence"), param_vec)
+        #     elif child.type == "else_clause":
+        #         self.check_block(child.child_by_field_name("body"), param_vec)
 
     def check_block(self, node: Node, param_vec: dict):
         for child in node.children:
@@ -157,25 +167,46 @@ class PythonExtractor(Extractor):
                 param_vec["if_"] = True
             # More checks for expanded dict
 
+    # def check_try(self, node: Node, param_vec: dict):
+    #     for child in node.children:
+    #         if not self.args.debug and False not in param_vec.values():
+    #             return
+    #         if child.type == "block":
+    #             self.check_block(child, param_vec)
+    #         elif child.type == "else_clause":
+    #             self.check_block(child.child_by_field_name("body"), param_vec)
+    #         elif child.type == "except_clause":
+    #             # Can also have some kind of expression child?
+    #             for grandchild in child.children:
+    #                 if grandchild.type == "block":
+    #                     self.check_block(grandchild, param_vec)
+    #         elif child.type == "finally_clause":
+    #             # Comment can also be a named child
+    #             for grandchild in child.children:
+    #                 if grandchild.type == "block":
+    #                     self.check_block(grandchild, param_vec)
+    #                     break
+
     def check_try(self, node: Node, param_vec: dict):
-        for child in node.children:
-            if not self.args.debug and False not in param_vec.values():
-                return
-            if child.type == "block":
-                self.check_block(child, param_vec)
-            elif child.type == "else_clause":
-                self.check_block(child.child_by_field_name("body"), param_vec)
-            elif child.type == "except_clause":
-                # Can also have some kind of expression child?
-                for grandchild in child.children:
-                    if grandchild.type == "block":
-                        self.check_block(grandchild, param_vec)
-            elif child.type == "finally_clause":
-                # Comment can also be a named child
-                for grandchild in child.children:
-                    if grandchild.type == "block":
-                        self.check_block(grandchild, param_vec)
-                        break
+        self.check_block(node.child_by_field_name("body"), param_vec)
+        # for child in node.children:
+        #     if not self.args.debug and False not in param_vec.values():
+        #         return
+        #     if child.type == "block":
+        #         self.check_block(child, param_vec)
+        #     elif child.type == "else_clause":
+        #         self.check_block(child.child_by_field_name("body"), param_vec)
+        #     elif child.type == "except_clause":
+        #         # Can also have some kind of expression child?
+        #         for grandchild in child.children:
+        #             if grandchild.type == "block":
+        #                 self.check_block(grandchild, param_vec)
+        #     elif child.type == "finally_clause":
+        #         # Comment can also be a named child
+        #         for grandchild in child.children:
+        #             if grandchild.type == "block":
+        #                 self.check_block(grandchild, param_vec)
+        #                 break
 
     def check_def(self, node: Node, param_vec: dict):
         self.check_block(node.child_by_field_name("body"), param_vec)
@@ -204,10 +235,10 @@ class PythonExtractor(Extractor):
                 param_vec["type"] = node_type
                 # Check parent?
                 if node_type == "if_statement":
-                    param_vec["if_"] = True
+                    # param_vec["if_"] = True
                     self.check_if(node, param_vec)
                 elif node_type == "try_statement":
-                    param_vec["try_"] = True
+                    # param_vec["try_"] = True
                     self.check_try(node, param_vec)
                 elif node_type == "function_definition":
                     self.check_def(node, param_vec)
