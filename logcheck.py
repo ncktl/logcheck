@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import importlib
 import argparse
-from extractor import par_vec
+from extractor import par_vec, par_vec_extended
 
 supported_languages = ["java", "python"]
 suf = {
@@ -53,7 +53,10 @@ def extract():
                 param_vectors += [f" {file} "]
             param_vectors += file_param_vecs
     with open(args.output, "w") as out:
-        out.write(str(list(par_vec.keys()))[1:-1])
+        if args.mode == "sliding":
+            out.write(str(list(par_vec.keys()))[1:-1])
+        else:
+            out.write(str(list(par_vec_extended.keys()))[1:-1])
         out.write("\n")
         out.write("\n".join([str(x)[1:-1] for x in param_vectors]))
         out.write("\n")
