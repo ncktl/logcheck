@@ -72,6 +72,7 @@ class PythonExtractor(Extractor):
                     visited_nodes.add((node.start_byte, node.end_byte))
                 if not node.is_named:
                     continue
+
                 # print(node, tag)
                 # Parameter vector
                 if self.args.debug:
@@ -96,7 +97,7 @@ class PythonExtractor(Extractor):
                         # print(i)
                         # Assumption: def not in comment at end of line
                         if "def " in self.lines[i]:
-                            context_start = i + 1
+                            context_start = i + 1  # Set to = i instead to also have the def in the context?
                             break
                 # Check downwards for function defs:
                 for i in range(node.start_point[0] + 1, context_end + 1):
@@ -168,11 +169,13 @@ class PythonExtractor(Extractor):
                 # Can also have some kind of expression child?
                 for grandchild in child.children:
                     if grandchild.type == "block":
-                        self.check_block(grandchild.child_by_field_name("body"), param_vec)
+                        self.check_block(grandchild, param_vec)
             elif child.type == "finally_clause":
-                assert len(child.children) == 1
-                assert child.children[0].type == "block"
-                self.check_block(child.children[0], param_vec)
+                # Comment can also be a named child
+                for grandchild in child.children:
+                    if grandchild.type == "block":
+                        self.check_block(grandchild, param_vec)
+                        break
 
     def check_def(self, node: Node, param_vec: dict):
         self.check_block(node.child_by_field_name("body"), param_vec)
@@ -194,7 +197,7 @@ class PythonExtractor(Extractor):
 
         try_query = self.lang.query("(try_statement) @a")
         try_nodes = try_query.captures(self.tree.root_node)
-        for node, tag in if_nodes:
+        for node, tag in try_nodes:
             if self.args.debug:
                 param_vec = copy(par_vec_debug)
                 param_vec["line"] = node.start_point[0] + 1
@@ -266,7 +269,7 @@ class PythonExtractor(Extractor):
                     # Doesn't work with debug param vec
                     if not self.args.debug and False not in param_vec.values():
                         # raise StopIteration
-                        continue
+                        break
                     # Unlike the code window approach, we can easily filter out comments
                     if sibling.type == "comment":
                         continue
