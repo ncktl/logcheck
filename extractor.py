@@ -19,17 +19,33 @@ par_vec_debug = {
 par_vec_extended = {
     # "line": -1,
     "type": "",
-    "if_": False,
-    "try_": False,
-    "logging_": False
+    "inside_if": False,
+    "inside_elif": False,
+    "inside_if_else": False,
+    "inside_try": False,
+    "inside_except": False,
+    "inside_finally": False,
+    "inside_try_else": False,
+    "contains_if": False,
+    "contains_try": False,
+    "contains_with": False,
+    "contains_logging": False
 }
 
 par_vec_extended_debug = {
     "line": -1,
     "type": "",
-    "if_": False,
-    "try_": False,
-    "logging_": False
+    "inside_if": False,
+    "inside_elif": False,
+    "inside_if_else": False,
+    "inside_try": False,
+    "inside_except": False,
+    "inside_finally": False,
+    "inside_try_else": False,
+    "contains_if": False,
+    "contains_try": False,
+    "contains_with": False,
+    "contains_logging": False
 }
 
 

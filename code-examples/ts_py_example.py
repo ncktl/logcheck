@@ -1,8 +1,13 @@
 import logging
 import sys
 
+with open("tmp.tmp", "w") as out:
+    out.write("Hi")
+
 logging.basicConfig(filename=__file__ + ".log", filemode="w", level=logging.DEBUG)
 
+if True:
+    pass
 
 def foo():
     #logging.info("Hi")

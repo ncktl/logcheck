@@ -40,7 +40,7 @@ class PythonExtractor(Extractor):
             else:
                 # Query to find all nodes inside NEW
                 if node_type == "if_statement":
-                    node_query = self.lang.query("(if_statement " # Capture if itself as well?
+                    node_query = self.lang.query("(if_statement "  # Capture if itself as well?
                                                  "["
                                                  "(block (_) @block)"
                                                  "(elif_clause"
@@ -49,7 +49,7 @@ class PythonExtractor(Extractor):
                                                  "(block (_) @else) )"
                                                  "] )")
                 elif node_type == "try_statement":
-                    node_query = self.lang.query("(try_statement" # Capture try itself?
+                    node_query = self.lang.query("(try_statement"  # Capture try itself?
                                                  "["
                                                  "(block (_) @block)"
                                                  "(else_clause"
@@ -60,7 +60,7 @@ class PythonExtractor(Extractor):
                                                  "(block (_) @finally) )"
                                                  "] )")
                 elif node_type == "function_definition":
-                    node_query = self.lang.query("(function_definition" # and def?
+                    node_query = self.lang.query("(function_definition"  # and def?
                                                  "(block (_) @block)"
                                                  ")")
             nodes = node_query.captures(self.tree.root_node)
@@ -129,7 +129,7 @@ class PythonExtractor(Extractor):
         # print(vec)
         return param_vectors
 
-######## New ast Approach: Children of nodes, only depth of "one" level
+    ######## New ast Approach: Children of nodes, only depth of "one" level
 
     # def check_if(self, node: Node, param_vec: dict):
     #     for child in node.children:
@@ -156,15 +156,17 @@ class PythonExtractor(Extractor):
         for child in node.children:
             if not self.args.debug and False not in param_vec.values():
                 return
-            if not param_vec["logging_"] and child.type == "expression_statement":
+            if not param_vec["contains_logging"] and child.type == "expression_statement":
                 assert len(child.children) == 1
                 if child.children[0].type == "call":
                     if re.search(self.keyword, child.children[0].text.decode("UTF-8")):
-                        param_vec["logging_"] = True
-            elif not param_vec["try_"] and child.type == "try_statement":
-                param_vec["try_"] = True
-            elif not param_vec["if_"] and child.type == "if_statement":
-                param_vec["if_"] = True
+                        param_vec["contains_logging"] = True
+            elif not param_vec["contains_try"] and child.type == "try_statement":
+                param_vec["contains_try"] = True
+            elif not param_vec["contains_if"] and child.type == "if_statement":
+                param_vec["contains_if"] = True
+            elif not param_vec["contains_with"] and child.type == "with_statement":
+                param_vec["contains_with"] = True
             # More checks for expanded dict
 
     # def check_try(self, node: Node, param_vec: dict):
@@ -211,6 +213,32 @@ class PythonExtractor(Extractor):
     def check_def(self, node: Node, param_vec: dict):
         self.check_block(node.child_by_field_name("body"), param_vec)
 
+    def check_parent(self, node: Node, param_vec: dict):
+        parent = node
+        while parent.parent:
+            parent = parent.parent
+            if parent.type == "block":
+                break
+        if parent.type != "module":
+            assert parent.type == "block"
+            # TODO: Decide: Always check if entry is true already like in check_block()?
+            if parent.parent.type == "if_statement":
+                param_vec["inside_if"] = True
+            elif parent.parent.type == "elif_clause":
+                param_vec["inside_elif"] = True
+            elif parent.parent.type == "else_clause":
+                if parent.parent.parent.type == "if_statement":
+                    param_vec["inside_if_else"] = True
+                elif parent.parent.parent.type == "try_statement":
+                    param_vec["inside_try_else"] = True
+                # For..else, While..else,..
+            elif parent.parent.type == "try_statement":
+                param_vec["inside_try"] = True
+            elif parent.parent.type == "except_clause":
+                param_vec["inside_except"] = True
+            elif parent.parent.type == "finally_clause":
+                param_vec["inside_finally"] = True
+
     def fill_param_vecs_ast_new(self) -> list:
         param_vectors = []
         visited_nodes = set()
@@ -233,7 +261,16 @@ class PythonExtractor(Extractor):
                 else:
                     param_vec = copy(par_vec_extended)
                 param_vec["type"] = node_type
-                # Check parent?
+                # Check parent
+                self.check_parent(node, param_vec)
+
+                # if node.parent.type != "block":
+                #     if node.parent.type != "module":
+                #         print(f"Line {node.start_point[0] + 1}")
+                #         print(node.parent.type)
+                #         print(node.parent.parent.type)
+                #         print(node.parent.text.decode("UTF-8"))
+
                 if node_type == "if_statement":
                     # param_vec["if_"] = True
                     self.check_if(node, param_vec)
@@ -245,8 +282,7 @@ class PythonExtractor(Extractor):
                 param_vectors.append(list(param_vec.values()))
         return param_vectors
 
-
-######## Old ast approach: siblings
+    ######## Old ast approach: siblings
 
     # DEPRECATED
     def fill_param_vecs_ast(self) -> list:
