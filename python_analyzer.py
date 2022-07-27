@@ -22,7 +22,7 @@ class PythonAnalyzer(Analyzer):
 
     def analyze(self):
         """ Starts the analyses """
-        classifier = pickle.load(open('classifier', 'rb'))
+        classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
         print(classifier.predict([[False,False,False,False,False,False,False,False,False,False]]))
 
     def get_all_named_children_with_parent_of_type(self, node_type: str):
