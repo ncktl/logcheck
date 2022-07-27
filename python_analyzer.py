@@ -84,6 +84,7 @@ class PythonAnalyzer(Analyzer):
 
     def analyze(self):
         """ Starts the analyses """
+        first_rec = True
         classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
         # print(classifier.predict([[False,False,False,False,False,False,False,False,False,False]]))
 
@@ -106,16 +107,18 @@ class PythonAnalyzer(Analyzer):
                 df = pd.DataFrame.from_dict([param_vec])
                 # print(df)
                 if classifier.predict(df)[0]:
-                    logging.basicConfig(
-                        filename=self.file_path.with_name("analysis-of-" + self.file_path.name + ".log"),
-                        filemode="w",
-                        level=logging.DEBUG,
-                        format="%(message)s"
-                    )
-                    self.logger = logging.getLogger(__name__)
-                    self.logger.info(f"We recommend logging in the {node_type}"
-                                     f"starting in line {node.start_point[0] + 1}:")
-                    self.logger.info(node.text.decode("UTF-8"))
+                    if first_rec:
+                        logging.basicConfig(
+                            filename=self.file_path.with_name("analysis-of-" + self.file_path.name + ".log"),
+                            filemode="w",
+                            level=logging.DEBUG,
+                            format="%(message)s"
+                        )
+                        self.logger = logging.getLogger(__name__)
+                        first_rec = False
+                    self.logger.info(f"We recommend logging in the {node_type} "
+                                     f"starting in line {node.start_point[0] + 1}")
+                    # self.logger.info("\n".join(self.lines[node.start_point[0]: node.start_point[0] + 2]))
 
     def get_all_named_children_with_parent_of_type(self, node_type: str):
         query = self.lang.query("(" + node_type + " (_) @inner)")
