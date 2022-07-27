@@ -56,7 +56,10 @@ def extract():
         if args.mode == "sliding":
             out.write(str(list(par_vec.keys()))[1:-1])
         else:
-            out.write(str(list(par_vec_extended.keys()))[1:-1])
+            if args.debug:
+                out.write("Line," + ",".join(key for key in par_vec_extended.keys()))
+            else:
+                out.write(",".join(key for key in par_vec_extended.keys()))
         out.write("\n")
         out.write("\n".join([str(x)[1:-1] for x in param_vectors]))
         out.write("\n")
@@ -100,8 +103,8 @@ if __name__ == "__main__":
                             help="Force overwrite of output file")
     arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages,
                             help="Specify the language. This is required in batch mode.")
-    arg_parser.add_argument("-m", "--mode", type=str, choices=["ast", "sliding"], default="sliding",
-                            help="Mode of extraction. Default: sliding")
+    arg_parser.add_argument("-m", "--mode", type=str, choices=["ast", "sliding"], default="ast",
+                            help="Mode of extraction. Default: ast")
     arg_parser.add_argument("-d", "--debug", action="store_true",
                             help="Enable debug mode")
     arg_parser.add_argument("-a", "--alt", action="store_true",

@@ -18,6 +18,7 @@ class PythonExtractor(Extractor):
         # Name of the Python logging module
         self.keyword = "logg(ing|er)"
 
+    # DEPRECATED
     # Sliding code window approach
     def fill_param_vecs_sliding(self, vert_range: int = 3) -> list:
         """
@@ -144,6 +145,7 @@ class PythonExtractor(Extractor):
 
     def check_if(self, node: Node, param_vec: dict):
         self.check_block(node.child_by_field_name("consequence"), param_vec)
+        # Do we want to see what is in the elif/else clause?
         # for child in node.children:
         #     if not self.args.debug and False not in param_vec.values():
         #         return
@@ -191,6 +193,7 @@ class PythonExtractor(Extractor):
 
     def check_try(self, node: Node, param_vec: dict):
         self.check_block(node.child_by_field_name("body"), param_vec)
+        # Do we want to see what is in the except/else clauses?
         # for child in node.children:
         #     if not self.args.debug and False not in param_vec.values():
         #         return
@@ -282,9 +285,8 @@ class PythonExtractor(Extractor):
                 param_vectors.append(list(param_vec.values()))
         return param_vectors
 
-    ######## Old ast approach: siblings
-
     # DEPRECATED
+    # Old ast approach: siblings
     def fill_param_vecs_ast(self) -> list:
         """
         Fill parameter vectors using the ast but not sliding code window
