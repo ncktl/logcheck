@@ -3,7 +3,8 @@ import sys
 from pathlib import Path
 import importlib
 import argparse
-from extractor import par_vec, par_vec_extended
+from extractor import par_vec
+from config import par_vec_extended
 
 supported_languages = ["java", "python"]
 suf = {
@@ -78,7 +79,7 @@ def analyze():
         # Import the appropriate analyzer and instantiate it
         analysis_class = getattr(importlib.import_module(args.language + "_analyzer"),
                                  args.language.capitalize() + "Analyzer")
-        analyzer = analysis_class(sourcecode, tree_lang, tree, args.path)
+        analyzer = analysis_class(sourcecode, tree_lang, tree, args.path, args)
         # Start the analysis
         analyzer.analyze()
         # Todo: Output handling?

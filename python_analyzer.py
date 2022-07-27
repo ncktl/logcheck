@@ -3,12 +3,74 @@ import logging
 from pathlib import Path
 from time import perf_counter
 from analyzer import Analyzer, print_children
+from config import interesting_node_types, par_vec_extended, par_vec_extended_no_type
 import pickle
 from sklearn.svm import LinearSVC
+from copy import copy
+import re
+import pandas as pd
+
+
+# Copied from Python Extractor
+def check_parent(node: Node, param_vec: dict):
+    parent = node
+    while parent.parent:
+        parent = parent.parent
+        if parent.type == "block":
+            break
+    if parent.type != "module":
+        assert parent.type == "block"
+        # TODO: Decide: Always check if entry is true already like in check_block()?
+        if parent.parent.type == "if_statement":
+            param_vec["inside_if"] = True
+        elif parent.parent.type == "elif_clause":
+            param_vec["inside_elif"] = True
+        elif parent.parent.type == "else_clause":
+            if parent.parent.parent.type == "if_statement":
+                param_vec["inside_if_else"] = True
+            elif parent.parent.parent.type == "try_statement":
+                param_vec["inside_try_else"] = True
+            # For..else, While..else,..
+        elif parent.parent.type == "try_statement":
+            param_vec["inside_try"] = True
+        elif parent.parent.type == "except_clause":
+            param_vec["inside_except"] = True
+        elif parent.parent.type == "finally_clause":
+            param_vec["inside_finally"] = True
+
+
+def check_block(node: Node, param_vec: dict, args, keyword: str):
+    for child in node.children:
+        if not args.debug and False not in param_vec.values():
+            return
+        # if not param_vec["contains_logging"] and child.type == "expression_statement":
+        #     assert len(child.children) == 1
+        #     if child.children[0].type == "call":
+        #         if re.search(keyword, child.children[0].text.decode("UTF-8")):
+        #             param_vec["contains_logging"] = True
+        elif not param_vec["contains_try"] and child.type == "try_statement":
+            param_vec["contains_try"] = True
+        elif not param_vec["contains_if"] and child.type == "if_statement":
+            param_vec["contains_if"] = True
+        elif not param_vec["contains_with"] and child.type == "with_statement":
+            param_vec["contains_with"] = True
+        # More checks for expanded dict
+
+
+def check_if(node: Node, param_vec: dict, args, keyword: str):
+    check_block(node.child_by_field_name("consequence"), param_vec, args, keyword)
+
+
+def check_try(node: Node, param_vec: dict, args, keyword: str):
+    check_block(node.child_by_field_name("body"), param_vec, args, keyword)
+
+
+def check_def(node: Node, param_vec: dict, args, keyword: str):
+    check_block(node.child_by_field_name("body"), param_vec, args, keyword)
 
 
 class PythonAnalyzer(Analyzer):
-    def __init__(self, src: str, lang: Language, tree: Tree, file_path: Path):
+    def __init__(self, src: str, lang: Language, tree: Tree, file_path: Path, args):
         """
         :param src: Source code to analyze
         :param lang: Treesitter language object
@@ -16,14 +78,44 @@ class PythonAnalyzer(Analyzer):
         :param file_path: Pathlib object of the file to analyze
         """
 
-        super().__init__(src, lang, tree, file_path)
+        super().__init__(src, lang, tree, file_path, args)
         # Name of the Python logging module
-        self.keyword = "logging"
+        self.keyword = "logg(ing|er)"
 
     def analyze(self):
         """ Starts the analyses """
         classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
-        print(classifier.predict([[False,False,False,False,False,False,False,False,False,False]]))
+        # print(classifier.predict([[False,False,False,False,False,False,False,False,False,False]]))
+
+        for node_type in interesting_node_types:
+            node_query = self.lang.query("(" + node_type + ") @" + node_type)
+            nodes = node_query.captures(self.tree.root_node)
+            for node, tag in nodes:
+                param_vec = copy(par_vec_extended_no_type)
+                # param_vec["type"] = node_type
+                check_parent(node, param_vec)
+                if node_type == "if_statement":
+                    check_if(node, param_vec, self.args, self.keyword)
+                elif node_type == "try_statement":
+                    check_try(node, param_vec, self.args, self.keyword)
+                elif node_type == "function_definition":
+                    check_def(node, param_vec, self.args, self.keyword)
+                # print(list(param_vec.items()))
+                # print(param_vec)
+                # print(classifier.predict([list(param_vec.values())]))
+                df = pd.DataFrame.from_dict([param_vec])
+                # print(df)
+                if classifier.predict(df)[0]:
+                    logging.basicConfig(
+                        filename=self.file_path.with_name("analysis-of-" + self.file_path.name + ".log"),
+                        filemode="w",
+                        level=logging.DEBUG,
+                        format="%(message)s"
+                    )
+                    self.logger = logging.getLogger(__name__)
+                    self.logger.info(f"We recommend logging in the {node_type}"
+                                     f"starting in line {node.start_point[0] + 1}:")
+                    self.logger.info(node.text.decode("UTF-8"))
 
     def get_all_named_children_with_parent_of_type(self, node_type: str):
         query = self.lang.query("(" + node_type + " (_) @inner)")

@@ -1,6 +1,7 @@
 from tree_sitter import Language, Tree, Node
 from pathlib import Path
-from extractor import Extractor, par_vec, par_vec_debug, par_vec_extended, par_vec_extended_debug
+from extractor import Extractor, par_vec, par_vec_debug
+from config import par_vec_extended, par_vec_extended_debug, interesting_node_types
 import re
 from copy import copy
 
@@ -245,7 +246,6 @@ class PythonExtractor(Extractor):
     def fill_param_vecs_ast_new(self) -> list:
         param_vectors = []
         visited_nodes = set()
-        interesting_node_types = ["if_statement", "try_statement", "function_definition"]
         for node_type in interesting_node_types:
             node_query = self.lang.query("(" + node_type + ") @" + node_type)
             nodes = node_query.captures(self.tree.root_node)
