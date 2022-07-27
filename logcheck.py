@@ -61,7 +61,7 @@ def extract():
             else:
                 out.write(",".join(key for key in par_vec_extended.keys()))
         out.write("\n")
-        out.write("\n".join([str(x)[1:-1] for x in param_vectors]))
+        out.write("\n".join([str(x).replace(" ", "")[1:-1] for x in param_vectors]))
         out.write("\n")
         out.close()
 
@@ -72,18 +72,16 @@ def analyze():
         with open(file) as f:
             sourcecode = f.read()
             f.close()
-        # Check if logging is imported. Python specific placeholder!
-        if "import logging" in sourcecode:
-            print(f"File: {file}")
-            # Create abstract syntax tree
-            tree = parser.parse(bytes(sourcecode, "utf8"))
-            # Import the appropriate analyzer and instantiate it
-            analysis_class = getattr(importlib.import_module(args.language + "_analyzer"),
-                                     args.language.capitalize() + "Analyzer")
-            analyzer = analysis_class(sourcecode, tree_lang, tree, args.path)
-            # Start the analysis
-            analyzer.analyze()
-            # Todo: Output handling?
+        print(f"File: {file}")
+        # Create abstract syntax tree
+        tree = parser.parse(bytes(sourcecode, "utf8"))
+        # Import the appropriate analyzer and instantiate it
+        analysis_class = getattr(importlib.import_module(args.language + "_analyzer"),
+                                 args.language.capitalize() + "Analyzer")
+        analyzer = analysis_class(sourcecode, tree_lang, tree, args.path)
+        # Start the analysis
+        analyzer.analyze()
+        # Todo: Output handling?
 
 
 if __name__ == "__main__":
@@ -115,15 +113,19 @@ if __name__ == "__main__":
         arg_parser.error("Path does not exist.")
     if not args.batch and args.path.is_dir():
         arg_parser.error("Use batch mode when specifying directories.")
-    if args.output:
-        if args.output.is_file() and not args.force:
-            arg_parser.error("Output file exists. Use the -f argument to overwrite.")
-    else:
-        # Default output
-        if args.batch:
-            args.output = Path("features/demofile.csv")
+    # Output file(s) currently only needed in extract mode
+    if args.extract:
+        if args.output:
+            if args.output.is_file() and not args.force:
+                arg_parser.error("Output file exists. Use the -f argument to overwrite.")
         else:
-            args.output = Path("features/" + args.path.name + ".csv")
+            # Default output
+            if args.batch:
+                args.output = Path("features/demofile.csv")
+                print(f"No output file specified. Using default: {args.output}")
+            else:
+                args.output = Path("features/" + args.path.name + ".csv")
+                print(f"No output file specified. Using: {args.output}")
     # Catch permission errors before program execution
     if args.extract:
         try:

@@ -3,6 +3,8 @@ import logging
 from pathlib import Path
 from time import perf_counter
 from analyzer import Analyzer, print_children
+import pickle
+from sklearn.svm import LinearSVC
 
 
 class PythonAnalyzer(Analyzer):
@@ -20,24 +22,8 @@ class PythonAnalyzer(Analyzer):
 
     def analyze(self):
         """ Starts the analyses """
-        print_children(self.tree.root_node)
-        # self.get_all_named_children_with_parent_of_type("function_definition")
-
-
-        # Method to demonstrate Tree-sitter with a special example python program
-        # self.ts_example()
-        # print(self.tree.root_node.sexp())
-
-        # if not self.check_for_module_import():
-        # self.logger.info(f"The {self.keyword} module is not used in this file.")
-        # return
-        # a = perf_counter()
-        # self.exception_handling_manually()
-        # self.logger.info("\n" * 3)
-        # b = perf_counter()
-        # self.exception_handling_via_treesitter()
-        # c = perf_counter()
-        # print(f"Manual: {b - a}, Treesitter: {c - b}")
+        classifier = pickle.load(open('classifier', 'rb'))
+        print(classifier.predict([[False,False,False,False,False,False,False,False,False,False]]))
 
     def get_all_named_children_with_parent_of_type(self, node_type: str):
         query = self.lang.query("(" + node_type + " (_) @inner)")
