@@ -1,0 +1,26 @@
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/shell.py
+We recommend logging in the try_statement starting in line 55
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/scheduler.py
+We recommend logging in the if_statement starting in line 560
+We recommend logging in the if_statement starting in line 712
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/dbg.py
+We recommend logging in the if_statement starting in line 478
+We recommend logging in the if_statement starting in line 481
+We recommend logging in the try_statement starting in line 445
+We recommend logging in the try_statement starting in line 452
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/feedparser.py
+We recommend logging in the if_statement starting in line 3670
+We recommend logging in the try_statement starting in line 186
+We recommend logging in the function_definition starting in line 110
+We recommend logging in the function_definition starting in line 112
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/markdown/markdown2.py
+We recommend logging in the if_statement starting in line 1629
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pysimplesoap/transport.py
+We recommend logging in the if_statement starting in line 107
+We recommend logging in the try_statement starting in line 167
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/fpdf/fpdf.py
+We recommend logging in the if_statement starting in line 1823
+File: /Users/nickkeutel/code/python/marepos/web2py/applications/admin/controllers/default.py
+We recommend logging in the if_statement starting in line 486
+File: /Users/nickkeutel/code/python/marepos/web2py/applications/admin/controllers/wizard.py
+We recommend logging in the if_statement starting in line 190
