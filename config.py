@@ -31,6 +31,19 @@ par_vec_extended_no_type = {
     "contains_with": False,
 }
 
+par_vec_extended_no_type_all_true = {
+    "inside_if": True,
+    "inside_elif": True,
+    "inside_if_else": True,
+    "inside_try": True,
+    "inside_except": True,
+    "inside_finally": True,
+    "inside_try_else": True,
+    "contains_if": True,
+    "contains_try": True,
+    "contains_with": True,
+}
+
 par_vec_extended_debug = {
     "line": -1,
     "type": "",

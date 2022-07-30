@@ -55,6 +55,6 @@ class Analyzer:
         #     level=logging.DEBUG,
         #     format="%(message)s"
         # )
-        self.logger: None
+        # self.logger: None
         self.lines: list = src.splitlines()
         self.args = args

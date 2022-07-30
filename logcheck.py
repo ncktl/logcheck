@@ -69,6 +69,7 @@ def extract():
 
 def analyze():
     """ Analyses the code in the file(s) """
+    output = []
     for file in files:
         with open(file) as f:
             sourcecode = f.read()
@@ -81,9 +82,19 @@ def analyze():
                                  args.language.capitalize() + "Analyzer")
         analyzer = analysis_class(sourcecode, tree_lang, tree, args.path, args)
         # Start the analysis
-        analyzer.analyze()
-        # Todo: Output handling?
-
+        file_analysis = analyzer.analyze()
+        # output.append(f"{file}")
+        # print(output)
+        if file_analysis:
+            output.append(f"File: {file}")
+            output.extend(file_analysis)
+    with open(args.output, "w") as out:
+        if output:
+            out.write("\n".join(output))
+        else:
+            out.write("No recommendations")
+        out.write("\n")
+        out.close()
 
 if __name__ == "__main__":
     # Handle arguments
@@ -114,13 +125,22 @@ if __name__ == "__main__":
         arg_parser.error("Path does not exist.")
     if not args.batch and args.path.is_dir():
         arg_parser.error("Use batch mode when specifying directories.")
-    # Output file(s) currently only needed in extract mode
-    if args.extract:
-        if args.output:
-            if args.output.is_file() and not args.force:
-                arg_parser.error("Output file exists. Use the -f argument to overwrite.")
+    # Handle output
+    if args.output:
+        if args.output.is_file() and not args.force:
+            arg_parser.error("Output file exists. Use the -f argument to overwrite.")
+    # Default output
+    else:
+        # Analysis
+        if not args.extract:
+            if args.batch:
+                args.output = Path("analysis/demofile.csv")
+                print(f"No output file specified. Using default: {args.output}")
+            else:
+                args.output = Path("analysis/" + args.path.name + ".csv")
+                print(f"No output file specified. Using: {args.output}")
+        # Feature extraction
         else:
-            # Default output
             if args.batch:
                 args.output = Path("features/demofile.csv")
                 print(f"No output file specified. Using default: {args.output}")
@@ -128,11 +148,11 @@ if __name__ == "__main__":
                 args.output = Path("features/" + args.path.name + ".csv")
                 print(f"No output file specified. Using: {args.output}")
     # Catch permission errors before program execution
-    if args.extract:
-        try:
-            args.output.touch()
-        except PermissionError as e:
-            arg_parser.error(e)
+    try:
+        args.output.touch()
+    except PermissionError as e:
+        arg_parser.error(e)
+    # Ensure language is known
     if args.batch:
         if args.language is None:
             arg_parser.error("Batch option requires specification of language.")

@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from time import perf_counter
 from analyzer import Analyzer, print_children
-from config import interesting_node_types, par_vec_extended, par_vec_extended_no_type
+from config import interesting_node_types, par_vec_extended, par_vec_extended_no_type, par_vec_extended_no_type_all_true
 import pickle
 from sklearn.svm import LinearSVC
 from copy import copy
@@ -82,9 +82,10 @@ class PythonAnalyzer(Analyzer):
         # Name of the Python logging module
         self.keyword = "logg(ing|er)"
 
-    def analyze(self):
+    def analyze(self) -> list:
         """ Starts the analyses """
-        first_rec = True
+        recommendations = []
+        # first_rec = True
         classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
         # print(classifier.predict([[False,False,False,False,False,False,False,False,False,False]]))
 
@@ -106,19 +107,29 @@ class PythonAnalyzer(Analyzer):
                 # print(classifier.predict([list(param_vec.values())]))
                 df = pd.DataFrame.from_dict([param_vec])
                 # print(df)
+
+                # DEBUG
+                # test_vec = copy(par_vec_extended_no_type_all_true)
+                # df = pd.DataFrame.from_dict([test_vec])
+                # print(classifier.predict(df)[0])
+                # DEBUG END
+
                 if classifier.predict(df)[0]:
-                    if first_rec:
-                        logging.basicConfig(
-                            filename=self.file_path.with_name("analysis-of-" + self.file_path.name + ".log"),
-                            filemode="w",
-                            level=logging.DEBUG,
-                            format="%(message)s"
-                        )
-                        self.logger = logging.getLogger(__name__)
-                        first_rec = False
-                    self.logger.info(f"We recommend logging in the {node_type} "
-                                     f"starting in line {node.start_point[0] + 1}")
+                    recommendations.append(f"We recommend logging in the {node_type} "
+                                           f"starting in line {node.start_point[0] + 1}")
+                    # if first_rec:
+                    #     logging.basicConfig(
+                    #         filename=self.file_path.with_name("analysis-of-" + self.file_path.name + ".log"),
+                    #         filemode="w",
+                    #         level=logging.DEBUG,
+                    #         format="%(message)s"
+                    #     )
+                    #     self.logger = logging.getLogger(__name__)
+                    #     first_rec = False
+                    # self.logger.info(f"We recommend logging in the {node_type} "
+                    #                  f"starting in line {node.start_point[0] + 1}")
                     # self.logger.info("\n".join(self.lines[node.start_point[0]: node.start_point[0] + 2]))
+        return recommendations
 
     def get_all_named_children_with_parent_of_type(self, node_type: str):
         query = self.lang.query("(" + node_type + " (_) @inner)")
