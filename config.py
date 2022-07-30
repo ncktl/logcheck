@@ -3,7 +3,7 @@ interesting_node_types = ["if_statement", "try_statement", "function_definition"
 keyword = "logg(ing|er)"
 
 par_vec_extended = {
-    # "line": -1,
+    "line": -1,
     "type": "",
     "inside_if": False,
     "inside_elif": False,

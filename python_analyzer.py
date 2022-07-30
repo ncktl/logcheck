@@ -119,7 +119,7 @@ class PythonAnalyzer(Analyzer):
                 # print(param_vec)
                 # print(classifier.predict([list(param_vec.values())]))
 
-                df = pd.DataFrame.from_dict([param_vec]).iloc[:, 1:-1]
+                df = pd.DataFrame.from_dict([param_vec]).iloc[:, 2:-1]
                 # print(df)
 
                 # DEBUG

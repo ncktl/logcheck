@@ -160,8 +160,13 @@ class PythonExtractor(Extractor):
             if not self.args.debug and False not in param_vec.values():
                 return
             if not param_vec["contains_logging"] and child.type == "expression_statement":
-                assert len(child.children) == 1
-                if child.children[0].type == "call":
+                # assert len(child.children) == 1
+                if len(child.children) != 1:
+                    for exp_child in child.children:
+                        if exp_child.type == "call":
+                            if re.search(self.keyword, exp_child.text.decode("UTF-8")):
+                                param_vec["contains_logging"] = True
+                elif child.children[0].type == "call":
                     if re.search(self.keyword, child.children[0].text.decode("UTF-8")):
                         param_vec["contains_logging"] = True
             elif not param_vec["contains_try"] and child.type == "try_statement":
@@ -243,7 +248,7 @@ class PythonExtractor(Extractor):
             elif parent.parent.type == "finally_clause":
                 param_vec["inside_finally"] = True
 
-    def fill_param_vecs_ast_new(self) -> list:
+    def fill_param_vecs_ast_new(self, training: bool = True) -> list:
         param_vectors = []
         visited_nodes = set()
         for node_type in interesting_node_types:
@@ -264,15 +269,9 @@ class PythonExtractor(Extractor):
                 else:
                     param_vec = copy(par_vec_extended)
                 param_vec["type"] = node_type
+                param_vec["line"] = node.start_point[0] + 1
                 # Check parent
                 self.check_parent(node, param_vec)
-
-                # if node.parent.type != "block":
-                #     if node.parent.type != "module":
-                #         print(f"Line {node.start_point[0] + 1}")
-                #         print(node.parent.type)
-                #         print(node.parent.parent.type)
-                #         print(node.parent.text.decode("UTF-8"))
 
                 if node_type == "if_statement":
                     # param_vec["if_"] = True
@@ -282,7 +281,12 @@ class PythonExtractor(Extractor):
                     self.check_try(node, param_vec)
                 elif node_type == "function_definition":
                     self.check_def(node, param_vec)
-                param_vectors.append(list(param_vec.values()))
+                if training:
+                    param_vectors.append(list(param_vec.values()))
+                else:
+                    # Only recommend for a node that doesn't have logging already
+                    if not param_vec["contains_logging"]:
+                        param_vectors.append(param_vec)
         return param_vectors
 
     # DEPRECATED

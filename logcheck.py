@@ -5,6 +5,9 @@ import importlib
 import argparse
 from extractor import par_vec
 from config import par_vec_extended
+from sklearn.svm import LinearSVC
+import pandas as pd
+import pickle
 
 supported_languages = ["java", "python"]
 suf = {
@@ -26,7 +29,7 @@ def create_ts_lang_obj(language: str) -> Language:
     return ts_lang
 
 
-def extract():
+def extract(training: bool = True):
     """ Extracts parameter vectors from the file(s) """
     param_vectors = []
     for file in files:
@@ -34,25 +37,27 @@ def extract():
             sourcecode = f.read()
             f.close()
         # Check if logging is imported. Python specific placeholder!
-        if "import logging" in sourcecode:
-            print(f"File: {file}")
-            # Create abstract syntax tree
-            tree = parser.parse(bytes(sourcecode, "utf8"))
-            # Import the appropriate extractor and instantiate it
-            extractor_class = getattr(importlib.import_module(args.language + "_extractor"),
-                                     args.language.capitalize() + "Extractor")
-            extractor = extractor_class(sourcecode, tree_lang, tree, args.path, args)
-            # Start the extraction
-            if args.mode == "sliding":
-                file_param_vecs = extractor.fill_param_vecs_sliding()
+        if training:
+            if "import logging" not in sourcecode:
+                continue
+        print(f"File: {file}")
+        # Create abstract syntax tree
+        tree = parser.parse(bytes(sourcecode, "utf8"))
+        # Import the appropriate extractor and instantiate it
+        extractor_class = getattr(importlib.import_module(args.language + "_extractor"),
+                                 args.language.capitalize() + "Extractor")
+        extractor = extractor_class(sourcecode, tree_lang, tree, args.path, args)
+        # Start the extraction
+        if args.mode == "sliding":
+            file_param_vecs = extractor.fill_param_vecs_sliding()
+        else:
+            if args.alt:
+                file_param_vecs = extractor.fill_param_vecs_ast()
             else:
-                if args.alt:
-                    file_param_vecs = extractor.fill_param_vecs_ast()
-                else:
-                    file_param_vecs = extractor.fill_param_vecs_ast_new()
-            if args.debug:
-                param_vectors += [f" {file} "]
-            param_vectors += file_param_vecs
+                file_param_vecs = extractor.fill_param_vecs_ast_new()
+        if args.debug:
+            param_vectors += [f" {file} "]
+        param_vectors += file_param_vecs
     with open(args.output, "w") as out:
         if args.mode == "sliding":
             out.write(str(list(par_vec.keys()))[1:-1])
@@ -66,7 +71,52 @@ def extract():
         out.write("\n")
         out.close()
 
+def analyze_newer():
+    output = []
+    classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
+    for file in files:
+        with open(file) as f:
+            sourcecode = f.read()
+            f.close()
+        print(f"File: {file}")
+        # Create abstract syntax tree
+        tree = parser.parse(bytes(sourcecode, "utf8"))
+        # Import the appropriate extractor and instantiate it
+        extractor_class = getattr(importlib.import_module(args.language + "_extractor"),
+                                  args.language.capitalize() + "Extractor")
+        extractor = extractor_class(sourcecode, tree_lang, tree, args.path, args)
+        # Start the extraction
+        file_param_vecs = extractor.fill_param_vecs_ast_new(training=False)
+        df = pd.DataFrame.from_dict(file_param_vecs).iloc[:, 2:-1]
+        # print(df.to_string())
+        if file_param_vecs:
+            # print(classifier.predict(df))
+            recs = classifier.predict(df)
+            if True in recs:
+                output.append(f"File: {file}")
+                for i, prediction in enumerate(recs):
+                    if prediction:
+                        output.append(f"We recommend logging in the {file_param_vecs[i]['type']} "
+                                      f"starting in line {file_param_vecs[i]['line']}")
+    with open(args.output, "w") as out:
+        if output:
+            out.write("\n".join(output))
+        else:
+            out.write("No recommendations")
+        out.write("\n")
+        out.close()
 
+
+# Variant that would require file for each parameter vector
+def analyze_new():
+    output_file = args.output
+    args.output = Path("features/tmp.csv")
+    extract(training=False)
+    df = pd.read_csv("features/tmp.csv").iloc[:, 2:-1]
+    classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
+    print(classifier.predict(df).shape)
+
+# DEPRECATED
 def analyze():
     """ Analyses the code in the file(s) """
     output = []
@@ -134,10 +184,10 @@ if __name__ == "__main__":
         # Analysis
         if not args.extract:
             if args.batch:
-                args.output = Path("analysis/demofile.csv")
+                args.output = Path("analysis/demofile.txt")
                 print(f"No output file specified. Using default: {args.output}")
             else:
-                args.output = Path("analysis/" + args.path.name + ".csv")
+                args.output = Path("analysis/" + args.path.name + ".txt")
                 print(f"No output file specified. Using: {args.output}")
         # Feature extraction
         else:
@@ -175,4 +225,5 @@ if __name__ == "__main__":
     if args.extract:
         extract()
     else:
-        analyze()
+        # analyze()
+        analyze_newer()

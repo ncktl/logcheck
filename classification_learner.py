@@ -4,7 +4,7 @@ from sklearn.svm import LinearSVC
 import pickle
 
 # Importing the dataset
-dataset = pd.read_csv('features/web2py_and_viewfinder.csv').iloc[:, 1:]
+dataset = pd.read_csv('features/web2py_and_viewfinder.csv').iloc[:, 2:]
 
 X = dataset.iloc[:, :-1]
 y = dataset.loc[:, "contains_logging"]
