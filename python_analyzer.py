@@ -43,11 +43,20 @@ def check_block(node: Node, param_vec: dict, args, keyword: str):
     for child in node.children:
         if not args.debug and False not in param_vec.values():
             return
-        # if not param_vec["contains_logging"] and child.type == "expression_statement":
-        #     assert len(child.children) == 1
-        #     if child.children[0].type == "call":
-        #         if re.search(keyword, child.children[0].text.decode("UTF-8")):
-        #             param_vec["contains_logging"] = True
+        if not param_vec["contains_logging"] and child.type == "expression_statement":
+            # assert len(child.children) == 1 # NOT ALWAYS TRUE
+            if len(child.children) != 1:
+                # print("Expression statement with more than one child found:")
+                # print(f"Line {child.start_point[0] + 1}")
+                # print(child.text.decode("UTF-8"))
+                # print(child.children)
+                for exp_child in child.children:
+                    if exp_child.type == "call":
+                        if re.search(keyword, exp_child.text.decode("UTF-8")):
+                            param_vec["contains_logging"] = True
+            elif child.children[0].type == "call":
+                if re.search(keyword, child.children[0].text.decode("UTF-8")):
+                    param_vec["contains_logging"] = True
         elif not param_vec["contains_try"] and child.type == "try_statement":
             param_vec["contains_try"] = True
         elif not param_vec["contains_if"] and child.type == "if_statement":
@@ -85,7 +94,6 @@ class PythonAnalyzer(Analyzer):
     def analyze(self) -> list:
         """ Starts the analyses """
         recommendations = []
-        # first_rec = True
         classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
         # print(classifier.predict([[False,False,False,False,False,False,False,False,False,False]]))
 
@@ -93,19 +101,25 @@ class PythonAnalyzer(Analyzer):
             node_query = self.lang.query("(" + node_type + ") @" + node_type)
             nodes = node_query.captures(self.tree.root_node)
             for node, tag in nodes:
-                param_vec = copy(par_vec_extended_no_type)
-                # param_vec["type"] = node_type
-                check_parent(node, param_vec)
+                param_vec = copy(par_vec_extended)
+                param_vec["type"] = node_type
                 if node_type == "if_statement":
                     check_if(node, param_vec, self.args, self.keyword)
                 elif node_type == "try_statement":
                     check_try(node, param_vec, self.args, self.keyword)
                 elif node_type == "function_definition":
                     check_def(node, param_vec, self.args, self.keyword)
+                # Only recommend for a node that doesn't have logging already
+                if param_vec["contains_logging"]:
+                    continue
+                # Check the parent
+                check_parent(node, param_vec)
+
                 # print(list(param_vec.items()))
                 # print(param_vec)
                 # print(classifier.predict([list(param_vec.values())]))
-                df = pd.DataFrame.from_dict([param_vec])
+
+                df = pd.DataFrame.from_dict([param_vec]).iloc[:, 1:-1]
                 # print(df)
 
                 # DEBUG
@@ -117,18 +131,6 @@ class PythonAnalyzer(Analyzer):
                 if classifier.predict(df)[0]:
                     recommendations.append(f"We recommend logging in the {node_type} "
                                            f"starting in line {node.start_point[0] + 1}")
-                    # if first_rec:
-                    #     logging.basicConfig(
-                    #         filename=self.file_path.with_name("analysis-of-" + self.file_path.name + ".log"),
-                    #         filemode="w",
-                    #         level=logging.DEBUG,
-                    #         format="%(message)s"
-                    #     )
-                    #     self.logger = logging.getLogger(__name__)
-                    #     first_rec = False
-                    # self.logger.info(f"We recommend logging in the {node_type} "
-                    #                  f"starting in line {node.start_point[0] + 1}")
-                    # self.logger.info("\n".join(self.lines[node.start_point[0]: node.start_point[0] + 2]))
         return recommendations
 
     def get_all_named_children_with_parent_of_type(self, node_type: str):
@@ -173,7 +175,8 @@ class PythonAnalyzer(Analyzer):
         e.g. logging inside an if-statement in the exception handling is not
         accepted as it is not guaranteed to be reached.
         """
-        self.logger.info("Tree-sitter analysis of logging in exception handling:")
+        # self.logger.info("Tree-sitter analysis of logging in exception handling:")
+
         # Query to find logging calls inside exception handling of the form of
         # keyword.function(), e.g. logging.info("Text")
         # The first identifier of the method call, "logging", is selected via the dot (".") as the first child of
@@ -200,10 +203,10 @@ class PythonAnalyzer(Analyzer):
         for node, tag in all_exceptions:
             if node.start_byte not in exceptions_with_direct_logging:
                 # Find the exceptions not in the set of exceptions with direct logging
-                self.logger.warning(f"No direct logging in the exception handling "
+                print(f"No direct logging in the exception handling "
                                     f"starting in line {node.start_point[0] + 1}:")
-                self.logger.debug(node.text.decode("UTF-8"))
-        self.logger.info(f"Logging used in {len(exceptions_with_direct_logging)} "
+                print(node.text.decode("UTF-8"))
+        print(f"Logging used in {len(exceptions_with_direct_logging)} "
                          f"out of {len(all_exceptions)} exception handling blocks.")
 
     def exception_handling_manually(self):

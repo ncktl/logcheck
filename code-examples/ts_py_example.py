@@ -9,7 +9,7 @@ logging.basicConfig(filename=__file__ + ".log", filemode="w", level=logging.DEBU
 if True:
     pass
 
-def foo():
+def foo(a, b):
     #logging.info("Hi")
     a = 5
     logging.info("Ah")
@@ -33,5 +33,9 @@ def foo():
         logging.info("Hey")
     logging.info("Hey")
 
+try:
+    pass
+except:
+    foo(1, logging.error("Hi"))
 
 foo()

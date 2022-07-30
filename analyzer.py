@@ -5,25 +5,25 @@ from pathlib import Path
 
 def print_children(node: Node, level=0, maxdepth=999):
     ### Debug
-    if node.type == "elif_clause":
-        special = node.child_by_field_name("consequence")
-        print("ELIF")
-        print(special)
-        print("ELIF")
-    if node.type == "else_clause":
-        special = node.child_by_field_name("body")
-        print("Else")
-        print(special)
-        print("Else")
-    if node.type == "try_statement":
-        print("Try children:")
-        for child in node.children:
-            if child.is_named:
-                print(child)
-        print("Get body by field name:")
-        special = node.child_by_field_name("body")
-        print(special)
-        print("Try handling over")
+    # if node.type == "elif_clause":
+    #     special = node.child_by_field_name("consequence")
+    #     print("ELIF")
+    #     print(special)
+    #     print("ELIF")
+    # if node.type == "else_clause":
+    #     special = node.child_by_field_name("body")
+    #     print("Else")
+    #     print(special)
+    #     print("Else")
+    # if node.type == "try_statement":
+    #     print("Try children:")
+    #     for child in node.children:
+    #         if child.is_named:
+    #             print(child)
+    #     print("Get body by field name:")
+    #     special = node.child_by_field_name("body")
+    #     print(special)
+    #     print("Try handling over")
     ###
     if level > maxdepth:
         return
