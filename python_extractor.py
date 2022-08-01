@@ -227,10 +227,10 @@ class PythonExtractor(Extractor):
         while parent.parent:
             parent = parent.parent
             if parent.type == "block":
-                param_vec["parent"] = parent.parent.type
+                param_vec["child_of_" + parent.parent.type] = True
                 return
             if parent.type == "module":
-                param_vec["parent"] = "module"
+                param_vec["child_of_module"] = True
                 return
         raise RuntimeError("Could not find parent of node")
 
@@ -254,8 +254,8 @@ class PythonExtractor(Extractor):
                     param_vec["line"] = node.start_point[0] + 1
                 else:
                     param_vec = copy(par_vec_extended)
-                param_vec["type"] = node_type
                 param_vec["line"] = node.start_point[0] + 1
+                param_vec[node_type] = True
                 # Check parent
                 self.check_parent(node, param_vec)
 
