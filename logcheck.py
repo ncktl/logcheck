@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 import importlib
 import argparse
-from extractor import par_vec
 from config import par_vec_extended
 from sklearn.svm import LinearSVC
 import pandas as pd
@@ -48,30 +47,19 @@ def extract(training: bool = True):
                                  args.language.capitalize() + "Extractor")
         extractor = extractor_class(sourcecode, tree_lang, tree, file, args)
         # Start the extraction
-        if args.mode == "sliding":
-            file_param_vecs = extractor.fill_param_vecs_sliding()
-        else:
-            if args.alt:
-                file_param_vecs = extractor.fill_param_vecs_ast()
-            else:
-                file_param_vecs = extractor.fill_param_vecs_ast_new()
+        file_param_vecs = extractor.fill_param_vecs_ast_new()
         if args.debug:
             param_vectors += [f" {file} "]
         param_vectors += file_param_vecs
     with open(args.output, "w") as out:
-        if args.mode == "sliding":
-            out.write(str(list(par_vec.keys()))[1:-1])
-        else:
-            if args.debug:
-                out.write("Line," + ",".join(key for key in par_vec_extended.keys()))
-            else:
-                out.write(",".join(key for key in par_vec_extended.keys()))
+        out.write(",".join(key for key in par_vec_extended.keys()))
         out.write("\n")
         out.write("\n".join([str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
         out.write("\n")
         out.close()
 
 def analyze_newer():
+    """ Recommend logging"""
     output = []
     classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
     for file in files:
@@ -87,7 +75,7 @@ def analyze_newer():
         extractor = extractor_class(sourcecode, tree_lang, tree, args.path, args)
         # Start the extraction
         file_param_vecs = extractor.fill_param_vecs_ast_new(training=False)
-        df = pd.DataFrame.from_dict(file_param_vecs).iloc[:, 2:-1]
+        df = pd.DataFrame.from_dict(file_param_vecs).iloc[:, 1:-1]
         # print(df.to_string())
         if file_param_vecs:
             # print(classifier.predict(df))
@@ -105,17 +93,6 @@ def analyze_newer():
             out.write("No recommendations")
         out.write("\n")
         out.close()
-
-
-# Variant that would require file for each parameter vector
-def analyze_new():
-    output_file = args.output
-    args.output = Path("features/tmp.csv")
-    extract(training=False)
-    df = pd.read_csv("features/tmp.csv").iloc[:, 2:-1]
-    classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
-    print(classifier.predict(df).shape)
-    # ...
 
 # DEPRECATED
 def analyze():

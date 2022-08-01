@@ -1,9 +1,9 @@
+# Generally DEPRECIATED
+
 from tree_sitter import Language, Tree, Node
-import logging
 from pathlib import Path
-from time import perf_counter
 from analyzer import Analyzer, print_children
-from config import interesting_node_types, par_vec_extended, par_vec_extended_no_type, par_vec_extended_no_type_all_true
+from config import interesting_node_types, par_vec_extended
 import pickle
 from sklearn.svm import LinearSVC
 from copy import copy
@@ -93,6 +93,8 @@ class PythonAnalyzer(Analyzer):
 
     def analyze(self) -> list:
         """ Starts the analyses """
+        print_children(self.tree.root_node)
+        return []
         recommendations = []
         classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
         # print(classifier.predict([[False,False,False,False,False,False,False,False,False,False]]))
@@ -212,57 +214,6 @@ class PythonAnalyzer(Analyzer):
                 print(node.text.decode("UTF-8"))
         print(f"Logging used in {len(exceptions_with_direct_logging)} "
                          f"out of {len(all_exceptions)} exception handling blocks.")
-
-    def exception_handling_manually(self):
-        """ Searches the source code for indications of logging and checks the exception handling for logging """
-        self.logger.info("Manual analysis of logging in exception handling:")
-        logging_count = 0
-        exception_count = 0
-        exceptions_logged = 0
-        lines = self.src.splitlines()
-        past_import = False
-        # Go through the sourcecode
-        for i, line in enumerate(lines):
-            # Look for the logging module
-            if not past_import:
-                if "import" not in line:
-                    past_import = True
-            # After the logging module import:
-            else:
-                if self.keyword in line:
-                    logging_count += 1
-                # Search for exception statements
-                if "except" in line:
-                    except_index = line.find("except")
-                    # Substring of the line before the "except" keyword
-                    exc_line_prefix = line[0:except_index]
-                    # Avoid comments and "logging.exception()"
-                    if "#" not in exc_line_prefix and not exc_line_prefix.endswith("."):
-                        exception_count += 1
-                        # Go through the lines after the except statement in an inner loop:
-                        for j, nested_line in enumerate(lines[i + 1:]):
-                            # Assumption: 4 spaces used for indentation
-                            nested_line_prefix = nested_line[0:except_index + 4]
-                            # If we find a line with one more level of indentation
-                            if nested_line_prefix == exc_line_prefix + 4 * " ":
-                                # but also not more than one additional level
-                                if nested_line[except_index + 5] != " ":
-                                    # and the keyword (default: "logging") was used in this exception handling,
-                                    # this exception has been logged.
-                                    if self.keyword in nested_line:
-                                        exceptions_logged += 1
-                                        break
-                            # If instead a line with the same indentation is found, the exception block is
-                            # over and no logging was used.
-                            else:
-                                self.logger.warning(
-                                    f"No logging in the exception handling starting in line {i + 1}:"
-                                )
-                                # Multi-line debug message is not indented correctly
-                                self.logger.debug("\n".join(lines[i:i + j + 1]))
-                                break
-        self.logger.info(f"The logging module has been mentioned {logging_count} time[s].")
-        self.logger.info(f"Logging used in {exceptions_logged} out of {exception_count} exception handling blocks.")
 
     def ts_example(self):
         # Recursively print the whole ast in stdout

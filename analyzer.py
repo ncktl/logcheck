@@ -1,5 +1,6 @@
+# Generally DEPRECIATED
+
 from tree_sitter import Language, Tree, Node
-import logging
 from pathlib import Path
 
 
@@ -30,7 +31,7 @@ def print_children(node: Node, level=0, maxdepth=999):
     if level == 0:
         print(node, node.start_byte)
     else:
-        print(((level * 2) - 1) * " ", node, hash)
+        print(((level * 2) - 1) * "  ", node, hash)
     for child in node.children:
         if child.is_named:
             print_children(child, level + 1)
