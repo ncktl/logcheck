@@ -6,8 +6,7 @@ with open("tmp.tmp", "w") as out:
 
 logging.basicConfig(filename=__file__ + ".log", filemode="w", level=logging.DEBUG)
 
-if True:
-    pass
+if True: print("Hi")
 
 def foo(a, b):
     #logging.info("Hi")

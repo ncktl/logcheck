@@ -101,6 +101,10 @@ class PythonAnalyzer(Analyzer):
             node_query = self.lang.query("(" + node_type + ") @" + node_type)
             nodes = node_query.captures(self.tree.root_node)
             for node, tag in nodes:
+
+                print(f"{node_type} line {node.start_point[0] + 1}")
+                print(node.end_point[0] - node.start_point[0] + 1)
+
                 param_vec = copy(par_vec_extended)
                 param_vec["type"] = node_type
                 if node_type == "if_statement":

@@ -67,7 +67,7 @@ def extract(training: bool = True):
             else:
                 out.write(",".join(key for key in par_vec_extended.keys()))
         out.write("\n")
-        out.write("\n".join([str(x).replace(" ", "")[1:-1] for x in param_vectors]))
+        out.write("\n".join([str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
         out.write("\n")
         out.close()
 
@@ -115,6 +115,7 @@ def analyze_new():
     df = pd.read_csv("features/tmp.csv").iloc[:, 2:-1]
     classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
     print(classifier.predict(df).shape)
+    # ...
 
 # DEPRECATED
 def analyze():
@@ -138,13 +139,14 @@ def analyze():
         if file_analysis:
             output.append(f"File: {file}")
             output.extend(file_analysis)
-    with open(args.output, "w") as out:
-        if output:
-            out.write("\n".join(output))
-        else:
-            out.write("No recommendations")
-        out.write("\n")
-        out.close()
+    print("\n".join(output))
+    # with open(args.output, "w") as out:
+    #     if output:
+    #         out.write("\n".join(output))
+    #     else:
+    #         out.write("No recommendations")
+    #     out.write("\n")
+    #     out.close()
 
 if __name__ == "__main__":
     # Handle arguments
@@ -225,5 +227,7 @@ if __name__ == "__main__":
     if args.extract:
         extract()
     else:
-        # analyze()
-        analyze_newer()
+        if args.alt:
+            analyze()
+        else:
+            analyze_newer()
