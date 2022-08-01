@@ -62,7 +62,7 @@ def print_children(node: Node, level=0, maxdepth=999):
 
 
 class Extractor:
-    def __init__(self, src: str, lang: Language, tree: Tree, file_path: Path, args):
+    def __init__(self, src: str, lang: Language, tree: Tree, file, args):
         """
         :param src: Source code to extract paramaeter vectors from
         :param lang: Tree-sitter language object
@@ -73,6 +73,6 @@ class Extractor:
         self.src: str = src
         self.lang: Language = lang
         self.tree: Tree = tree
-        self.file_path: Path = file_path
+        self.file = file
         self.lines: list = src.splitlines()
         self.args = args

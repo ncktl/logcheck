@@ -40,13 +40,13 @@ def extract(training: bool = True):
         if training:
             if "import logging" not in sourcecode:
                 continue
-        print(f"File: {file}")
+        # print(f"File: {file}")
         # Create abstract syntax tree
         tree = parser.parse(bytes(sourcecode, "utf8"))
         # Import the appropriate extractor and instantiate it
         extractor_class = getattr(importlib.import_module(args.language + "_extractor"),
                                  args.language.capitalize() + "Extractor")
-        extractor = extractor_class(sourcecode, tree_lang, tree, args.path, args)
+        extractor = extractor_class(sourcecode, tree_lang, tree, file, args)
         # Start the extraction
         if args.mode == "sliding":
             file_param_vecs = extractor.fill_param_vecs_sliding()

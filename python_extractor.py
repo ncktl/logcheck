@@ -7,15 +7,15 @@ from copy import copy
 
 
 class PythonExtractor(Extractor):
-    def __init__(self, src: str, lang: Language, tree: Tree, file_path: Path, args):
+    def __init__(self, src: str, lang: Language, tree: Tree, file, args):
         """
         :param src: Source code to extract paramaeter vectors from
         :param lang: Treesitter language object
         :param tree: Treesitter tree object
-        :param file_path: Pathlib object of the file to analyze
+        :param file: current file
         """
 
-        super().__init__(src, lang, tree, file_path, args)
+        super().__init__(src, lang, tree, file, args)
         # Name of the Python logging module
         self.keyword = "logg(ing|er)"
 
@@ -227,26 +227,12 @@ class PythonExtractor(Extractor):
         while parent.parent:
             parent = parent.parent
             if parent.type == "block":
-                break
-        if parent.type != "module":
-            assert parent.type == "block"
-            # TODO: Decide: Always check if entry is true already like in check_block()?
-            if parent.parent.type == "if_statement":
-                param_vec["inside_if"] = True
-            elif parent.parent.type == "elif_clause":
-                param_vec["inside_elif"] = True
-            elif parent.parent.type == "else_clause":
-                if parent.parent.parent.type == "if_statement":
-                    param_vec["inside_if_else"] = True
-                elif parent.parent.parent.type == "try_statement":
-                    param_vec["inside_try_else"] = True
-                # For..else, While..else,..
-            elif parent.parent.type == "try_statement":
-                param_vec["inside_try"] = True
-            elif parent.parent.type == "except_clause":
-                param_vec["inside_except"] = True
-            elif parent.parent.type == "finally_clause":
-                param_vec["inside_finally"] = True
+                param_vec["parent"] = parent.parent.type
+                return
+            if parent.type == "module":
+                param_vec["parent"] = "module"
+                return
+        raise RuntimeError("Could not find parent of node")
 
     def fill_param_vecs_ast_new(self, training: bool = True) -> list:
         param_vectors = []
