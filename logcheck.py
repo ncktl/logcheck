@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import importlib
 import argparse
-from config import par_vec_extended
+from config import par_vec_extended, par_vec_bool, par_vec_onehot
 from sklearn.svm import LinearSVC
 import pandas as pd
 import pickle
@@ -44,19 +44,23 @@ def extract(training: bool = True):
         tree = parser.parse(bytes(sourcecode, "utf8"))
         # Import the appropriate extractor and instantiate it
         extractor_class = getattr(importlib.import_module(args.language + "_extractor"),
-                                 args.language.capitalize() + "Extractor")
+                                  args.language.capitalize() + "Extractor")
         extractor = extractor_class(sourcecode, tree_lang, tree, file, args)
         # Start the extraction
-        file_param_vecs = extractor.fill_param_vecs_ast_new()
+        file_param_vecs = extractor.fill_param_vecs_ast_new(training)
         if args.debug:
             param_vectors += [f" {file} "]
         param_vectors += file_param_vecs
     with open(args.output, "w") as out:
-        out.write(",".join(key for key in par_vec_extended.keys()))
+        if args.mode == "bool":
+            out.write(",".join(key for key in par_vec_bool.keys()))
+        elif args.mode == "onehot":
+            out.write(",".join(key for key in par_vec_onehot.keys()))
         out.write("\n")
         out.write("\n".join([str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
         out.write("\n")
         out.close()
+
 
 def analyze_newer():
     """ Recommend logging"""
@@ -94,6 +98,7 @@ def analyze_newer():
         out.write("\n")
         out.close()
 
+
 # DEPRECATED
 def analyze():
     """ Analyses the code in the file(s) """
@@ -125,6 +130,7 @@ def analyze():
     #     out.write("\n")
     #     out.close()
 
+
 if __name__ == "__main__":
     # Handle arguments
     arg_parser = argparse.ArgumentParser()
@@ -142,8 +148,8 @@ if __name__ == "__main__":
                             help="Force overwrite of output file")
     arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages,
                             help="Specify the language. This is required in batch mode.")
-    arg_parser.add_argument("-m", "--mode", type=str, choices=["ast", "sliding"], default="ast",
-                            help="Mode of extraction. Default: ast")
+    arg_parser.add_argument("-m", "--mode", type=str, choices=["bool", "onehot"], default="bool",
+                            help="Mode of encoding. Default: bool")
     arg_parser.add_argument("-d", "--debug", action="store_true",
                             help="Enable debug mode")
     arg_parser.add_argument("-a", "--alt", action="store_true",
@@ -156,25 +162,27 @@ if __name__ == "__main__":
         arg_parser.error("Use batch mode when specifying directories.")
     # Handle output
     if args.output:
+        args.output = args.output.with_suffix(f".{args.mode}.csv")
         if args.output.is_file() and not args.force:
             arg_parser.error("Output file exists. Use the -f argument to overwrite.")
+        print(f"Output file: {args.output}")
     # Default output
     else:
         # Analysis
         if not args.extract:
             if args.batch:
-                args.output = Path("analysis/demofile.txt")
+                args.output = Path("analysis/demofile.txt").with_suffix(f".{args.mode}.csv")
                 print(f"No output file specified. Using default: {args.output}")
             else:
-                args.output = Path("analysis/" + args.path.name + ".txt")
+                args.output = Path("analysis/" + args.path.name + ".txt").with_suffix(f".{args.mode}.csv")
                 print(f"No output file specified. Using: {args.output}")
         # Feature extraction
         else:
             if args.batch:
-                args.output = Path("features/demofile.csv")
+                args.output = Path("features/demofile.csv").with_suffix(f".{args.mode}.csv")
                 print(f"No output file specified. Using default: {args.output}")
             else:
-                args.output = Path("features/" + args.path.name + ".csv")
+                args.output = Path("features/" + args.path.name + ".csv").with_suffix(f".{args.mode}.csv")
                 print(f"No output file specified. Using: {args.output}")
     # Catch permission errors before program execution
     try:

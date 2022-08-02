@@ -1,5 +1,5 @@
 # Generally DEPRECIATED
-
+from python_extractor import PythonExtractor
 from tree_sitter import Language, Tree, Node
 from pathlib import Path
 from analyzer import Analyzer, print_children
@@ -78,23 +78,24 @@ def check_def(node: Node, param_vec: dict, args, keyword: str):
     check_block(node.child_by_field_name("body"), param_vec, args, keyword)
 
 
-class PythonAnalyzer(Analyzer):
-    def __init__(self, src: str, lang: Language, tree: Tree, file_path: Path, args):
+class PythonAnalyzer(PythonExtractor):
+    def __init__(self, src: str, lang: Language, tree: Tree, file, args):
         """
-        :param src: Source code to analyze
+        :param src: Source code to extract paramaeter vectors from
         :param lang: Treesitter language object
         :param tree: Treesitter tree object
-        :param file_path: Pathlib object of the file to analyze
+        :param file: current file
         """
 
-        super().__init__(src, lang, tree, file_path, args)
+        super().__init__(src, lang, tree, file, args)
         # Name of the Python logging module
         self.keyword = "logg(ing|er)"
 
     def analyze(self) -> list:
         """ Starts the analyses """
-        print_children(self.tree.root_node)
-        return []
+        if self.args.debug:
+            print_children(self.tree.root_node)
+            return []
         recommendations = []
         classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
         # print(classifier.predict([[False,False,False,False,False,False,False,False,False,False]]))

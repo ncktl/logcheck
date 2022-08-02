@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
 import pickle
-
+# Todo: Update
 # Importing the dataset
 dataset = pd.read_csv('features/web2py_and_viewfinder.csv').iloc[:, 2:]
 

@@ -1,6 +1,6 @@
 from tree_sitter import Language, Tree, Node
 from extractor import Extractor
-from config import par_vec_extended, interesting_node_types
+from config import par_vec_extended, par_vec_bool, par_vec_onehot, interesting_node_types, contains
 import re
 from copy import copy
 
@@ -31,8 +31,11 @@ class PythonExtractor(Extractor):
 
     def check_block(self, node: Node, param_vec: dict):
         for child in node.children:
-            if not self.args.debug and False not in param_vec.values():
-                return
+            # Useless?
+            if False not in param_vec.values():
+                raise RuntimeError
+            # Todo: Adapt to new contains_features
+
             if not param_vec["contains_logging"] and child.type == "expression_statement":
                 if len(child.children) != 1:
                     for exp_child in child.children:
@@ -42,12 +45,12 @@ class PythonExtractor(Extractor):
                 elif child.children[0].type == "call":
                     if re.search(self.keyword, child.children[0].text.decode("UTF-8")):
                         param_vec["contains_logging"] = True
-            elif not param_vec["contains_try"] and child.type == "try_statement":
-                param_vec["contains_try"] = True
-            elif not param_vec["contains_if"] and child.type == "if_statement":
-                param_vec["contains_if"] = True
-            elif not param_vec["contains_with"] and child.type == "with_statement":
-                param_vec["contains_with"] = True
+            elif not param_vec["contains_try_statement"] and child.type == "try_statement":
+                param_vec["contains_try_statement"] = True
+            elif not param_vec["contains_if_statement"] and child.type == "if_statement":
+                param_vec["contains_if_statement"] = True
+            elif not param_vec["contains_with_statement"] and child.type == "with_statement":
+                param_vec["contains_with_statement"] = True
             # More checks for expanded dict
 
     def check_try(self, node: Node, param_vec: dict):
@@ -79,13 +82,25 @@ class PythonExtractor(Extractor):
         parent = node
         while parent.parent:
             parent = parent.parent
-            if parent.type == "block":
-                param_vec["child_of_" + parent.parent.type] = True
-                return
-            if parent.type == "module":
-                param_vec["child_of_module"] = True
-                return
-        raise RuntimeError("Could not find parent of node")
+            if self.args.mode == "bool":
+                if parent.type == "block":
+                    # Temporary solution while interesting nodes not handled fully
+                    if parent.parent.type in interesting_node_types:
+                        param_vec["child_of_" + parent.parent.type] = True
+                        return
+                # Temp disabled
+                # if parent.type == "module":
+                #     param_vec["child_of_module"] = True
+                #     return
+            elif self.args.mode == "onehot":
+                if parent.type == "block":
+                    param_vec["parent"] = parent.parent.type
+                    return
+                if parent.type == "module":
+                    param_vec["parent"] = "module"
+                    return
+        # Temp disabled
+        # raise RuntimeError("Could not find parent of node")
 
     def fill_param_vecs_ast_new(self, training: bool = True) -> list:
         param_vectors = []
@@ -102,12 +117,16 @@ class PythonExtractor(Extractor):
                 if not node.is_named:
                     continue
                 # Parameter vector for this node
-                param_vec = copy(par_vec_extended)
+                if self.args.mode == "bool":
+                    param_vec = copy(par_vec_bool)
+                    param_vec[node_type] = True
+                elif self.args.mode == "onehot":
+                    param_vec = copy(par_vec_onehot)
+                    param_vec["type"] = node_type
                 param_vec["line"] = node.start_point[0] + 1
-                param_vec[node_type] = True
                 # Check parent
                 self.check_parent(node, param_vec)
-
+                # Todo: Turn this into a function
                 if node_type == "if_statement":
                     self.check_if(node, param_vec)
                 elif node_type == "try_statement":
@@ -115,9 +134,25 @@ class PythonExtractor(Extractor):
                 elif node_type == "function_definition":
                     self.check_def(node, param_vec)
                 if training:
-                    param_vectors.append(list(param_vec.values()))
+                    hmm = list(param_vec.values())
+                    if self.args.mode == "bool":
+                        if len(hmm) != len(par_vec_bool):
+                            print(self.file)
+                            print(copy(par_vec_bool))
+                            print(node)
+                            print(param_vec)
+                            print()
+                    elif self.args.mode == "onehot":
+                        if len(hmm) != len(par_vec_onehot):
+                            print(self.file)
+                            print(copy(par_vec_onehot))
+                            print(node)
+                            print(param_vec)
+                            print()
+                    param_vectors.append(hmm)
                 else:
                     # Only recommend for a node that doesn't have logging already
+                    # TODO check if this is a good idea
                     if not param_vec["contains_logging"]:
                         param_vectors.append(param_vec)
         return param_vectors
