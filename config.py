@@ -114,5 +114,26 @@ par_vec_onehot_manual = {
     "contains_with": False,
     "contains_logging": False
 }
+
+reindex = ['contains_class_definition', 'contains_for_statement',
+       'contains_function_definition', 'contains_if_statement',
+       'contains_try_statement', 'contains_while_statement',
+       'contains_with_statement', 'contains_assert_statement',
+       'contains_break_statement', 'contains_continue_statement',
+       'contains_delete_statement', 'contains_exec_statement',
+       'contains_expression_statement', 'contains_future_import_statement',
+       'contains_global_statement', 'contains_import_from_statement',
+       'contains_import_statement', 'contains_nonlocal_statement',
+       'contains_pass_statement', 'contains_print_statement',
+       'contains_raise_statement', 'contains_return_statement',
+       'type_class_definition', 'type_elif_clause',
+       'type_else_clause', 'type_except_clause', 'type_finally_clause',
+       'type_for_statement', 'type_function_definition', 'type_if_statement',
+       'type_try_statement', 'type_while_statement', 'type_with_statement',
+       'parent_class_definition', 'parent_elif_clause', 'parent_else_clause',
+       'parent_except_clause', 'parent_finally_clause', 'parent_for_statement',
+       'parent_function_definition', 'parent_if_statement', 'parent_module',
+       'parent_try_statement', 'parent_while_statement',
+       'parent_with_statement']
 # print(par_vec_bool)
 # print(par_vec_onehot)

@@ -4,9 +4,9 @@ from sklearn.svm import LinearSVC
 import pickle
 
 # Importing the dataset
-df = pd.read_csv('features/viewfinder.bool2.csv')
-# Assumption: Bool encoding
+df = pd.read_csv('features/viewfinder.onehot2.csv')
 X = df.drop(["line", "contains_logging"], axis=1)
+X = pd.get_dummies(X, columns=["type", "parent"])
 y = df.contains_logging
 
 # Splitting the dataset into the Training set and Test set

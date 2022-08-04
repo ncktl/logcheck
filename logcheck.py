@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import importlib
 import argparse
-from config import par_vec_extended, par_vec_bool, par_vec_onehot
+from config import par_vec_extended, par_vec_bool, par_vec_onehot, reindex
 from sklearn.svm import LinearSVC
 import pandas as pd
 import pickle
@@ -79,9 +79,12 @@ def analyze_newer():
         extractor = extractor_class(sourcecode, tree_lang, tree, args.path, args)
         # Start the extraction
         file_param_vecs = extractor.fill_param_vecs_ast_new(training=False)
-        df = pd.DataFrame.from_dict(file_param_vecs).iloc[:, 1:-1]
+
         # print(df.to_string())
         if file_param_vecs:
+            df = pd.DataFrame.from_dict(file_param_vecs).drop(["line", "contains_logging"], axis=1)
+            df = pd.get_dummies(df, columns=["type", "parent"])
+            df = df.reindex(reindex, fill_value=False, axis="columns")
             # print(classifier.predict(df))
             recs = classifier.predict(df)
             if True in recs:
@@ -149,8 +152,8 @@ if __name__ == "__main__":
                             help="Force overwrite of output file")
     arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages,
                             help="Specify the language. This is required in batch mode.")
-    arg_parser.add_argument("-m", "--mode", type=str, choices=["bool", "onehot"], default="bool",
-                            help="Mode of encoding. Default: bool")
+    arg_parser.add_argument("-m", "--mode", type=str, choices=["bool", "onehot"], default="onehot",
+                            help="Mode of encoding. Default: onehot")
     arg_parser.add_argument("-d", "--debug", action="store_true",
                             help="Enable debug mode")
     arg_parser.add_argument("-a", "--alt", action="store_true",
