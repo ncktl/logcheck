@@ -1,6 +1,7 @@
 from tree_sitter import Language, Tree, Node
 from extractor import Extractor
 from config import par_vec_extended, par_vec_bool, par_vec_onehot, interesting_node_types, contains
+from config import compound_statements, simple_statements, extra_clauses, contains_types
 import re
 from copy import copy
 
@@ -18,6 +19,15 @@ class PythonExtractor(Extractor):
         # Name of the Python logging module
         self.keyword = "logg(ing|er)"
 
+    def debug_helper(self, node: Node):
+        print(self.file)
+        print(node)
+        print(f"Parent: {node.parent}")
+        print(f"Children: {node.children}")
+        # print(node.text.decode("UTF-8"))
+
+
+    # DEPRECATED
     def check_if(self, node: Node, param_vec: dict):
         self.check_block(node.child_by_field_name("consequence"), param_vec)
         # Do we want to see what is in the elif/else clause?
@@ -31,12 +41,13 @@ class PythonExtractor(Extractor):
 
     def check_block(self, node: Node, param_vec: dict):
         for child in node.children:
-            # Useless?
-            if False not in param_vec.values():
-                raise RuntimeError
-            # Todo: Adapt to new contains_features
-
+            # Todo: Adapt to new contains_features using config.contains
+            for key, clause in zip(contains[:-1], contains_types):
+                if child.type == clause:
+                    param_vec[key] = True
+                    break
             if not param_vec["contains_logging"] and child.type == "expression_statement":
+                # Todo: Make prettier
                 if len(child.children) != 1:
                     for exp_child in child.children:
                         if exp_child.type == "call":
@@ -45,14 +56,15 @@ class PythonExtractor(Extractor):
                 elif child.children[0].type == "call":
                     if re.search(self.keyword, child.children[0].text.decode("UTF-8")):
                         param_vec["contains_logging"] = True
-            elif not param_vec["contains_try_statement"] and child.type == "try_statement":
-                param_vec["contains_try_statement"] = True
-            elif not param_vec["contains_if_statement"] and child.type == "if_statement":
-                param_vec["contains_if_statement"] = True
-            elif not param_vec["contains_with_statement"] and child.type == "with_statement":
-                param_vec["contains_with_statement"] = True
+            # elif not param_vec["contains_try_statement"] and child.type == "try_statement":
+            #     param_vec["contains_try_statement"] = True
+            # elif not param_vec["contains_if_statement"] and child.type == "if_statement":
+            #     param_vec["contains_if_statement"] = True
+            # elif not param_vec["contains_with_statement"] and child.type == "with_statement":
+            #     param_vec["contains_with_statement"] = True
             # More checks for expanded dict
 
+    # DEPRECATED
     def check_try(self, node: Node, param_vec: dict):
         self.check_block(node.child_by_field_name("body"), param_vec)
         # Do we want to see what is in the except/else clauses?
@@ -75,32 +87,43 @@ class PythonExtractor(Extractor):
         #                 self.check_block(grandchild, param_vec)
         #                 break
 
-    def check_def(self, node: Node, param_vec: dict):
-        self.check_block(node.child_by_field_name("body"), param_vec)
 
     def check_parent(self, node: Node, param_vec: dict):
-        parent = node
-        while parent.parent:
-            parent = parent.parent
-            if self.args.mode == "bool":
-                if parent.type == "block":
-                    # Temporary solution while interesting nodes not handled fully
-                    if parent.parent.type in interesting_node_types:
-                        param_vec["child_of_" + parent.parent.type] = True
+        """Checks the node's parent. Not used for the module node."""
+        if node.type in compound_statements:
+            # if node.parent.type != "module":
+            #     if node.parent.parent.type not in interesting_node_types:
+            #         self.debug_helper(node)
+            # Using the loop allows us to skip function decorators for the parent parameter
+            parent = node
+            while parent.parent:
+                parent = parent.parent
+                if self.args.mode == "bool":
+                    if parent.type == "block":
+                        if parent.parent.type in interesting_node_types:
+                            param_vec["child_of_" + parent.parent.type] = True
+                            return
+                        else:
+                            raise RuntimeError("Parent of block is not interesting")
+                    if parent.type == "module":
+                        param_vec["child_of_module"] = True
                         return
-                # Temp disabled
-                # if parent.type == "module":
-                #     param_vec["child_of_module"] = True
-                #     return
+                elif self.args.mode == "onehot":
+                    if parent.type == "block":
+                        param_vec["parent"] = parent.parent.type
+                        return
+                    if parent.type == "module":
+                        param_vec["parent"] = "module"
+                        return
+            raise RuntimeError("Could not find parent of node")
+        elif node.type in extra_clauses:
+            assert node.parent.type in compound_statements
+            if self.args.mode == "bool":
+                param_vec["child_of_" + node.parent.type] = True
             elif self.args.mode == "onehot":
-                if parent.type == "block":
-                    param_vec["parent"] = parent.parent.type
-                    return
-                if parent.type == "module":
-                    param_vec["parent"] = "module"
-                    return
-        # Temp disabled
-        # raise RuntimeError("Could not find parent of node")
+                param_vec["parent"] = node.parent.type
+        else:
+            raise RuntimeError("Node type not handled")
 
     def fill_param_vecs_ast_new(self, training: bool = True) -> list:
         param_vectors = []
@@ -125,30 +148,44 @@ class PythonExtractor(Extractor):
                     param_vec["type"] = node_type
                 param_vec["line"] = node.start_point[0] + 1
                 # Check parent
-                self.check_parent(node, param_vec)
-                # Todo: Turn this into a function
-                if node_type == "if_statement":
-                    self.check_if(node, param_vec)
-                elif node_type == "try_statement":
-                    self.check_try(node, param_vec)
-                elif node_type == "function_definition":
-                    self.check_def(node, param_vec)
+                if node_type != "module":
+                    self.check_parent(node, param_vec)
+                # Check node
+                body_block = ["class_definition",
+                              "for_statement",
+                              "function_definition",
+                              "try_statement",
+                              "while_statement",
+                              "with_statement",
+                              "else_clause"]
+                if node_type in body_block:
+                    self.check_block(node.child_by_field_name("body"), param_vec)
+                elif node_type in ["if_statement", "elif_clause"]:
+                    self.check_block(node.child_by_field_name("consequence"), param_vec)
+                elif node_type in ["except_clause", "finally_clause"]:
+                    found_block = False
+                    for child in node.children:
+                        if child.type == "block":
+                            if found_block:
+                                self.debug_helper(node)
+                                raise RuntimeError("Multiple blocks in except or finally clause")
+                            self.check_block(child, param_vec)
+                            found_block = True
+
                 if training:
                     hmm = list(param_vec.values())
                     if self.args.mode == "bool":
                         if len(hmm) != len(par_vec_bool):
-                            print(self.file)
-                            print(copy(par_vec_bool))
-                            print(node)
-                            print(param_vec)
-                            print()
+                            self.debug_helper(node)
+                            print(par_vec_bool.keys())
+                            print(param_vec.keys())
+                            raise RuntimeError("Parameter vector length mismatch")
                     elif self.args.mode == "onehot":
                         if len(hmm) != len(par_vec_onehot):
-                            print(self.file)
-                            print(copy(par_vec_onehot))
-                            print(node)
-                            print(param_vec)
-                            print()
+                            self.debug_helper(node)
+                            print(par_vec_onehot.keys())
+                            print(param_vec.keys())
+                            raise RuntimeError("Parameter vector length mismatch")
                     param_vectors.append(hmm)
                 else:
                     # Only recommend for a node that doesn't have logging already

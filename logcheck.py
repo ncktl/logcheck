@@ -88,6 +88,7 @@ def analyze_newer():
                 output.append(f"File: {file}")
                 for i, prediction in enumerate(recs):
                     if prediction:
+                        # Assumption: onehot
                         output.append(f"We recommend logging in the {file_param_vecs[i]['type']} "
                                       f"starting in line {file_param_vecs[i]['line']}")
     with open(args.output, "w") as out:
@@ -154,6 +155,8 @@ if __name__ == "__main__":
                             help="Enable debug mode")
     arg_parser.add_argument("-a", "--alt", action="store_true",
                             help="Use alternative / old functions")
+    arg_parser.add_argument("-s", "--suffix", action="store_true",
+                            help="Add mode of encoding to file name")
     args = arg_parser.parse_args()
     # Check arguments
     if not args.path.exists():
@@ -161,29 +164,38 @@ if __name__ == "__main__":
     if not args.batch and args.path.is_dir():
         arg_parser.error("Use batch mode when specifying directories.")
     # Handle output
-    if args.output:
-        args.output = args.output.with_suffix(f".{args.mode}.csv")
-        if args.output.is_file() and not args.force:
-            arg_parser.error("Output file exists. Use the -f argument to overwrite.")
-        print(f"Output file: {args.output}")
-    # Default output
-    else:
+    if not args.output:
         # Analysis
         if not args.extract:
             if args.batch:
-                args.output = Path("analysis/demofile.txt").with_suffix(f".{args.mode}.csv")
+                args.output = Path("analysis/demofile.txt")
                 print(f"No output file specified. Using default: {args.output}")
             else:
-                args.output = Path("analysis/" + args.path.name + ".txt").with_suffix(f".{args.mode}.csv")
+                args.output = Path("analysis/" + args.path.name + ".txt")
                 print(f"No output file specified. Using: {args.output}")
         # Feature extraction
         else:
             if args.batch:
-                args.output = Path("features/demofile.csv").with_suffix(f".{args.mode}.csv")
+                args.output = Path("features/demofile.csv")
                 print(f"No output file specified. Using default: {args.output}")
             else:
-                args.output = Path("features/" + args.path.name + ".csv").with_suffix(f".{args.mode}.csv")
+                args.output = Path("features/" + args.path.name + ".csv")
                 print(f"No output file specified. Using: {args.output}")
+    if args.suffix:
+        args.output = args.output.with_suffix(f".{args.mode}.csv")
+    if args.output.is_file() and not args.force:
+        # arg_parser.error("Output file exists. Use the -f argument to overwrite.")
+        def overwrite():
+            force = input("Output file exists. Overwrite? [y/n]: ")
+            if force.lower() in ["y", "yes"]:
+                pass
+            elif force.lower() in ["n", "no"]:
+                print("Exiting")
+                sys.exit()
+            else:
+                overwrite()
+        overwrite()
+    print(f"Output file: {args.output}")
     # Catch permission errors before program execution
     try:
         args.output.touch()
