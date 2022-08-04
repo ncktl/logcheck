@@ -28,25 +28,25 @@ git clone https://github.com/tree-sitter/tree-sitter-java.git
 ## Usage
 
 ```sh
-usage: logcheck.py [-h] [-b] [-e] [-o OUTPUT] [-f] [-l {java,python}] [-m {ast,sliding}] [-d] [-a] path
+usage: logcheck.py [-h] [-b] [-e] [-o OUTPUT] [-f] [-l {java,python}] [-m {bool,onehot}] [-d] [-a] [-s] path
 
 positional arguments:
   path
 
 optional arguments:
   -h, --help            show this help message and exit
-  -b, --batch           Enable batch mode. Logcheck will be run on all source code files of the given programming language found in the specified directory and subdirectories.
-                        Requires the -l / --language argument.
+  -b, --batch           Enable batch mode. Logcheck will be run on all source code files of the given programming language found in the specified directory and subdirectories. Requires the -l / --language argument.
   -e, --extract         Enables feature extraction mode. Logcheck will output parameter vectors from its analysis instead of logging recommendations.
   -o OUTPUT, --output OUTPUT
                         Specify the output file.
   -f, --force           Force overwrite of output file
   -l {java,python}, --language {java,python}
                         Specify the language. This is required in batch mode.
-  -m {ast,sliding}, --mode {ast,sliding}
-                        Mode of extraction. Default: sliding
+  -m {bool,onehot}, --mode {bool,onehot}
+                        Mode of encoding. Default: bool
   -d, --debug           Enable debug mode
   -a, --alt             Use alternative / old functions
+  -s, --suffix          Add mode of encoding to file name
 ```
 
 ### Feature extraction
@@ -57,7 +57,6 @@ To extract parameter vectors from files, use the -e option like this:
 python3 logcheck.py -e <file to extract features from>
 ```
 
-The parameters are saved in features/demofile.csv (for now).
 
 ### Analysis
 
@@ -83,5 +82,5 @@ python3 logcheck.py code-examples/SimpleLoggingExample.java
 To process multiple files, use the -b option. It requires the specification of the programming language via the -l (small L) parameter like this:
 
 ```sh
-python3 logcheck.py -e -b -l python code-examples/
+python3 logcheck.py -e -b -l python -o features/code-examples.csv code-examples/
 ```
