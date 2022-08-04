@@ -9,9 +9,7 @@ Using Tree-sitter allows us to analyse various programming languages in a relati
 The Tree-sitter python bindings as well as pandas and scikit-learn are required:
 
 ```sh
-python3 -m pip install tree_sitter
-python3 -m pip install pandas
-python3 -m pip install scikit-learn
+python3 -m pip install tree_sitter pandas scikit-learn
 ```
 
 Additionally, the tree-sitter repository has to be cloned into the Logcheck direcory and built:
