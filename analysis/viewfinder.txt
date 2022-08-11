@@ -1,227 +1,27 @@
-File: /Users/nickkeutel/code/python/marepos/viewfinder/fabfile.py
-We recommend logging in the except_clause starting in line 459
-File: /Users/nickkeutel/code/python/marepos/viewfinder/clients/ios/testing/scripts/run-ui-tests.py
-We recommend logging in the except_clause starting in line 142
-File: /Users/nickkeutel/code/python/marepos/viewfinder/clients/ios/scripts/symbolicator.py
-We recommend logging in the except_clause starting in line 136
-We recommend logging in the except_clause starting in line 156
-File: /Users/nickkeutel/code/python/marepos/viewfinder/clients/ios/scripts/app-tool.py
-We recommend logging in the except_clause starting in line 358
-We recommend logging in the except_clause starting in line 376
-File: /Users/nickkeutel/code/python/marepos/viewfinder/resources/geodata/geolookup.py
-We recommend logging in the except_clause starting in line 49
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/prod/package.py
-We recommend logging in the except_clause starting in line 132
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/op/user_op_manager.py
-We recommend logging in the except_clause starting in line 327
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/www/www_util.py
-We recommend logging in the except_clause starting in line 49
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/www/basic_auth.py
-We recommend logging in the except_clause starting in line 74
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/www/base.py
-We recommend logging in the except_clause starting in line 294
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/storage/server_log.py
-We recommend logging in the except_clause starting in line 257
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/storage/test.py
-We recommend logging in the except_clause starting in line 25
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/storage/test/async_s3_test.py
-We recommend logging in the except_clause starting in line 17
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/logs/analyze_merged_logs.py
-We recommend logging in the except_clause starting in line 217
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/db/local_persist.py
-We recommend logging in the except_clause starting in line 83
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/db/asyncdynamo.py
-We recommend logging in the except_clause starting in line 215
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/db/indexers.py
-We recommend logging in the except_clause starting in line 33
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/db/lock.py
-We recommend logging in the if_statement starting in line 220
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/db/schema.py
-We recommend logging in the except_clause starting in line 93
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/db/test/user_test.py
-We recommend logging in the except_clause starting in line 119
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/db/test/lock_test.py
-We recommend logging in the except_clause starting in line 134
-We recommend logging in the except_clause starting in line 150
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/base/otp.py
-We recommend logging in the except_clause starting in line 354
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/base/secrets.py
-We recommend logging in the except_clause starting in line 65
-We recommend logging in the except_clause starting in line 205
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/base/statistics.py
-We recommend logging in the except_clause starting in line 27
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/base/testing.py
-We recommend logging in the except_clause starting in line 61
 File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/base/thrift_transport.py
 We recommend logging in the except_clause starting in line 53
 File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/base/daemon.py
 We recommend logging in the except_clause starting in line 107
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/base/test/retry_test.py
-We recommend logging in the except_clause starting in line 45
-We recommend logging in the except_clause starting in line 56
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/base/test/statistics_test.py
-We recommend logging in the except_clause starting in line 11
-File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/services/apns_util.py
-We recommend logging in the except_clause starting in line 149
 File: /Users/nickkeutel/code/python/marepos/viewfinder/backend/services/apns.py
 We recommend logging in the except_clause starting in line 64
-We recommend logging in the except_clause starting in line 165
-File: /Users/nickkeutel/code/python/marepos/viewfinder/scripts/fetch_logs.py
-We recommend logging in the except_clause starting in line 87
-We recommend logging in the except_clause starting in line 233
-We recommend logging in the except_clause starting in line 354
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/auth.py
-We recommend logging in the except_clause starting in line 85
-We recommend logging in the except_clause starting in line 1131
 File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/stack_context_new.py
 We recommend logging in the except_clause starting in line 136
-We recommend logging in the except_clause starting in line 294
-We recommend logging in the except_clause starting in line 303
-We recommend logging in the except_clause starting in line 318
-We recommend logging in the except_clause starting in line 345
 File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/concurrent.py
-We recommend logging in the except_clause starting in line 35
-We recommend logging in the except_clause starting in line 139
 We recommend logging in the except_clause starting in line 224
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/escape.py
-We recommend logging in the except_clause starting in line 49
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/web.py
-We recommend logging in the except_clause starting in line 795
-We recommend logging in the except_clause starting in line 826
-We recommend logging in the except_clause starting in line 883
-We recommend logging in the except_clause starting in line 1116
-We recommend logging in the except_clause starting in line 1135
-We recommend logging in the except_clause starting in line 1156
-We recommend logging in the except_clause starting in line 2147
 File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/stack_context_orig.py
 We recommend logging in the except_clause starting in line 128
-We recommend logging in the except_clause starting in line 264
-We recommend logging in the except_clause starting in line 272
 File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/stack_context.py
 We recommend logging in the except_clause starting in line 136
-We recommend logging in the except_clause starting in line 294
-We recommend logging in the except_clause starting in line 303
-We recommend logging in the except_clause starting in line 318
-We recommend logging in the except_clause starting in line 345
 File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/gen.py
-We recommend logging in the except_clause starting in line 141
-We recommend logging in the except_clause starting in line 202
-We recommend logging in the except_clause starting in line 209
-We recommend logging in the except_clause starting in line 211
-We recommend logging in the except_clause starting in line 498
-We recommend logging in the except_clause starting in line 508
 We recommend logging in the except_clause starting in line 522
-We recommend logging in the except_clause starting in line 534
 File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/iostream.py
-We recommend logging in the except_clause starting in line 46
 We recommend logging in the except_clause starting in line 343
 We recommend logging in the except_clause starting in line 354
-We recommend logging in the except_clause starting in line 407
 We recommend logging in the except_clause starting in line 440
 We recommend logging in the except_clause starting in line 460
-We recommend logging in the except_clause starting in line 830
-We recommend logging in the except_clause starting in line 875
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/log.py
-We recommend logging in the except_clause starting in line 43
-We recommend logging in the except_clause starting in line 107
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/util.py
-We recommend logging in the except_clause starting in line 242
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/httpserver.py
-We recommend logging in the except_clause starting in line 286
-We recommend logging in the except_clause starting in line 328
-We recommend logging in the except_clause starting in line 474
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/ioloop.py
-We recommend logging in the except_clause starting in line 51
-We recommend logging in the except_clause starting in line 352
-We recommend logging in the except_clause starting in line 459
-We recommend logging in the except_clause starting in line 519
-We recommend logging in the except_clause starting in line 536
-We recommend logging in the except_clause starting in line 684
-We recommend logging in the except_clause starting in line 819
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/tcpserver.py
-We recommend logging in the except_clause starting in line 243
 File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/template.py
 We recommend logging in the except_clause starting in line 243
 File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/locale.py
-We recommend logging in the except_clause starting in line 131
 We recommend logging in the except_clause starting in line 189
-We recommend logging in the except_clause starting in line 435
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/curl_httpclient.py
-We recommend logging in the except_clause starting in line 56
-We recommend logging in the except_clause starting in line 147
-We recommend logging in the except_clause starting in line 161
-We recommend logging in the except_clause starting in line 192
-We recommend logging in the except_clause starting in line 273
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/process.py
-We recommend logging in the except_clause starting in line 41
-We recommend logging in the except_clause starting in line 68
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/autoreload.py
-We recommend logging in the except_clause starting in line 95
-We recommend logging in the except_clause starting in line 218
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/testing.py
-We recommend logging in the except_clause starting in line 22
-We recommend logging in the except_clause starting in line 254
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/websocket.py
-We recommend logging in the except_clause starting in line 46
-We recommend logging in the except_clause starting in line 304
-We recommend logging in the except_clause starting in line 336
-We recommend logging in the except_clause starting in line 391
-We recommend logging in the except_clause starting in line 511
-We recommend logging in the except_clause starting in line 594
-We recommend logging in the except_clause starting in line 605
-We recommend logging in the except_clause starting in line 635
-We recommend logging in the except_clause starting in line 645
-We recommend logging in the except_clause starting in line 655
-We recommend logging in the except_clause starting in line 662
-We recommend logging in the except_clause starting in line 726
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/wsgi.py
-We recommend logging in the except_clause starting in line 192
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/httpclient_test.py
-We recommend logging in the except_clause starting in line 360
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/auth_test.py
-We recommend logging in the except_clause starting in line 184
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/process_test.py
-We recommend logging in the except_clause starting in line 74
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/twisted_test.py
-We recommend logging in the except_clause starting in line 37
-We recommend logging in the except_clause starting in line 47
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/gen_test.py
-We recommend logging in the except_clause starting in line 106
-We recommend logging in the except_clause starting in line 120
-We recommend logging in the except_clause starting in line 827
 File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/concurrent_test.py
 We recommend logging in the except_clause starting in line 156
-We recommend logging in the except_clause starting in line 163
-We recommend logging in the except_clause starting in line 228
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/web_test.py
-We recommend logging in the except_clause starting in line 1427
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/template_test.py
-We recommend logging in the except_clause starting in line 185
-We recommend logging in the except_clause starting in line 195
-We recommend logging in the except_clause starting in line 205
-We recommend logging in the except_clause starting in line 217
-We recommend logging in the except_clause starting in line 228
-We recommend logging in the except_clause starting in line 243
-We recommend logging in the except_clause starting in line 255
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/curl_httpclient_test.py
-We recommend logging in the except_clause starting in line 14
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/ioloop_test.py
-We recommend logging in the except_clause starting in line 21
-We recommend logging in the except_clause starting in line 118
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/util_test.py
-We recommend logging in the except_clause starting in line 27
-We recommend logging in the except_clause starting in line 32
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/netutil_test.py
-We recommend logging in the except_clause starting in line 11
-We recommend logging in the except_clause starting in line 16
-We recommend logging in the except_clause starting in line 23
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/test/options_test.py
-We recommend logging in the except_clause starting in line 21
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/platform/common.py
-We recommend logging in the if_statement starting in line 54
-We recommend logging in the except_clause starting in line 45
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/platform/twisted.py
-We recommend logging in the except_clause starting in line 111
-We recommend logging in the except_clause starting in line 467
-File: /Users/nickkeutel/code/python/marepos/viewfinder/marketing/tornado/platform/auto.py
-We recommend logging in the except_clause starting in line 44

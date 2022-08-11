@@ -1,4 +1,4 @@
-keyword = "logg(ing|er)"
+keyword = "log(g(ing|er)?)?"
 
 compound_statements = [
     "class_definition",

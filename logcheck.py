@@ -70,7 +70,7 @@ def analyze_newer():
         with open(file) as f:
             sourcecode = f.read()
             f.close()
-        print(f"File: {file}")
+        #print(f"File: {file}")
         # Create abstract syntax tree
         tree = parser.parse(bytes(sourcecode, "utf8"))
         # Import the appropriate extractor and instantiate it
@@ -150,7 +150,7 @@ if __name__ == "__main__":
                             help="Specify the output file.")
     arg_parser.add_argument("-f", "--force", action="store_true",
                             help="Force overwrite of output file")
-    arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages,
+    arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages, default="python",
                             help="Specify the language. This is required in batch mode.")
     arg_parser.add_argument("-m", "--mode", type=str, choices=["bool", "onehot"], default="onehot",
                             help="Mode of encoding. Default: onehot")
@@ -205,6 +205,7 @@ if __name__ == "__main__":
     except PermissionError as e:
         arg_parser.error(e)
     # Ensure language is known
+    # DEPRECATED because python is the default
     if args.batch:
         if args.language is None:
             arg_parser.error("Batch option requires specification of language.")

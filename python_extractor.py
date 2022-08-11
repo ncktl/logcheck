@@ -1,7 +1,7 @@
 from tree_sitter import Language, Tree, Node
 from extractor import Extractor
 from config import par_vec_extended, par_vec_bool, par_vec_onehot, interesting_node_types, contains
-from config import compound_statements, simple_statements, extra_clauses, contains_types
+from config import compound_statements, simple_statements, extra_clauses, contains_types, keyword
 import re
 from copy import copy
 
@@ -17,7 +17,7 @@ class PythonExtractor(Extractor):
 
         super().__init__(src, lang, tree, file, args)
         # Name of the Python logging module
-        self.keyword = "logg(ing|er)"
+        # self.keyword = "logg(ing|er)"
 
     def debug_helper(self, node: Node):
         print(self.file)
@@ -41,7 +41,6 @@ class PythonExtractor(Extractor):
 
     def check_block(self, node: Node, param_vec: dict):
         for child in node.children:
-            # Todo: Adapt to new contains_features using config.contains
             for key, clause in zip(contains[:-1], contains_types):
                 if child.type == clause:
                     param_vec[key] = True
@@ -51,10 +50,14 @@ class PythonExtractor(Extractor):
                 if len(child.children) != 1:
                     for exp_child in child.children:
                         if exp_child.type == "call":
-                            if re.search(self.keyword, exp_child.text.decode("UTF-8")):
+                            func_call = exp_child.child_by_field_name("function")
+                            # if re.search(keyword, exp_child.text.decode("UTF-8")):
+                            if re.search(keyword, func_call.text.decode("UTF-8").lower()):
                                 param_vec["contains_logging"] = True
                 elif child.children[0].type == "call":
-                    if re.search(self.keyword, child.children[0].text.decode("UTF-8")):
+                    func_call = child.children[0].child_by_field_name("function")
+                    # if re.search(keyword, child.children[0].text.decode("UTF-8")):
+                    if re.search(keyword, func_call.text.decode("UTF-8").lower()):
                         param_vec["contains_logging"] = True
             # elif not param_vec["contains_try_statement"] and child.type == "try_statement":
             #     param_vec["contains_try_statement"] = True
