@@ -1,0 +1,233 @@
+File: /Users/nickkeutel/code/python/marepos/web2py/web2py.py
+We recommend logging in the except_clause starting in line 54
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/console.py
+We recommend logging in the if_statement starting in line 423
+We recommend logging in the if_statement starting in line 431
+We recommend logging in the if_statement starting in line 455
+We recommend logging in the if_statement starting in line 740
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/widget.py
+We recommend logging in the if_statement starting in line 431
+We recommend logging in the if_statement starting in line 536
+We recommend logging in the if_statement starting in line 611
+We recommend logging in the if_statement starting in line 738
+We recommend logging in the if_statement starting in line 743
+We recommend logging in the except_clause starting in line 532
+We recommend logging in the except_clause starting in line 581
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/globals.py
+We recommend logging in the if_statement starting in line 142
+We recommend logging in the if_statement starting in line 1171
+We recommend logging in the if_statement starting in line 1189
+We recommend logging in the except_clause starting in line 232
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/tools.py
+We recommend logging in the if_statement starting in line 551
+We recommend logging in the if_statement starting in line 574
+We recommend logging in the if_statement starting in line 618
+We recommend logging in the if_statement starting in line 923
+We recommend logging in the if_statement starting in line 944
+We recommend logging in the if_statement starting in line 2300
+We recommend logging in the if_statement starting in line 2355
+We recommend logging in the if_statement starting in line 2602
+We recommend logging in the if_statement starting in line 3000
+We recommend logging in the if_statement starting in line 3081
+We recommend logging in the if_statement starting in line 3158
+We recommend logging in the if_statement starting in line 3305
+We recommend logging in the if_statement starting in line 3454
+We recommend logging in the if_statement starting in line 3527
+We recommend logging in the if_statement starting in line 3874
+We recommend logging in the if_statement starting in line 6041
+We recommend logging in the else_clause starting in line 3741
+We recommend logging in the except_clause starting in line 596
+We recommend logging in the except_clause starting in line 637
+We recommend logging in the except_clause starting in line 664
+We recommend logging in the except_clause starting in line 689
+We recommend logging in the except_clause starting in line 702
+We recommend logging in the except_clause starting in line 729
+We recommend logging in the except_clause starting in line 941
+We recommend logging in the except_clause starting in line 5564
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/serializers.py
+We recommend logging in the except_clause starting in line 198
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/html.py
+We recommend logging in the if_statement starting in line 1143
+We recommend logging in the if_statement starting in line 1917
+We recommend logging in the if_statement starting in line 1959
+We recommend logging in the except_clause starting in line 1908
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/shell.py
+We recommend logging in the if_statement starting in line 294
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/cache.py
+We recommend logging in the if_statement starting in line 460
+We recommend logging in the except_clause starting in line 273
+We recommend logging in the except_clause starting in line 472
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/compileapp.py
+We recommend logging in the if_statement starting in line 202
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/recfile.py
+We recommend logging in the function_definition starting in line 42
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/admin.py
+We recommend logging in the except_clause starting in line 162
+We recommend logging in the except_clause starting in line 319
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/authapi.py
+We recommend logging in the if_statement starting in line 945
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/http.py
+We recommend logging in the else_clause starting in line 178
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/highlight.py
+We recommend logging in the if_statement starting in line 98
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/scheduler.py
+We recommend logging in the if_statement starting in line 1475
+We recommend logging in the except_clause starting in line 196
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/sqlhtml.py
+We recommend logging in the function_definition starting in line 121
+We recommend logging in the if_statement starting in line 1719
+We recommend logging in the if_statement starting in line 2555
+We recommend logging in the if_statement starting in line 3538
+We recommend logging in the if_statement starting in line 3744
+We recommend logging in the if_statement starting in line 3761
+We recommend logging in the if_statement starting in line 3779
+We recommend logging in the except_clause starting in line 1676
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/rewrite.py
+We recommend logging in the function_definition starting in line 687
+We recommend logging in the if_statement starting in line 291
+We recommend logging in the if_statement starting in line 1500
+We recommend logging in the if_statement starting in line 1517
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/rocket.py
+We recommend logging in the if_statement starting in line 199
+We recommend logging in the else_clause starting in line 1421
+We recommend logging in the except_clause starting in line 1408
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/tests/fix_path.py
+We recommend logging in the function_definition starting in line 6
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/spreadsheet.py
+We recommend logging in the except_clause starting in line 259
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/redis_scheduler.py
+We recommend logging in the except_clause starting in line 131
+We recommend logging in the except_clause starting in line 157
+We recommend logging in the except_clause starting in line 333
+We recommend logging in the except_clause starting in line 684
+We recommend logging in the except_clause starting in line 747
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pbkdf2_ctypes.py
+We recommend logging in the except_clause starting in line 155
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/dbg.py
+We recommend logging in the function_definition starting in line 952
+We recommend logging in the except_clause starting in line 1033
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/shell.py
+We recommend logging in the except_clause starting in line 235
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pypyodbc.py
+We recommend logging in the if_statement starting in line 1949
+We recommend logging in the if_statement starting in line 1992
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pbkdf2.py
+We recommend logging in the function_definition starting in line 80
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/hypermedia.py
+We recommend logging in the if_statement starting in line 192
+We recommend logging in the except_clause starting in line 217
+We recommend logging in the except_clause starting in line 269
+We recommend logging in the except_clause starting in line 291
+We recommend logging in the except_clause starting in line 306
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/memdb.py
+We recommend logging in the if_statement starting in line 504
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/redis_session.py
+We recommend logging in the if_statement starting in line 138
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/feedparser.py
+We recommend logging in the if_statement starting in line 389
+We recommend logging in the if_statement starting in line 780
+We recommend logging in the if_statement starting in line 3917
+We recommend logging in the else_clause starting in line 208
+We recommend logging in the except_clause starting in line 2247
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/stripe.py
+We recommend logging in the if_statement starting in line 127
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/redis_cache.py
+We recommend logging in the if_statement starting in line 212
+We recommend logging in the else_clause starting in line 237
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/DowCommerce.py
+We recommend logging in the else_clause starting in line 80
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/user_agent_parser.py
+We recommend logging in the if_statement starting in line 454
+We recommend logging in the if_statement starting in line 470
+We recommend logging in the if_statement starting in line 492
+We recommend logging in the except_clause starting in line 150
+We recommend logging in the except_clause starting in line 162
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pymysql/cursors.py
+We recommend logging in the if_statement starting in line 453
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pymysql/connections.py
+We recommend logging in the if_statement starting in line 438
+We recommend logging in the if_statement starting in line 1381
+We recommend logging in the except_clause starting in line 1013
+We recommend logging in the except_clause starting in line 1348
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pymysql/_socketio.py
+We recommend logging in the except_clause starting in line 60
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pymysql/err.py
+We recommend logging in the function_definition starting in line 98
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pymysql/tests/test_connection.py
+We recommend logging in the if_statement starting in line 142
+We recommend logging in the if_statement starting in line 376
+We recommend logging in the except_clause starting in line 117
+We recommend logging in the except_clause starting in line 292
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/login_methods/linkedin_account.py
+We recommend logging in the if_statement starting in line 45
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/login_methods/oauth20_account.py
+We recommend logging in the except_clause starting in line 178
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/login_methods/loginza.py
+We recommend logging in the if_statement starting in line 89
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/login_methods/openid_auth.py
+We recommend logging in the if_statement starting in line 165
+We recommend logging in the if_statement starting in line 266
+We recommend logging in the if_statement starting in line 270
+We recommend logging in the if_statement starting in line 476
+We recommend logging in the if_statement starting in line 490
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/login_methods/janrain_account.py
+We recommend logging in the if_statement starting in line 91
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/login_methods/saml2_auth.py
+We recommend logging in the if_statement starting in line 120
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/login_methods/rpx_account.py
+We recommend logging in the if_statement starting in line 90
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/markdown/markdown2.py
+We recommend logging in the if_statement starting in line 1606
+We recommend logging in the except_clause starting in line 2233
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pysimplesoap/server.py
+We recommend logging in the if_statement starting in line 518
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pysimplesoap/transport.py
+We recommend logging in the except_clause starting in line 78
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pyaes/blockfeeder.py
+We recommend logging in the if_statement starting in line 168
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/markmin/markmin2html.py
+We recommend logging in the if_statement starting in line 672
+We recommend logging in the if_statement starting in line 999
+We recommend logging in the if_statement starting in line 1289
+We recommend logging in the if_statement starting in line 1378
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/memcache/__init__.py
+We recommend logging in the if_statement starting in line 60
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/memcache/memcache.py
+We recommend logging in the if_statement starting in line 1108
+We recommend logging in the if_statement starting in line 1118
+We recommend logging in the if_statement starting in line 1402
+We recommend logging in the except_clause starting in line 1278
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/gateways/fcgi.py
+We recommend logging in the if_statement starting in line 1101
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/fpdf/html.py
+We recommend logging in the if_statement starting in line 20
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/fpdf/ttfonts.py
+We recommend logging in the if_statement starting in line 890
+We recommend logging in the except_clause starting in line 829
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/fpdf/fpdf.py
+We recommend logging in the if_statement starting in line 961
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/fpdf/php.py
+We recommend logging in the function_definition starting in line 40
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pyrtf/Elements.py
+We recommend logging in the function_definition starting in line 273
+File: /Users/nickkeutel/code/python/marepos/web2py/scripts/make_min_web2py.py
+We recommend logging in the function_definition starting in line 47
+File: /Users/nickkeutel/code/python/marepos/web2py/scripts/tickets2slack.py
+We recommend logging in the while_statement starting in line 51
+File: /Users/nickkeutel/code/python/marepos/web2py/scripts/zip_static_files.py
+We recommend logging in the if_statement starting in line 25
+File: /Users/nickkeutel/code/python/marepos/web2py/scripts/update_languages.py
+We recommend logging in the except_clause starting in line 27
+File: /Users/nickkeutel/code/python/marepos/web2py/applications/admin/controllers/default.py
+We recommend logging in the function_definition starting in line 1859
+We recommend logging in the if_statement starting in line 363
+We recommend logging in the if_statement starting in line 378
+We recommend logging in the if_statement starting in line 435
+We recommend logging in the if_statement starting in line 642
+We recommend logging in the if_statement starting in line 973
+We recommend logging in the if_statement starting in line 1034
+We recommend logging in the if_statement starting in line 1499
+File: /Users/nickkeutel/code/python/marepos/web2py/applications/examples/models/menu.py
+We recommend logging in the if_statement starting in line 28
+File: /Users/nickkeutel/code/python/marepos/web2py/applications/examples/controllers/simple_examples.py
+We recommend logging in the function_definition starting in line 44

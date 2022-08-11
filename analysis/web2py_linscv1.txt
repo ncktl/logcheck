@@ -1,0 +1,43 @@
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/html.py
+We recommend logging in the except_clause starting in line 1908
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/shell.py
+We recommend logging in the except_clause starting in line 310
+We recommend logging in the except_clause starting in line 324
+We recommend logging in the except_clause starting in line 338
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/cache.py
+We recommend logging in the except_clause starting in line 273
+We recommend logging in the except_clause starting in line 472
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/restricted.py
+We recommend logging in the except_clause starting in line 225
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/rocket.py
+We recommend logging in the except_clause starting in line 1408
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/spreadsheet.py
+We recommend logging in the except_clause starting in line 259
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/redis_scheduler.py
+We recommend logging in the except_clause starting in line 131
+We recommend logging in the except_clause starting in line 157
+We recommend logging in the except_clause starting in line 333
+We recommend logging in the except_clause starting in line 684
+We recommend logging in the except_clause starting in line 747
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pbkdf2_ctypes.py
+We recommend logging in the except_clause starting in line 155
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/dbg.py
+We recommend logging in the except_clause starting in line 1033
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/memdb.py
+We recommend logging in the except_clause starting in line 672
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pymysql/connections.py
+We recommend logging in the except_clause starting in line 920
+We recommend logging in the except_clause starting in line 1013
+We recommend logging in the except_clause starting in line 1348
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pymysql/_socketio.py
+We recommend logging in the except_clause starting in line 60
+We recommend logging in the except_clause starting in line 63
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pymysql/tests/test_connection.py
+We recommend logging in the except_clause starting in line 117
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/pymysql/tests/test_SSCursor.py
+We recommend logging in the except_clause starting in line 6
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/login_methods/oauth20_account.py
+We recommend logging in the except_clause starting in line 178
+File: /Users/nickkeutel/code/python/marepos/web2py/gluon/contrib/gateways/fcgi.py
+We recommend logging in the if_statement starting in line 483
+We recommend logging in the if_statement starting in line 540
