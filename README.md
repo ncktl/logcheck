@@ -95,8 +95,3 @@ Generate logging recommendations for all files in a directory, using the -b batc
 python3 logcheck.py -b <path to directory>
 ```
 
-E.g. with the provided code examples:
-
-```sh
-python3 logcheck.py -b code-examples/
-```
