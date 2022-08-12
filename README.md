@@ -12,8 +12,9 @@ The Tree-sitter python bindings as well as pandas and scikit-learn are required:
 python3 -m pip install tree_sitter pandas scikit-learn
 ```
 
-Additionally, the tree-sitter repository has to be cloned into the Logcheck direcory and built:
+Additionally, the tree-sitter repository has to be cloned into the Logcheck directory and built:
 ```sh
+cd logcheck/
 git clone https://github.com/tree-sitter/tree-sitter.git
 cd tree-sitter/
 make
@@ -25,11 +26,11 @@ git clone https://github.com/tree-sitter/tree-sitter-python.git
 git clone https://github.com/tree-sitter/tree-sitter-java.git
 ```
 
-I.e. the folder "tree-sitter-python/" must be inside the folder "logcheck". 
+I.e. the folders "tree-sitter" and "tree-sitter-python" must be inside the folder "logcheck". 
 
 ## Usage
 
-```sh
+```
 usage: logcheck.py [-h] [-b] [-e] [-o OUTPUT] [-f] [-l {java,python}] [-m {bool,onehot}] [-s] path
 
 positional arguments:
@@ -48,7 +49,7 @@ optional arguments:
   -l {java,python}, --language {java,python}
                         Specify the language. Default: python
   -m {bool,onehot}, --mode {bool,onehot}
-                        Mode of encoding. Default: bool
+                        Mode of encoding. Default: onehot
   -s, --suffix          Add mode of encoding to file name
 ```
 
