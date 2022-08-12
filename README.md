@@ -46,7 +46,7 @@ optional arguments:
                         Specify the output file.
   -f, --force           Force overwrite of output file
   -l {java,python}, --language {java,python}
-                        Specify the language. This is required in batch mode.
+                        Specify the language. Default: python
   -m {bool,onehot}, --mode {bool,onehot}
                         Mode of encoding. Default: bool
   -s, --suffix          Add mode of encoding to file name
@@ -54,45 +54,49 @@ optional arguments:
 
 ### Feature extraction
 
-Used to extract features from source code for building a model.
-
-To extract parameter vectors from files, use the -e option like this:
+To extract parameter vectors from files for learning a classifier, use the -e extract option like this:
 
 ```sh
 python3 logcheck.py -e <file to extract features from>
 ```
 
+Or extract parameter vectors from all files in a directory, using the -b batch option like so (recommended):
 
-### Analysis
+```sh
+python3 logcheck.py -e -b <path to directory>
+```
 
-Logcheck will analyse the source code of the given file(s) and give recommendations for logging.
+E.g. with the provided code examples:
+
+```sh
+python3 logcheck.py -e -b code-examples/
+```
+
+### Classification learning
+
+The classifier can be retrained using its own python script. This will use the extracted features in the features/combination.csv file:
+
+```sh
+python3 classification_learner.py
+```
+
+
+### Recommendation
+
+By default, Logcheck will analyse the source code of the given file(s) and give recommendations for logging.
 
 ```sh
 python3 logcheck.py <file to be analyzed>
 ```
 
-Example code files for the currently provided languages are provided in the code-examples folder. Run the Python example like this:
+Generate logging recommendations for all files in a directory, using the -b batch option like so (recommended):
 
 ```sh
-python3 logcheck.py code-examples/simple-logging-example.py
+python3 logcheck.py -b <path to directory>
 ```
 
-and the Java example like this (Currently not working):
+E.g. with the provided code examples:
 
 ```sh
-python3 logcheck.py code-examples/SimpleLoggingExample.java
-```
-
-### Batch mode
-
-To process multiple files, use the -b option. It requires the specification of the programming language via the -l (small L) parameter like this:
-
-Extraction:
-```sh
-python3 logcheck.py -e -b -l python -o features/code-examples.csv code-examples/
-```
-
-Analysis:
-```sh
-python3 logcheck.py -b -l python -o analysis/code-examples.txt code-examples/
+python3 logcheck.py -b code-examples/
 ```

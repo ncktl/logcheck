@@ -151,7 +151,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-f", "--force", action="store_true",
                             help="Force overwrite of output file")
     arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages, default="python",
-                            help="Specify the language. This is required in batch mode.")
+                            help="Specify the language. Default: python")
     arg_parser.add_argument("-m", "--mode", type=str, choices=["bool", "onehot"], default="onehot",
                             help="Mode of encoding. Default: onehot")
     arg_parser.add_argument("-d", "--debug", action="store_true",
