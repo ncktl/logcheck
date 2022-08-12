@@ -19,11 +19,13 @@ cd tree-sitter/
 make
 cd ..
 ```
-Finally, the grammars of the currently supported languages need to be cloned as well:
+Finally, the grammars of the currently supported languages need to be cloned into the main logcheck folder as well:
 ```sh
 git clone https://github.com/tree-sitter/tree-sitter-python.git
 git clone https://github.com/tree-sitter/tree-sitter-java.git
 ```
+
+I.e. the folder "tree-sitter-python/" must be inside the folder "logcheck". 
 
 ## Usage
 
