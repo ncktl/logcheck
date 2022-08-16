@@ -1,0 +1,9 @@
+File: /Users/nickkeutel/code/python/marepos/kubernetes-ec2-autoscaler/test/test_capacity.py
+We recommend logging in the function_definition starting in line 37
+File: /Users/nickkeutel/code/python/marepos/kubernetes-ec2-autoscaler/autoscaler/azure_api.py
+We recommend logging in the if_statement starting in line 221
+We recommend logging in the if_statement starting in line 243
+We recommend logging in the if_statement starting in line 265
+We recommend logging in the if_statement starting in line 320
+File: /Users/nickkeutel/code/python/marepos/kubernetes-ec2-autoscaler/autoscaler/kube.py
+We recommend logging in the function_definition starting in line 137

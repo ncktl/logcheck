@@ -7,7 +7,8 @@ from sklearn.ensemble import RandomForestClassifier
 
 # Importing the dataset
 # Assumption: Onehot encoding
-df = pd.read_csv('features/combination.csv')
+# df = pd.read_csv('features/combination.csv')
+df = pd.read_csv('features/combination_without_k8s_no_expr_stmt.csv')
 X = df.drop(["line", "contains_logging"], axis=1)
 X = pd.get_dummies(X, columns=["type", "parent"])
 y = df.contains_logging
@@ -16,7 +17,9 @@ y = df.contains_logging
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
 
 # classifier = LinearSVC(C=0.025)
+# classifier = LinearSVC(C=1)
 # classifier = KNeighborsClassifier(3)
+# classifier = KNeighborsClassifier(8)
 classifier = RandomForestClassifier(n_estimators=9)
 # classifier.fit(X_train, y_train)
 classifier.fit(X, y)

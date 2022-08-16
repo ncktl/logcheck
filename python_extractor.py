@@ -1,6 +1,6 @@
 from tree_sitter import Language, Tree, Node
 from extractor import Extractor
-from config import par_vec_extended, par_vec_bool, par_vec_onehot, interesting_node_types, contains
+from config import par_vec_bool, par_vec_onehot, interesting_node_types, contains
 from config import compound_statements, simple_statements, extra_clauses, contains_types, keyword
 import re
 from copy import copy

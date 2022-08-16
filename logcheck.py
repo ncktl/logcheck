@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import importlib
 import argparse
-from config import par_vec_extended, par_vec_bool, par_vec_onehot, reindex
+from config import par_vec_bool, par_vec_onehot, reindex
 from sklearn.svm import LinearSVC
 import pandas as pd
 import pickle
@@ -77,16 +77,20 @@ def analyze_newer():
         extractor_class = getattr(importlib.import_module(args.language + "_extractor"),
                                   args.language.capitalize() + "Extractor")
         extractor = extractor_class(sourcecode, tree_lang, tree, args.path, args)
-        # Start the extraction
+        # Build a list of parameter vectors for all interesting nodes in the current file
         file_param_vecs = extractor.fill_param_vecs_ast_new(training=False)
-
         # print(df.to_string())
         if file_param_vecs:
+            # Build Pandas DataFrame from the list of parameter vectors
             df = pd.DataFrame.from_dict(file_param_vecs).drop(["line", "contains_logging"], axis=1)
+            # One-hot encode the parameters type and parent
             df = pd.get_dummies(df, columns=["type", "parent"])
+            # Reindex the dataframe to ensure all possible type and parent values are present as columns
             df = df.reindex(reindex, fill_value=False, axis="columns")
             # print(classifier.predict(df))
+            # Predict logging for the parameters vectors, creating a list of booleans for the parameter vectors
             recs = classifier.predict(df)
+            # Write the yes-instances as recommendations to the output file
             if True in recs:
                 output.append(f"File: {file}")
                 for i, prediction in enumerate(recs):

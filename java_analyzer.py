@@ -2,17 +2,19 @@ from tree_sitter import Language, Tree
 import logging
 from pathlib import Path
 from time import perf_counter
-from analyzer import Analyzer, print_children
+from extractor import Extractor, print_children
 
 
-class JavaAnalyzer(Analyzer):
-    def __init__(self, src: str, lang: Language, tree: Tree, file_path: Path):
+class JavaAnalyzer(Extractor):
+    def __init__(self, src: str, lang: Language, tree: Tree, file, args):
         """
-        :param src: Source code to analyze
+        :param src: Source code to extract paramaeter vectors from
         :param lang: Treesitter language object
-        :param file_path: Pathlib object of the file to analyze
+        :param tree: Treesitter tree object
+        :param file: current file
         """
-        super().__init__(src, lang, tree, file_path)
+
+        super().__init__(src, lang, tree, file, args)
         # Name of the log4j object in the example, hardcoded for now
         self.keyword = "logger"
 

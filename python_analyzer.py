@@ -2,8 +2,8 @@
 from python_extractor import PythonExtractor
 from tree_sitter import Language, Tree, Node
 from pathlib import Path
-from analyzer import Analyzer, print_children
-from config import interesting_node_types, par_vec_extended
+from extractor import print_children
+from config import interesting_node_types, par_vec_onehot
 import pickle
 from sklearn.svm import LinearSVC
 from copy import copy
@@ -108,7 +108,7 @@ class PythonAnalyzer(PythonExtractor):
                 print(f"{node_type} line {node.start_point[0] + 1}")
                 print(node.end_point[0] - node.start_point[0] + 1)
 
-                param_vec = copy(par_vec_extended)
+                param_vec = copy(par_vec_onehot)
                 param_vec["type"] = node_type
                 if node_type == "if_statement":
                     check_if(node, param_vec, self.args, self.keyword)
@@ -130,7 +130,7 @@ class PythonAnalyzer(PythonExtractor):
                 # print(df)
 
                 # DEBUG
-                # test_vec = copy(par_vec_extended_no_type_all_true)
+                # test_vec = copy(par_vec_onehot)
                 # df = pd.DataFrame.from_dict([test_vec])
                 # print(classifier.predict(df)[0])
                 # DEBUG END

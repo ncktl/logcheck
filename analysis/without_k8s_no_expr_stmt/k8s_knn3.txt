@@ -1,0 +1,20 @@
+File: /Users/nickkeutel/code/python/marepos/kubernetes-ec2-autoscaler/test/test_capacity.py
+We recommend logging in the function_definition starting in line 28
+We recommend logging in the function_definition starting in line 33
+We recommend logging in the function_definition starting in line 37
+File: /Users/nickkeutel/code/python/marepos/kubernetes-ec2-autoscaler/test/test_cluster.py
+We recommend logging in the function_definition starting in line 21
+We recommend logging in the function_definition starting in line 113
+File: /Users/nickkeutel/code/python/marepos/kubernetes-ec2-autoscaler/autoscaler/azure_api.py
+We recommend logging in the function_definition starting in line 302
+We recommend logging in the if_statement starting in line 265
+We recommend logging in the if_statement starting in line 320
+File: /Users/nickkeutel/code/python/marepos/kubernetes-ec2-autoscaler/autoscaler/kube.py
+We recommend logging in the function_definition starting in line 137
+We recommend logging in the function_definition starting in line 278
+We recommend logging in the except_clause starting in line 186
+File: /Users/nickkeutel/code/python/marepos/kubernetes-ec2-autoscaler/autoscaler/autoscaling_groups.py
+We recommend logging in the function_definition starting in line 138
+We recommend logging in the while_statement starting in line 140
+File: /Users/nickkeutel/code/python/marepos/kubernetes-ec2-autoscaler/autoscaler/cluster.py
+We recommend logging in the elif_clause starting in line 463
