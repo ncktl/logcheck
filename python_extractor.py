@@ -2,6 +2,7 @@ from tree_sitter import Language, Tree, Node
 from extractor import Extractor
 from config import par_vec_bool, par_vec_onehot, interesting_node_types, contains
 from config import compound_statements, simple_statements, extra_clauses, contains_types, keyword
+import config as cfg
 import re
 from copy import copy
 
@@ -21,75 +22,78 @@ class PythonExtractor(Extractor):
 
     def debug_helper(self, node: Node):
         print(self.file)
-        print(node)
         print(f"Parent: {node.parent}")
+        print(node)
         print(f"Children: {node.children}")
         # print(node.text.decode("UTF-8"))
 
-
-    # DEPRECATED
-    def check_if(self, node: Node, param_vec: dict):
-        self.check_block(node.child_by_field_name("consequence"), param_vec)
-        # Do we want to see what is in the elif/else clause?
-        # for child in node.children:
-        #     if not self.args.debug and False not in param_vec.values():
-        #         return
-        #     if child.type == "elif_clause":
-        #         self.check_block(child.child_by_field_name("consequence"), param_vec)
-        #     elif child.type == "else_clause":
-        #         self.check_block(child.child_by_field_name("body"), param_vec)
+    def check_expression(self, exp_child: Node, param_vec: dict):
+        if exp_child.type == "call":
+            param_vec["contains_call"] = True
+            # Check call nodes for logging
+            func_call = exp_child.child_by_field_name("function")
+            if re.search(keyword, func_call.text.decode("UTF-8").lower()):
+                param_vec["contains_logging"] = True
+        elif exp_child.type == "assignment" or exp_child.type == "augmented_assignment":
+            param_vec["contains_assignment"] = True
+            # Check assignment nodes for calls
+            assign_rhs = exp_child.child_by_field_name("right")
+            if assign_rhs and assign_rhs.type == "call":
+                param_vec["contains_call"] = True
+                # Check call nodes for logging
+                # Overkill for now as a logging method call on the right-hand side of an assigment
+                #  is usually not a logging call but rather an instantiation of a logging class
+                # func_call = assign_rhs.child_by_field_name("function")
+                # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
+                #     param_vec["contains_logging"] = True
+        elif exp_child.type == "await":
+            param_vec["contains_await"] = True
+            assert len(exp_child.children) == 2
+            assert exp_child.children[0].type == "await"
+            # Check await node for call
+            if exp_child.children[1].type == "call":
+                param_vec["contains_call"] = True
+                # Eventual check for logging
+        elif exp_child.type == "yield":
+            param_vec["contains_yield"] = True
 
     def check_block(self, node: Node, param_vec: dict):
         for child in node.children:
-            for key, clause in zip(contains[:-1], contains_types):
+            if not child.is_named or child.type == "comment":
+                continue
+            # Check expression statements for call, assignment, await, yield and logging(special case of call)
+            if child.type == "expression_statement":
+                # Block level expression statements rarely have more than one child, then we just check them all
+                # Example: web2py/gluon/contrib/login_methods/openid_auth.py line 551-556
+                #           Has tuple form <identifier.call(params), "text" * 10> for some reason
+                if len(child.children) != 1:
+                    print(self.file)
+                    print("Expression statement with more than one child!")
+                    print(child)
+                    for exp_child in child.children:
+                        self.check_expression(exp_child, param_vec)
+                else:
+                    self.check_expression(child.children[0], param_vec)
+                continue
+            # Handle decorators so that they are counted as their respective class or function definition
+            elif child.type == "decorated_definition":
+                if child.child_by_field_name("definition").type == "class_definition":
+                    param_vec["contains_class_definition"] = True
+                elif child.child_by_field_name("definition").type == "function_definition":
+                    param_vec["contains_function_definition"] = True
+                else:
+                    self.debug_helper(child)
+                    raise RuntimeError("Decorated definition not handled")
+                continue
+            # Check if the child is a compound or simple statement
+            for key, clause in zip(cfg.contains_only_statements, contains_types):
                 if child.type == clause:
                     param_vec[key] = True
                     break
-            if not param_vec["contains_logging"] and child.type == "expression_statement":
-                # Todo: Make prettier
-                if len(child.children) != 1:
-                    for exp_child in child.children:
-                        if exp_child.type == "call":
-                            func_call = exp_child.child_by_field_name("function")
-                            # if re.search(keyword, exp_child.text.decode("UTF-8")):
-                            if re.search(keyword, func_call.text.decode("UTF-8").lower()):
-                                param_vec["contains_logging"] = True
-                elif child.children[0].type == "call":
-                    func_call = child.children[0].child_by_field_name("function")
-                    # if re.search(keyword, child.children[0].text.decode("UTF-8")):
-                    if re.search(keyword, func_call.text.decode("UTF-8").lower()):
-                        param_vec["contains_logging"] = True
-            # elif not param_vec["contains_try_statement"] and child.type == "try_statement":
-            #     param_vec["contains_try_statement"] = True
-            # elif not param_vec["contains_if_statement"] and child.type == "if_statement":
-            #     param_vec["contains_if_statement"] = True
-            # elif not param_vec["contains_with_statement"] and child.type == "with_statement":
-            #     param_vec["contains_with_statement"] = True
-            # More checks for expanded dict
-
-    # DEPRECATED
-    def check_try(self, node: Node, param_vec: dict):
-        self.check_block(node.child_by_field_name("body"), param_vec)
-        # Do we want to see what is in the except/else clauses?
-        # for child in node.children:
-        #     if not self.args.debug and False not in param_vec.values():
-        #         return
-        #     if child.type == "block":
-        #         self.check_block(child, param_vec)
-        #     elif child.type == "else_clause":
-        #         self.check_block(child.child_by_field_name("body"), param_vec)
-        #     elif child.type == "except_clause":
-        #         # Can also have some kind of expression child?
-        #         for grandchild in child.children:
-        #             if grandchild.type == "block":
-        #                 self.check_block(grandchild, param_vec)
-        #     elif child.type == "finally_clause":
-        #         # Comment can also be a named child
-        #         for grandchild in child.children:
-        #             if grandchild.type == "block":
-        #                 self.check_block(grandchild, param_vec)
-        #                 break
-
+            else:
+                if child.type != "expression_statement":
+                    self.debug_helper(child)
+                    raise RuntimeError("Child of block not in contains")
 
     def check_parent(self, node: Node, param_vec: dict):
         """Checks the node's parent. Not used for the module node."""
@@ -176,23 +180,22 @@ class PythonExtractor(Extractor):
                             found_block = True
 
                 if training:
-                    hmm = list(param_vec.values())
+                    param_vec_list = list(param_vec.values())
                     if self.args.mode == "bool":
-                        if len(hmm) != len(par_vec_bool):
+                        if len(param_vec_list) != len(par_vec_bool):
                             self.debug_helper(node)
                             print(par_vec_bool.keys())
                             print(param_vec.keys())
                             raise RuntimeError("Parameter vector length mismatch")
                     elif self.args.mode == "onehot":
-                        if len(hmm) != len(par_vec_onehot):
+                        if len(param_vec_list) != len(par_vec_onehot):
                             self.debug_helper(node)
                             print(par_vec_onehot.keys())
                             print(param_vec.keys())
                             raise RuntimeError("Parameter vector length mismatch")
-                    param_vectors.append(hmm)
+                    param_vectors.append(param_vec_list)
                 else:
                     # Only recommend for a node that doesn't have logging already
-                    # TODO check if this is a good idea
                     if not param_vec["contains_logging"]:
                         param_vectors.append(param_vec)
         return param_vectors

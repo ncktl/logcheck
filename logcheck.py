@@ -5,6 +5,7 @@ import importlib
 import argparse
 from config import par_vec_bool, par_vec_onehot, reindex
 from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import pickle
 
@@ -28,17 +29,19 @@ def create_ts_lang_obj(language: str) -> Language:
     return ts_lang
 
 
-def extract(training: bool = True):
+def extract(train_mode: bool = True):
     """ Extracts parameter vectors from the file(s) """
     param_vectors = []
     for file in files:
         with open(file) as f:
             sourcecode = f.read()
             f.close()
+        # TODO: FIGURE THIS OUT!!!!
         # Check if logging is imported. Python specific placeholder!
-        if training:
-            if "import logging" not in sourcecode:
-                continue
+        # if train_mode:
+        #     if "import logging" not in sourcecode:
+        #         continue
+
         # print(f"File: {file}")
         # Create abstract syntax tree
         tree = parser.parse(bytes(sourcecode, "utf8"))
@@ -47,9 +50,9 @@ def extract(training: bool = True):
                                   args.language.capitalize() + "Extractor")
         extractor = extractor_class(sourcecode, tree_lang, tree, file, args)
         # Start the extraction
-        file_param_vecs = extractor.fill_param_vecs_ast_new(training)
+        file_param_vecs = extractor.fill_param_vecs_ast_new(training=train_mode)
         if args.debug:
-            param_vectors += [f" {file} "]
+            param_vectors += [f"  {file}  "]
         param_vectors += file_param_vecs
     with open(args.output, "w") as out:
         if args.mode == "bool":
@@ -65,7 +68,8 @@ def extract(training: bool = True):
 def analyze_newer():
     """ Recommend logging"""
     output = []
-    classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
+    # Todo: Decide the type of classifier here and in the learner in the config
+    classifier: RandomForestClassifier = pickle.load(open('classifier', 'rb'))
     for file in files:
         with open(file) as f:
             sourcecode = f.read()
@@ -76,7 +80,7 @@ def analyze_newer():
         # Import the appropriate extractor and instantiate it
         extractor_class = getattr(importlib.import_module(args.language + "_extractor"),
                                   args.language.capitalize() + "Extractor")
-        extractor = extractor_class(sourcecode, tree_lang, tree, args.path, args)
+        extractor = extractor_class(sourcecode, tree_lang, tree, file, args)
         # Build a list of parameter vectors for all interesting nodes in the current file
         file_param_vecs = extractor.fill_param_vecs_ast_new(training=False)
         # print(df.to_string())
@@ -165,6 +169,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-s", "--suffix", action="store_true",
                             help="Add mode of encoding to file name")
     args = arg_parser.parse_args()
+    # Todo: Automatically detect batch mode
     # Check arguments
     if not args.path.exists():
         arg_parser.error("Path does not exist.")

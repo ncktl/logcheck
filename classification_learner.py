@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 # Importing the dataset
 # Assumption: Onehot encoding
 # df = pd.read_csv('features/combination.csv')
-df = pd.read_csv('features/combination_without_k8s_no_expr_stmt.csv')
+df = pd.read_csv('features/combination_without_web2py.csv')
 X = df.drop(["line", "contains_logging"], axis=1)
 X = pd.get_dummies(X, columns=["type", "parent"])
 y = df.contains_logging

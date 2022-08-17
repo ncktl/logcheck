@@ -29,8 +29,17 @@ def print_children(node: Node, level=0, maxdepth=999):
     #     print("Named expression", node)
     #     print("Parent", node.parent)
     #     print("Children", node.children)
-    if node.type == "block":
-        print("Children:", node.children)
+    # if node.type == "block":
+    #     print("Children:", node.children)
+    if node.type == "assignment":
+        print("Parent", node.parent)
+        print("Left: ", node.child_by_field_name("left"))
+        print("Right: ", node.child_by_field_name("right"))
+        print("Type: ", node.child_by_field_name("type"))
+    if node.type == "augmented_assignment":
+        print("Parent", node.parent)
+        print("Left: ", node.child_by_field_name("left"))
+        print("Right: ", node.child_by_field_name("right"))
     for child in node.children:
         if child.is_named: print_children(child, level + 1)
         # print_children(child, level + 1)

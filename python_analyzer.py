@@ -20,7 +20,6 @@ def check_parent(node: Node, param_vec: dict):
             break
     if parent.type != "module":
         assert parent.type == "block"
-        # TODO: Decide: Always check if entry is true already like in check_block()?
         if parent.parent.type == "if_statement":
             param_vec["inside_if"] = True
         elif parent.parent.type == "elif_clause":
