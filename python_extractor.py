@@ -48,7 +48,7 @@ class PythonExtractor(Extractor):
                 #     param_vec["contains_logging"] = True
         elif exp_child.type == "await":
             param_vec["contains_await"] = True
-            assert len(exp_child.children) == 2
+            assert exp_child.child_count == 2
             assert exp_child.children[0].type == "await"
             # Check await node for call
             if exp_child.children[1].type == "call":
@@ -59,14 +59,16 @@ class PythonExtractor(Extractor):
 
     def check_block(self, node: Node, param_vec: dict):
         for child in node.children:
+            child: Node
             if not child.is_named or child.type == "comment":
                 continue
             # Check expression statements for call, assignment, await, yield and logging(special case of call)
             if child.type == "expression_statement":
-                # Block level expression statements rarely have more than one child, then we just check them all
+                # Block level expression statements rarely have more than one child, if so we just check them all
                 # Example: web2py/gluon/contrib/login_methods/openid_auth.py line 551-556
-                #           Has tuple form <identifier.call(params), "text" * 10> for some reason
-                if len(child.children) != 1:
+                #           Has tuple form 'identifier.call(params), "text" * 10' for some reason
+                # if len(child.children) != 1:
+                if child.child_count != 1:
                     print(self.file)
                     print("Expression statement with more than one child!")
                     print(child)
@@ -139,6 +141,7 @@ class PythonExtractor(Extractor):
             node_query = self.lang.query("(" + node_type + ") @" + node_type)
             nodes = node_query.captures(self.tree.root_node)
             for node, tag in nodes:
+                node: Node
                 # Uniqueness check is unnecessary?
                 if (node.start_byte, node.end_byte) in visited_nodes:
                     raise RuntimeError
@@ -180,7 +183,9 @@ class PythonExtractor(Extractor):
                             found_block = True
 
                 if training:
+                    # For extraction of features to a file, we need to return a list of lists of parameters
                     param_vec_list = list(param_vec.values())
+                    # Check that no parameters have been accidentally added
                     if self.args.mode == "bool":
                         if len(param_vec_list) != len(par_vec_bool):
                             self.debug_helper(node)
@@ -195,6 +200,8 @@ class PythonExtractor(Extractor):
                             raise RuntimeError("Parameter vector length mismatch")
                     param_vectors.append(param_vec_list)
                 else:
+                    # For prediction, the extracted parameters will be returned as a list of dicts for subsequent
+                    # pandas.Dataframe creation
                     # Only recommend for a node that doesn't have logging already
                     if not param_vec["contains_logging"]:
                         param_vectors.append(param_vec)

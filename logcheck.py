@@ -9,9 +9,10 @@ from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import pickle
 
-supported_languages = ["java", "python"]
+supported_languages = ["java", "javascript", "python"]
 suf = {
     "java": ".java",
+    "javascript": ".js",
     "python": ".py"
 }
 rev_suf = dict(zip(suf.values(), suf.keys()))
@@ -114,6 +115,8 @@ def analyze_newer():
 # DEPRECATED
 def analyze():
     """ Analyses the code in the file(s) """
+    print("analyze")
+    print(args.language)
     output = []
     for file in files:
         with open(file) as f:

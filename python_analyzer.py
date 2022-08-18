@@ -2,7 +2,7 @@
 from python_extractor import PythonExtractor
 from tree_sitter import Language, Tree, Node
 from pathlib import Path
-from extractor import print_children
+from extractor import print_children, traverse_tree
 from config import interesting_node_types, par_vec_onehot
 import pickle
 from sklearn.svm import LinearSVC
@@ -85,7 +85,6 @@ class PythonAnalyzer(PythonExtractor):
         :param tree: Treesitter tree object
         :param file: current file
         """
-
         super().__init__(src, lang, tree, file, args)
         # Name of the Python logging module
         self.keyword = "logg(ing|er)"
@@ -93,7 +92,9 @@ class PythonAnalyzer(PythonExtractor):
     def analyze(self) -> list:
         """ Starts the analyses """
         if self.args.debug:
-            print_children(self.tree.root_node)
+            # print_children(self.tree.root_node)
+            for node in traverse_tree(self.tree.root_node):
+                if node.is_named: print(node)
             return []
         recommendations = []
         classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
