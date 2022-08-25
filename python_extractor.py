@@ -29,10 +29,12 @@ class PythonExtractor(Extractor):
 
     def check_expression(self, exp_child: Node, param_vec: dict):
         if exp_child.type == "call":
+            # Todo: Move this into an else block of the if statement below?
             param_vec["contains_call"] = True
             # Check call nodes for logging
             func_call = exp_child.child_by_field_name("function")
-            if re.search(keyword, func_call.text.decode("UTF-8").lower()):
+            # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
+            if keyword.search(func_call.text.decode("UTF-8").lower()):
                 param_vec["contains_logging"] = True
         elif exp_child.type == "assignment" or exp_child.type == "augmented_assignment":
             param_vec["contains_assignment"] = True

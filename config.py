@@ -1,4 +1,6 @@
-keyword = "log(g(ing|er)?)?"
+import re
+
+keyword = re.compile("log(g(ing|er))?(\.|$)")
 
 compound_statements = [
     "class_definition",
@@ -109,6 +111,7 @@ reindex = ["contains_class_definition", "contains_for_statement",
            "parent_try_statement", "parent_while_statement",
            "parent_with_statement"]
 
-# print(par_vec_onehot)
-# print(contains_only_statements)
-# print(contains)
+if __name__ == "__main__":
+    print(par_vec_onehot)
+    print(contains_only_statements)
+    print(contains)

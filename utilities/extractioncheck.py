@@ -1,9 +1,16 @@
 import pandas as pd
 import sys
 
+detailed = False
+
 extractions = ["horizon", "hydra", "k8s", "pyres", "viewfinder", "web2py"]
 # extractions = ["horizon", "hydra", "k8s", "pyres", "viewfinder"]
 all_files = [extract + "_all_files" for extract in extractions]
+
+type_features = ['type_class_definition', 'type_elif_clause', 'type_else_clause',
+                   'type_except_clause', 'type_finally_clause', 'type_for_statement',
+                   'type_function_definition', 'type_if_statement', 'type_try_statement',
+                   'type_while_statement', 'type_with_statement']
 
 for filelist, desc in zip([extractions, all_files], ["Only files that import logging", "All files"]):
     print("_" * 70)
@@ -34,16 +41,20 @@ for filelist, desc in zip([extractions, all_files], ["Only files that import log
 
         # print(dataset.contains_logging.value_counts())
         # print(sys.argv)
-        if len(sys.argv) > 1:
+        if detailed:
+            print(extraction)
             df = pd.get_dummies(dataset.drop(['line'], axis=1), columns=["type", "parent"])
             # print("DTypes:", df.dtypes)
+
             print("Sums:")
-            for col in df.columns:
+            # for col in df.columns:
+            for col in type_features:
                 print(df[df[col] == True].shape[0], col)
             print("")
             print("Positives:")
             positives = df[df["contains_logging"] == True]
-            for col in df.columns:
+            # for col in df.columns:
+            for col in type_features:
                 print(positives[positives[col] == True].shape[0], col)
             print("-" * 70)
 
