@@ -24,10 +24,10 @@ def f_importances(coef, names, title, sort_features=True, supertitle=""):
     fig.show()
 
 features = [
-    "combination_full",
-    "combination_full_all_files",
+    "combination",
+    # "combination_full_all_files",
     "combination_without_web2py",
-    "combination_without_web2py_all_files"
+    # "combination_without_web2py_all_files"
 ]
 for feature in features:
     print("-" * 30)

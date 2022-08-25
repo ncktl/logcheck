@@ -1,3 +1,6 @@
+
+# DEPRECATED, WAS USED TO CHECK DIFFS BETWEEN extracting from all files and only those importing logging
+
 import pandas as pd
 import sys
 

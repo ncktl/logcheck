@@ -37,12 +37,6 @@ def extract(train_mode: bool = True):
         with open(file) as f:
             sourcecode = f.read()
             f.close()
-        # TODO: FIGURE THIS OUT!!!!
-        # Check if logging is imported. Python specific placeholder!
-        # if train_mode:
-        #     if "import logging" not in sourcecode:
-        #         continue
-
         # print(f"File: {file}")
         # Create abstract syntax tree
         tree = parser.parse(bytes(sourcecode, "utf8"))
