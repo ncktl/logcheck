@@ -28,14 +28,16 @@ class PythonExtractor(Extractor):
         # print(node.text.decode("UTF-8"))
 
     def check_expression(self, exp_child: Node, param_vec: dict):
+        # Call
         if exp_child.type == "call":
-            # Todo: Move this into an else block of the if statement below?
-            param_vec["contains_call"] = True
             # Check call nodes for logging
             func_call = exp_child.child_by_field_name("function")
             # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
             if keyword.search(func_call.text.decode("UTF-8").lower()):
                 param_vec["contains_logging"] = True
+            else:
+                param_vec["contains_call"] = True
+        # Assignment
         elif exp_child.type == "assignment" or exp_child.type == "augmented_assignment":
             param_vec["contains_assignment"] = True
             # Check assignment nodes for calls
@@ -48,6 +50,7 @@ class PythonExtractor(Extractor):
                 # func_call = assign_rhs.child_by_field_name("function")
                 # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
                 #     param_vec["contains_logging"] = True
+        # Await
         elif exp_child.type == "await":
             param_vec["contains_await"] = True
             assert exp_child.child_count == 2
@@ -55,7 +58,8 @@ class PythonExtractor(Extractor):
             # Check await node for call
             if exp_child.children[1].type == "call":
                 param_vec["contains_call"] = True
-                # Eventual check for logging
+                # Eventual check for logging?
+        # Yield
         elif exp_child.type == "yield":
             param_vec["contains_yield"] = True
 
