@@ -47,9 +47,19 @@ def extract(train_mode: bool = True):
         # Start the extraction
         file_param_vecs = extractor.fill_param_vecs_ast_new(training=train_mode)
         if args.debug:
-            param_vectors += [f"  {file}  "]
+            param_vectors += [file]
         param_vectors += file_param_vecs
-    with open(args.output, "w") as out:
+    if args.output:
+        with open(args.output, "w") as out:
+            if args.mode == "bool":
+                out.write(",".join(key for key in par_vec_bool.keys()))
+            elif args.mode == "onehot":
+                out.write(",".join(key for key in par_vec_onehot.keys()))
+            out.write("\n")
+            out.write("\n".join([str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
+            out.write("\n")
+    else:
+        out = sys.stdout
         if args.mode == "bool":
             out.write(",".join(key for key in par_vec_bool.keys()))
         elif args.mode == "onehot":
@@ -97,7 +107,16 @@ def analyze_newer():
                         # Assumption: onehot
                         output.append(f"We recommend logging in the {file_param_vecs[i]['type']} "
                                       f"starting in line {file_param_vecs[i]['line']}")
-    with open(args.output, "w") as out:
+    if args.output:
+        with open(args.output, "w") as out:
+            if output:
+                out.write("\n".join(output))
+            else:
+                out.write("No recommendations")
+            out.write("\n")
+            out.close()
+    else:
+        out = sys.stdout
         if output:
             out.write("\n".join(output))
         else:
@@ -172,24 +191,26 @@ if __name__ == "__main__":
     if args.path.is_dir(): args.batch = True
     elif args.path.is_file(): args.batch = False
     else: arg_parser.error("Path is neither file nor directory.")
-    # Handle output
-    if not args.output:
-        # Feature extraction
-        if args.extract:
-            if args.batch:
-                args.output = Path("features/demofile.csv")
-                print(f"No output file specified. Using default: {args.output}")
-            else:
-                args.output = Path("features/" + args.path.name + ".csv")
-                print(f"No output file specified. Using: {args.output}")
-        # Analysis
-        else:
-            if args.batch:
-                args.output = Path("analysis/demofile.txt")
-                print(f"No output file specified. Using default: {args.output}")
-            else:
-                args.output = Path("analysis/" + args.path.name + ".txt")
-                print(f"No output file specified. Using: {args.output}")
+
+    # Default output handling disabled in favor of printing to stdout
+    # # Handle output
+    # if not args.output:
+    #     # Feature extraction
+    #     if args.extract:
+    #         if args.batch:
+    #             args.output = Path("features/demofile.csv")
+    #             print(f"No output file specified. Using default: {args.output}")
+    #         else:
+    #             args.output = Path("features/" + args.path.name + ".csv")
+    #             print(f"No output file specified. Using: {args.output}")
+    #     # Analysis
+    #     else:
+    #         if args.batch:
+    #             args.output = Path("analysis/demofile.txt")
+    #             print(f"No output file specified. Using default: {args.output}")
+    #         else:
+    #             args.output = Path("analysis/" + args.path.name + ".txt")
+    #             print(f"No output file specified. Using: {args.output}")
     if args.output and args.output.is_file() and not args.force:
         # arg_parser.error("Output file exists. Use the -f argument to overwrite.")
         def overwrite():
