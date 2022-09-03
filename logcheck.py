@@ -160,11 +160,12 @@ if __name__ == "__main__":
     arg_parser.add_argument("-m", "--mode", type=str, choices=["bool", "onehot"], default="onehot",
                             help="Mode of encoding. Default: onehot")
     arg_parser.add_argument("-d", "--debug", action="store_true",
-                            help="Enable debug mode")
+                            help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",
                             help="Use alternative / old functions")
-    arg_parser.add_argument("-s", "--suffix", action="store_true",
-                            help="Add mode of encoding to file name")
+    # Depercated
+    # arg_parser.add_argument("-s", "--suffix", action="store_true",
+    #                         help="Add mode of encoding to file name")
     args = arg_parser.parse_args()
     # Todo: Automatically detect batch mode
     # Check arguments
@@ -174,24 +175,26 @@ if __name__ == "__main__":
         arg_parser.error("Use batch mode when specifying directories.")
     # Handle output
     if not args.output:
-        # Analysis
-        if not args.extract:
-            if args.batch:
-                args.output = Path("analysis/demofile.txt")
-                print(f"No output file specified. Using default: {args.output}")
-            else:
-                args.output = Path("analysis/" + args.path.name + ".txt")
-                print(f"No output file specified. Using: {args.output}")
         # Feature extraction
-        else:
+        if args.extract:
             if args.batch:
                 args.output = Path("features/demofile.csv")
                 print(f"No output file specified. Using default: {args.output}")
             else:
                 args.output = Path("features/" + args.path.name + ".csv")
                 print(f"No output file specified. Using: {args.output}")
-    if args.suffix:
-        args.output = args.output.with_suffix(f".{args.mode}.csv")
+        # Analysis
+        else:
+            if args.batch:
+                args.output = Path("analysis/demofile.txt")
+                print(f"No output file specified. Using default: {args.output}")
+            else:
+                args.output = Path("analysis/" + args.path.name + ".txt")
+                print(f"No output file specified. Using: {args.output}")
+
+    # Deprecated
+    # if args.suffix:
+    #     args.output = args.output.with_suffix(f".{args.mode}.csv")
     if args.output.is_file() and not args.force:
         # arg_parser.error("Output file exists. Use the -f argument to overwrite.")
         def overwrite():

@@ -35,8 +35,8 @@ for feature in features:
     # Importing the dataset
     # Assumption: Onehot encoding
     df = pd.read_csv("~/logcheck/features/" + feature + ".csv")
-    # X = df.drop(["line", "contains_logging"], axis=1)
-    X = df.drop(["line", "contains_logging", "contains_call"], axis=1)
+    X = df.drop(["line", "contains_logging"], axis=1)
+    # X = df.drop(["line", "contains_logging", "contains_call"], axis=1)
     X = pd.get_dummies(X, columns=["type", "parent"])
     y = df.contains_logging
     # Splitting the dataset into the Training set and Test set

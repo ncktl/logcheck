@@ -44,8 +44,8 @@ class PythonExtractor(Extractor):
             assign_rhs = exp_child.child_by_field_name("right")
             if assign_rhs and assign_rhs.type == "call":
                 param_vec["contains_call"] = True
-                # Check call nodes for logging
-                # Overkill for now as a logging method call on the right-hand side of an assigment
+                # Check call nodes for logging?
+                # No because a logging method call on the right-hand side of an assigment
                 #  is usually not a logging call but rather an instantiation of a logging class
                 # func_call = assign_rhs.child_by_field_name("function")
                 # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
