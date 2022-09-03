@@ -163,16 +163,15 @@ if __name__ == "__main__":
                             help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",
                             help="Use alternative / old functions")
-    # Depercated
-    # arg_parser.add_argument("-s", "--suffix", action="store_true",
-    #                         help="Add mode of encoding to file name")
     args = arg_parser.parse_args()
-    # Todo: Automatically detect batch mode
+
     # Check arguments
     if not args.path.exists():
         arg_parser.error("Path does not exist.")
-    if not args.batch and args.path.is_dir():
-        arg_parser.error("Use batch mode when specifying directories.")
+    # Detect batch mode
+    if args.path.is_dir(): args.batch = True
+    elif args.path.is_file(): args.batch = False
+    else: arg_parser.error("Path is neither file nor directory.")
     # Handle output
     if not args.output:
         # Feature extraction
@@ -191,11 +190,7 @@ if __name__ == "__main__":
             else:
                 args.output = Path("analysis/" + args.path.name + ".txt")
                 print(f"No output file specified. Using: {args.output}")
-
-    # Deprecated
-    # if args.suffix:
-    #     args.output = args.output.with_suffix(f".{args.mode}.csv")
-    if args.output.is_file() and not args.force:
+    if args.output and args.output.is_file() and not args.force:
         # arg_parser.error("Output file exists. Use the -f argument to overwrite.")
         def overwrite():
             force = input("Output file exists. Overwrite? [y/n]: ")
@@ -207,12 +202,13 @@ if __name__ == "__main__":
             else:
                 overwrite()
         overwrite()
-    print(f"Output file: {args.output}")
-    # Catch permission errors before program execution
-    try:
-        args.output.touch()
-    except PermissionError as e:
-        arg_parser.error(e)
+    if args.output:
+        print(f"Output file: {args.output}")
+        # Catch permission errors before program execution
+        try:
+            args.output.touch()
+        except PermissionError as e:
+            arg_parser.error(e)
     # Ensure language is known
     # DEPRECATED because python is the default
     if args.batch:
