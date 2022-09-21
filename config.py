@@ -53,6 +53,9 @@ interesting_node_types = compound_statements + extra_clauses
 # contains_features check the node's direct children in its block
 contains_types = compound_statements + simple_statements
 
+# A list of all python syntax node types that are visible and non-literals and also not identifiers
+# Excludes e.g. block and expression_statement nodes
+visible_node_types = compound_statements + extra_clauses + simple_statements + expressions
 
 # Todo: Test with node count for contains_features -> type(par_vec_extended["contains_features"]) == int
 # Todo: contains_open? Redundant with contains_with?
