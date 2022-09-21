@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import importlib
 import argparse
-from config import par_vec_bool, par_vec_onehot, reindex
+from config import par_vec_onehot, reindex
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
@@ -51,19 +51,13 @@ def extract(train_mode: bool = True):
         param_vectors += file_param_vecs
     if args.output:
         with open(args.output, "w") as out:
-            if args.mode == "bool":
-                out.write(",".join(key for key in par_vec_bool.keys()))
-            elif args.mode == "onehot":
-                out.write(",".join(key for key in par_vec_onehot.keys()))
+            out.write(",".join(key for key in par_vec_onehot.keys()))
             out.write("\n")
             out.write("\n".join([str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
             out.write("\n")
     else:
         out = sys.stdout
-        if args.mode == "bool":
-            out.write(",".join(key for key in par_vec_bool.keys()))
-        elif args.mode == "onehot":
-            out.write(",".join(key for key in par_vec_onehot.keys()))
+        out.write(",".join(key for key in par_vec_onehot.keys()))
         out.write("\n")
         out.write("\n".join([str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
         out.write("\n")
@@ -176,8 +170,6 @@ if __name__ == "__main__":
                             help="Force overwrite of output file")
     arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages, default="python",
                             help="Specify the language. Default: python")
-    arg_parser.add_argument("-m", "--mode", type=str, choices=["bool", "onehot"], default="onehot",
-                            help="Mode of encoding. Default: onehot")
     arg_parser.add_argument("-d", "--debug", action="store_true",
                             help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",

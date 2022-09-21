@@ -1,6 +1,6 @@
 from tree_sitter import Language, Tree, Node
 from extractor import Extractor
-from config import par_vec_bool, par_vec_onehot, interesting_node_types, contains
+from config import par_vec_onehot, interesting_node_types, contains
 from config import compound_statements, simple_statements, extra_clauses, contains_types, keyword
 import config as cfg
 import re
@@ -115,30 +115,16 @@ class PythonExtractor(Extractor):
             parent = node
             while parent.parent:
                 parent = parent.parent
-                if self.args.mode == "bool":
-                    if parent.type == "block":
-                        if parent.parent.type in interesting_node_types:
-                            param_vec["child_of_" + parent.parent.type] = True
-                            return
-                        else:
-                            raise RuntimeError("Parent of block is not interesting")
-                    if parent.type == "module":
-                        param_vec["child_of_module"] = True
-                        return
-                elif self.args.mode == "onehot":
-                    if parent.type == "block":
-                        param_vec["parent"] = parent.parent.type
-                        return
-                    if parent.type == "module":
-                        param_vec["parent"] = "module"
-                        return
+                if parent.type == "block":
+                    param_vec["parent"] = parent.parent.type
+                    return
+                if parent.type == "module":
+                    param_vec["parent"] = "module"
+                    return
             raise RuntimeError("Could not find parent of node")
         elif node.type in extra_clauses:
             assert node.parent.type in compound_statements
-            if self.args.mode == "bool":
-                param_vec["child_of_" + node.parent.type] = True
-            elif self.args.mode == "onehot":
-                param_vec["parent"] = node.parent.type
+            param_vec["parent"] = node.parent.type
         else:
             raise RuntimeError("Node type not handled")
 
@@ -158,12 +144,8 @@ class PythonExtractor(Extractor):
                 if not node.is_named:
                     continue
                 # Parameter vector for this node
-                if self.args.mode == "bool":
-                    param_vec = copy(par_vec_bool)
-                    param_vec[node_type] = True
-                elif self.args.mode == "onehot":
-                    param_vec = copy(par_vec_onehot)
-                    param_vec["type"] = node_type
+                param_vec = copy(par_vec_onehot)
+                param_vec["type"] = node_type
                 param_vec["line"] = node.start_point[0] + 1
                 # Check parent
                 if node_type != "module":
@@ -194,18 +176,11 @@ class PythonExtractor(Extractor):
                     # For extraction of features to a file, we need to return a list of lists of parameters
                     param_vec_list = list(param_vec.values())
                     # Check that no parameters have been accidentally added
-                    if self.args.mode == "bool":
-                        if len(param_vec_list) != len(par_vec_bool):
-                            self.debug_helper(node)
-                            print(par_vec_bool.keys())
-                            print(param_vec.keys())
-                            raise RuntimeError("Parameter vector length mismatch")
-                    elif self.args.mode == "onehot":
-                        if len(param_vec_list) != len(par_vec_onehot):
-                            self.debug_helper(node)
-                            print(par_vec_onehot.keys())
-                            print(param_vec.keys())
-                            raise RuntimeError("Parameter vector length mismatch")
+                    if len(param_vec_list) != len(par_vec_onehot):
+                        self.debug_helper(node)
+                        print(par_vec_onehot.keys())
+                        print(param_vec.keys())
+                        raise RuntimeError("Parameter vector length mismatch")
                     param_vectors.append(param_vec_list)
                 else:
                     # For prediction, the extracted parameters will be returned as a list of dicts for subsequent

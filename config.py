@@ -69,7 +69,6 @@ def vectorize(x):
 
 
 interesting_nodes = prefix("")(interesting_node_types)
-children_of = prefix("child_of_")(interesting_node_types + ["module"])
 contains_only_statements = prefix("contains_")(contains_types)
 contains = prefix("contains_")(contains_types + expressions + ["logging"])
 
@@ -77,9 +76,6 @@ contains = prefix("contains_")(contains_types + expressions + ["logging"])
 def make_features(x):
     return [[("line", -1)] + x + vectorize(contains)]
 
-
-features_bool = make_features(vectorize(interesting_nodes) + vectorize(children_of))
-par_vec_bool = dict([x for y in features_bool for x in y])
 
 features_onehot = make_features([("type", ""), ("parent", "")])
 par_vec_onehot = dict([x for y in features_onehot for x in y])
