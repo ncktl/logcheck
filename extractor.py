@@ -45,11 +45,18 @@ def print_children(node: Node, level=0, maxdepth=999):
         # print_children(child, level + 1)
 
 
-def traverse_tree(node: Node):
-    cursor: TreeCursor = node.walk()
+def traverse_sub_tree(root_node: Node, stop_node: Node = None):
+    """Traverses the sub-ast of the given root node and yields the nodes.
+    If a stop node is given, traversal ends there (inclusive)"""
+    cursor: TreeCursor = root_node.walk()
+
     reached_root = False
     while not reached_root:
         yield cursor.node
+
+        if cursor.node == stop_node:
+            reached_root = True
+            continue
 
         if cursor.goto_first_child():
             continue
@@ -61,7 +68,7 @@ def traverse_tree(node: Node):
             if not cursor.goto_parent():
                 retracing = False
                 reached_root = True
-            if cursor.goto_next_sibling():
+            elif cursor.goto_next_sibling():
                 retracing = False
 
 

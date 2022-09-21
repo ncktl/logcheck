@@ -63,6 +63,8 @@ class PythonExtractor(Extractor):
         elif exp_child.type == "yield":
             param_vec["contains_yield"] = True
 
+
+
     def check_block(self, node: Node, param_vec: dict):
         for child in node.children:
             child: Node

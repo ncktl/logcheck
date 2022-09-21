@@ -1,10 +1,9 @@
-
-# DEPRECATED, WAS USED TO CHECK DIFFS BETWEEN extracting from all files and only those importing logging
-
+# This script provides some statistics about the extracts
+# Set detailed to True for counts of type_features
 import pandas as pd
 import sys
 
-detailed = False
+detailed = True
 
 extractions = ["horizon", "hydra", "k8s", "pyres", "viewfinder", "web2py"]
 # extractions = ["horizon", "hydra", "k8s", "pyres", "viewfinder"]

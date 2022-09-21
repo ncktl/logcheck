@@ -1,8 +1,8 @@
 # Generally DEPRECIATED
 from python_extractor import PythonExtractor
-from tree_sitter import Language, Tree, Node
+from tree_sitter import Language, Tree, Node, TreeCursor
 from pathlib import Path
-from extractor import print_children, traverse_tree
+from extractor import print_children, traverse_sub_tree
 from config import interesting_node_types, par_vec_onehot
 import pickle
 from sklearn.svm import LinearSVC
@@ -93,9 +93,50 @@ class PythonAnalyzer(PythonExtractor):
         """ Starts the analyses """
         if self.args.debug:
             # print_children(self.tree.root_node)
-            for node in traverse_tree(self.tree.root_node):
-                if node.is_named: print(node)
+            for node in traverse_sub_tree(self.tree.root_node):
+                # if node.is_named and node.type == "expression_statement":
+                if node.is_named:
+                    print(node.text.decode("UTF-8"), "\t\t\t", node)
             return []
+        else:
+            # print_children(self.tree.root_node)
+            block_query = self.lang.query("(block) @block")
+            block_nodes = block_query.captures(self.tree.root_node)
+            # prev = None
+            for block_node, tag in block_nodes:
+                block_node: Node
+                if block_node.parent.type in ["class_definition", "module"]: continue
+                # print(block_node == prev)
+                # print(block_node == block_node)
+                # prev = block_node
+                print("#" * 80)
+                # print("#" * 120)
+                # print("#" * 120)
+                print(block_node)
+                print(block_node.text.decode("UTF-8"))
+                print("-" * 80)
+                # cursor: TreeCursor = block_node.walk()
+                # print(f"Cursor Node type: {cursor.node}")
+                # cursor.goto_first_child()
+                # if cursor.goto_parent(): print("Down and back up")
+                # if not cursor.goto_parent():
+                #     print("it's only the sub ast!")
+                # print(f"Cursor Node type: {cursor.node}")
+                def_root_node = block_node
+                while def_root_node.type not in ["class_definition", "function_definition", "module"]:
+                    def_root_node = def_root_node.parent
+
+                # for node in traverse_sub_tree(def_root_node):
+                for node in traverse_sub_tree(def_root_node, block_node):
+                    # if node.is_named and node.type == "expression_statement":
+                    # print(node)
+                    if node.is_named:
+                        # print(node.text.decode("UTF-8"), "\t\t\t", node)
+                        print(node)
+
+            return []
+
+
         recommendations = []
         classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
         # print(classifier.predict([[False,False,False,False,False,False,False,False,False,False]]))

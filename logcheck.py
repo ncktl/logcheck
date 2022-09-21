@@ -128,8 +128,8 @@ def analyze_newer():
 # DEPRECATED
 def analyze():
     """ Analyses the code in the file(s) """
-    print("analyze")
-    print(args.language)
+    # print("analyze")
+    # print(args.language)
     output = []
     for file in files:
         with open(file) as f:
