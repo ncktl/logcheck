@@ -3,7 +3,7 @@ from python_extractor import PythonExtractor
 from tree_sitter import Language, Tree, Node, TreeCursor
 from pathlib import Path
 from extractor import print_children, traverse_sub_tree
-from config import interesting_node_types, par_vec_onehot, visible_node_types
+from config import interesting_node_types, par_vec_onehot, visible_node_types, keyword
 import pickle
 from sklearn.svm import LinearSVC
 from copy import copy
@@ -129,11 +129,26 @@ class PythonAnalyzer(PythonExtractor):
                             print(node.type)
                     print("-" * 80)
                     print("Previous nodes in function definition:")
-                    for node in traverse_sub_tree(funcdef_node, block_node):
-                        if node.is_named and node.type in visible_node_types and node.type != "function_definition":
-                            # print(node)
+                    # last_node = None
+                    def check_and_print(node: Node):
+                        if node.is_named and node.type in visible_node_types:
+                            if node.type == "call" and keyword.search(node.text.decode("UTF-8").lower()):
+                                #print("Logging call found")
+                                return
                             print(node.type)
+                    for node in traverse_sub_tree(funcdef_node, block_node):
+                        if node.type != "function_definition":
+                            check_and_print(node)
+                            # print(node)
+                            # print(node.type)
+                            # last_node = node
                             # print("-" * 80)
+                    # if last_node:
+                    #     for node2 in traverse_sub_tree(last_node):
+                    #         if node2.is_named and node2.type in visible_node_types:
+                    #             print(node2.type)
+                    for node in traverse_sub_tree(block_node):
+                        check_and_print(node)
                     print("=" * 80)
             return []
 
