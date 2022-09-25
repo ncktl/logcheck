@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import importlib
 import argparse
-from config import par_vec_onehot, reindex
+from config import par_vec_onehot, reindex, par_vec_onehot_expanded
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
@@ -49,17 +49,27 @@ def extract(train_mode: bool = True):
         if args.debug:
             param_vectors += [file]
         param_vectors += file_param_vecs
+    if args.alt:
+        param_vec_used = par_vec_onehot_expanded
+    else:
+        param_vec_used = par_vec_onehot
     if args.output:
         with open(args.output, "w") as out:
-            out.write(",".join(key for key in par_vec_onehot.keys()))
+            out.write(",".join(key for key in param_vec_used.keys()))
             out.write("\n")
-            out.write("\n".join([str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
+            # out.write("\n".join([str(x).replace(" ", "").replace("'", "").replace("|", " ")[1:-1] for x in param_vectors]))
+            out.write("\n".join([str(x).replace(" ", "").replace("'", "").replace("|", " ").replace("False",
+                                                                                                    "0").replace("True",
+                                                                                                                 "1")[
+                                 1:-1] for x in param_vectors]))
             out.write("\n")
     else:
         out = sys.stdout
-        out.write(",".join(key for key in par_vec_onehot.keys()))
+        out.write(",".join(key for key in param_vec_used.keys()))
         out.write("\n")
-        out.write("\n".join([str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
+        out.write("\n".join(
+            [str(x).replace(" ", "").replace("'", "").replace("|", " ").replace("False", "0").replace("True", "1")[1:-1]
+             for x in param_vectors]))
         out.write("\n")
         out.close()
 

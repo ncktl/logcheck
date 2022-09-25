@@ -25,7 +25,7 @@ simple_statements = [
     "continue_statement",
     "delete_statement",
     "exec_statement",  # Not in Viewfinder
-    # "expression_statement", # TODO Highest importance, disabled for testing, split up into finer
+    # "expression_statement", #  Highest importance, disabled for testing, split up into finer
     "future_import_statement",  # Not in Viewfinder
     "global_statement",
     "import_from_statement",
@@ -57,6 +57,11 @@ contains_types = compound_statements + simple_statements
 # Excludes e.g. block and expression_statement nodes
 visible_node_types = compound_statements + extra_clauses + simple_statements + expressions
 
+# Integer Encoding of visible node types
+node_dict = dict()
+for i, node_type in enumerate(visible_node_types):
+    node_dict[node_type] = str(i)
+
 # Todo: Test with node count for contains_features -> type(par_vec_extended["contains_features"]) == int
 # Todo: contains_open? Redundant with contains_with?
 
@@ -82,6 +87,9 @@ def make_features(x):
 
 features_onehot = make_features([("type", ""), ("parent", "")])
 par_vec_onehot = dict([x for y in features_onehot for x in y])
+
+features_onehot_expanded = make_features([("type", ""), ("parent", ""), ("context", "")])
+par_vec_onehot_expanded = dict([x for y in features_onehot_expanded for x in y])
 
 # List of par_vec_onehot keys with onehot values expanded for reindexing the parameter vector during prediction
 reindex = ["contains_class_definition", "contains_for_statement",
@@ -114,3 +122,5 @@ if __name__ == "__main__":
     print(par_vec_onehot)
     print(contains_only_statements)
     print(contains)
+    print(node_dict)
+    print(len(visible_node_types))

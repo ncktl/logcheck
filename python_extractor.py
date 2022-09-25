@@ -1,7 +1,7 @@
 from tree_sitter import Language, Tree, Node
-from extractor import Extractor
-from config import par_vec_onehot, interesting_node_types, contains, visible_node_types
-from config import compound_statements, simple_statements, extra_clauses, contains_types, keyword
+from extractor import Extractor, traverse_sub_tree
+from config import par_vec_onehot, interesting_node_types, contains, visible_node_types, par_vec_onehot_expanded
+from config import compound_statements, simple_statements, extra_clauses, contains_types, keyword, node_dict
 import config as cfg
 import re
 from copy import copy
@@ -63,10 +63,32 @@ class PythonExtractor(Extractor):
         elif exp_child.type == "yield":
             param_vec["contains_yield"] = True
 
+    def check_block(self, block_node: Node, param_vec: dict):
+        # Build the context of the block like in Li et. al
+        # Difference: We consider blocks that have no func def in their ancestry, e.g. module > if > block
+        if self.args.alt:
+            def_node = block_node
+            while def_node.type not in ["module", "class_definition", "function_definition"]:
+                def_node = def_node.parent
 
+            def add_relevant_node(node: Node, context: list):
+                if node.is_named and node.type in visible_node_types:
+                    if node.type == "call" and keyword.search(node.text.decode("UTF-8").lower()):
+                        return
+                    else:
+                        context.append(node_dict[node.type])
 
-    def check_block(self, node: Node, param_vec: dict):
-        for child in node.children:
+            context = []
+            # The ast nodes that came before the block in its parent (func|class) def or module
+            for node in traverse_sub_tree(def_node, block_node):
+                add_relevant_node(node, context)
+            # The ast nodes in the block and it's children
+            for node in traverse_sub_tree(block_node):
+                add_relevant_node(node, context)
+            param_vec["context"] = "|".join(context)
+
+        # Check the contents of the block, find logging
+        for child in block_node.children:
             child: Node
             if not child.is_named or child.type == "comment":
                 continue
@@ -144,7 +166,11 @@ class PythonExtractor(Extractor):
                 if not node.is_named:
                     continue
                 # Parameter vector for this node
-                param_vec = copy(par_vec_onehot)
+                if self.args.alt:
+                    param_vec_used = par_vec_onehot_expanded
+                else:
+                    param_vec_used = par_vec_onehot
+                param_vec = copy(param_vec_used)
                 param_vec["type"] = node_type
                 param_vec["line"] = node.start_point[0] + 1
                 # Check parent
@@ -176,9 +202,9 @@ class PythonExtractor(Extractor):
                     # For extraction of features to a file, we need to return a list of lists of parameters
                     param_vec_list = list(param_vec.values())
                     # Check that no parameters have been accidentally added
-                    if len(param_vec_list) != len(par_vec_onehot):
+                    if len(param_vec_list) != len(param_vec_used):
                         self.debug_helper(node)
-                        print(par_vec_onehot.keys())
+                        print(param_vec_used.keys())
                         print(param_vec.keys())
                         raise RuntimeError("Parameter vector length mismatch")
                     param_vectors.append(param_vec_list)
