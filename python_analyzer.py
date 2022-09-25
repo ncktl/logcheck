@@ -3,7 +3,7 @@ from python_extractor import PythonExtractor
 from tree_sitter import Language, Tree, Node, TreeCursor
 from pathlib import Path
 from extractor import print_children, traverse_sub_tree
-from config import interesting_node_types, par_vec_onehot
+from config import interesting_node_types, par_vec_onehot, visible_node_types
 import pickle
 from sklearn.svm import LinearSVC
 from copy import copy
@@ -100,40 +100,41 @@ class PythonAnalyzer(PythonExtractor):
             return []
         else:
             # print_children(self.tree.root_node)
+            function_definiton_query = self.lang.query("(function_definition) @funcdef")
+            function_definiton_nodes = function_definiton_query.captures(self.tree.root_node)
+
             block_query = self.lang.query("(block) @block")
-            block_nodes = block_query.captures(self.tree.root_node)
+            # block_nodes = block_query.captures(self.tree.root_node)
             # prev = None
-            for block_node, tag in block_nodes:
-                block_node: Node
-                if block_node.parent.type in ["class_definition", "module"]: continue
-                # print(block_node == prev)
-                # print(block_node == block_node)
-                # prev = block_node
+            for funcdef_node, tag in function_definiton_nodes:
+                funcdef_node: Node
+                block_nodes = block_query.captures(funcdef_node)
                 print("#" * 80)
-                # print("#" * 120)
-                # print("#" * 120)
-                print(block_node)
-                print(block_node.text.decode("UTF-8"))
-                print("-" * 80)
-                # cursor: TreeCursor = block_node.walk()
-                # print(f"Cursor Node type: {cursor.node}")
-                # cursor.goto_first_child()
-                # if cursor.goto_parent(): print("Down and back up")
-                # if not cursor.goto_parent():
-                #     print("it's only the sub ast!")
-                # print(f"Cursor Node type: {cursor.node}")
-                def_root_node = block_node
-                while def_root_node.type not in ["class_definition", "function_definition", "module"]:
-                    def_root_node = def_root_node.parent
-
-                # for node in traverse_sub_tree(def_root_node):
-                for node in traverse_sub_tree(def_root_node, block_node):
-                    # if node.is_named and node.type == "expression_statement":
-                    # print(node)
-                    if node.is_named:
-                        # print(node.text.decode("UTF-8"), "\t\t\t", node)
-                        print(node)
-
+                print(funcdef_node)
+                print(funcdef_node.text.decode("UTF-8"))
+                print("+" * 80)
+                for block_node, tag in block_nodes:
+                    print(block_node)
+                    print(block_node.text.decode("UTF-8"))
+                    print("-" * 80)
+                    print("Ast path from function definition to block:")
+                    pathlist = []
+                    wandering_node = block_node
+                    while wandering_node != funcdef_node:
+                        pathlist.append(wandering_node)
+                        wandering_node = wandering_node.parent
+                    pathlist.reverse()
+                    for node in pathlist:
+                        if node.is_named and node.type in visible_node_types:
+                            print(node.type)
+                    print("-" * 80)
+                    print("Previous nodes in function definition:")
+                    for node in traverse_sub_tree(funcdef_node, block_node):
+                        if node.is_named and node.type in visible_node_types and node.type != "function_definition":
+                            # print(node)
+                            print(node.type)
+                            # print("-" * 80)
+                    print("=" * 80)
             return []
 
 
