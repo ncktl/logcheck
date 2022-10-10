@@ -8,7 +8,6 @@ from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import pickle
-
 supported_languages = ["java", "javascript", "python"]
 suf = {
     "java": ".java",
@@ -25,8 +24,10 @@ def create_ts_lang_obj(language: str) -> Language:
     :param language: string containing the programming language to be analyzed
     :return: tree-sitter language object
     """
-    Language.build_library("build/my-languages.so", list("tree-sitter-" + lang for lang in supported_languages))
-    ts_lang = Language("build/my-languages.so", language)
+    lib_path = Path(Path(__file__).parent / "build/my-languages.so").resolve()
+    lang_paths = [Path(Path(__file__).parent / ("tree-sitter-" + lang)).resolve() for lang in supported_languages]
+    Language.build_library(lib_path, lang_paths)
+    ts_lang = Language(lib_path, language)
     return ts_lang
 
 
@@ -62,19 +63,14 @@ def extract(train_mode: bool = True):
         with open(args.output, "w") as out:
             out.write(",".join(key for key in param_vec_used.keys()))
             out.write("\n")
-            # out.write("\n".join([str(x).replace(" ", "").replace("'", "").replace("|", " ")[1:-1] for x in param_vectors]))
-            out.write("\n".join([str(x).replace(" ", "").replace("'", "").replace("|", " ").replace("False",
-                                                                                                    "0").replace("True",
-                                                                                                                 "1")[
-                                 1:-1] for x in param_vectors]))
+            out.write("\n".join([str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
             out.write("\n")
     else:
         out = sys.stdout
         out.write(",".join(key for key in param_vec_used.keys()))
         out.write("\n")
         out.write("\n".join(
-            [str(x).replace(" ", "").replace("'", "").replace("|", " ").replace("False", "0").replace("True", "1")[1:-1]
-             for x in param_vectors]))
+            [str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
         out.write("\n")
         out.close()
 

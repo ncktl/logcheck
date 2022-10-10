@@ -1,16 +1,17 @@
 import re
+from string import ascii_letters
 
 keyword = re.compile("log(g(ing|er))?(\.|$)")
 
 compound_statements = [
     "class_definition",
     # "decorated_definition", # Not needed: It's just the @decorator_name line
-    "for_statement",
     "function_definition",
     "if_statement",
+    "for_statement",
     # "match_statement", # Python 3.10 feature
-    "try_statement",
     "while_statement",
+    "try_statement",
     "with_statement"
 ]
 
@@ -20,27 +21,27 @@ extra_clauses = ["elif_clause", "else_clause", "except_clause", "finally_clause"
 
 # Too much?
 simple_statements = [
+    "return_statement",
     "assert_statement",
     "break_statement",
     "continue_statement",
+    "raise_statement",
+    "import_statement",
+    "import_from_statement",
+    "pass_statement",
     "delete_statement",
     "exec_statement",  # Not in Viewfinder
     # "expression_statement", #  Highest importance, disabled for testing, split up into finer
     "future_import_statement",  # Not in Viewfinder
     "global_statement",
-    "import_from_statement",
-    "import_statement",
     "nonlocal_statement",  # Not in Viewfinder
-    "pass_statement",
     "print_statement",  # Python 2 feature?
-    "raise_statement",
-    "return_statement"
 ]
 
 expressions = [
     "assignment",
-    "await",
     "call",
+    "await",
     "yield"
 ]
 
@@ -53,14 +54,14 @@ interesting_node_types = compound_statements + extra_clauses
 # contains_features check the node's direct children in its block
 contains_types = compound_statements + simple_statements
 
-# A list of all python syntax node types that are visible and non-literals and also not identifiers
+# A list of all python syntax node types that are visible and non-literals and also not identifiers, plus module
 # Excludes e.g. block and expression_statement nodes
-visible_node_types = compound_statements + extra_clauses + simple_statements + expressions
+most_node_types = ["module"] + compound_statements + extra_clauses + expressions + simple_statements
 
-# Integer Encoding of visible node types
+# ASCII Encoding of visible node types
 node_dict = dict()
-for i, node_type in enumerate(visible_node_types):
-    node_dict[node_type] = str(i)
+for i, node_type in enumerate(most_node_types):
+    node_dict[node_type] = ascii_letters[i]
 
 # Todo: Test with node count for contains_features -> type(par_vec_extended["contains_features"]) == int
 # Todo: contains_open? Redundant with contains_with?
@@ -73,7 +74,7 @@ def prefix(string):
 
 
 def vectorize(x):
-    return list(zip(x, [False] * len(x)))
+    return list(zip(x, [0] * len(x)))
 
 
 interesting_nodes = prefix("")(interesting_node_types)
@@ -130,9 +131,42 @@ if __name__ == "__main__":
     print(contains_only_statements)
     print(contains)
     print(node_dict)
-    print(len(visible_node_types))
+    print(len(most_node_types))
 
 """
+{'module': 'a',
+ 'class_definition': 'b',
+ 'function_definition': 'c',
+ 'if_statement': 'd',
+ 'for_statement': 'e',
+ 'while_statement': 'f',
+ 'try_statement': 'g',
+ 'with_statement': 'h',
+ 'elif_clause': 'i',
+ 'else_clause': 'j',
+ 'except_clause': 'k',
+ 'finally_clause': 'l',
+ 'assignment': 'm',
+ 'call': 'n',
+ 'await': 'o',
+ 'yield': 'p',
+ 'return_statement': 'q',
+ 'assert_statement': 'r',
+ 'break_statement': 's',
+ 'continue_statement': 't',
+ 'raise_statement': 'u',
+ 'import_statement': 'v',
+ 'import_from_statement': 'w',
+ 'pass_statement': 'x',
+ 'delete_statement': 'y',
+ 'exec_statement': 'z',
+ 'future_import_statement': 'A',
+ 'global_statement': 'B',
+ 'nonlocal_statement': 'C',
+ 'print_statement': 'D'}
+
+
+## Old:
 {'class_definition': '0',
  'for_statement': '1',
  'function_definition': '2',

@@ -1,6 +1,6 @@
 from tree_sitter import Language, Tree, Node
 from extractor import Extractor, traverse_sub_tree
-from config import par_vec_onehot, interesting_node_types, contains, visible_node_types, par_vec_onehot_expanded
+from config import par_vec_onehot, interesting_node_types, contains, most_node_types, par_vec_onehot_expanded
 from config import compound_statements, simple_statements, extra_clauses, contains_types, keyword, node_dict
 from config import par_vec_zhenhao
 import config as cfg
@@ -36,34 +36,34 @@ class PythonExtractor(Extractor):
             # Check call nodes for logging. Only if it's not a logging statement do we count it as a call.
             func_call = exp_child.child_by_field_name("function")
             if keyword.search(func_call.text.decode("UTF-8").lower()):
-                param_vec["contains_logging"] = True
+                param_vec["contains_logging"] = 1
             else:
-                param_vec["contains_call"] = True
+                param_vec["contains_call"] = 1
         # Assignment
         elif exp_child.type == "assignment" or exp_child.type == "augmented_assignment":
-            param_vec["contains_assignment"] = True
+            param_vec["contains_assignment"] = 1
             # Check assignment nodes for calls
             assign_rhs = exp_child.child_by_field_name("right")
             if assign_rhs and assign_rhs.type == "call":
-                param_vec["contains_call"] = True
+                param_vec["contains_call"] = 1
                 # Check call nodes for logging?
                 # No, because a logging method call on the right-hand side of an assigment
                 # is usually not a logging call but rather an instantiation of a logging class
                 # func_call = assign_rhs.child_by_field_name("function")
                 # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
-                #     param_vec["contains_logging"] = True
+                #     param_vec["contains_logging"] = 1
         # Await
         elif exp_child.type == "await":
-            param_vec["contains_await"] = True
+            param_vec["contains_await"] = 1
             assert exp_child.child_count == 2
             assert exp_child.children[0].type == "await"
             # Check await node for call
             if exp_child.children[1].type == "call":
-                param_vec["contains_call"] = True
+                param_vec["contains_call"] = 1
                 # Eventual check for logging?
         # Yield
         elif exp_child.type == "yield":
-            param_vec["contains_yield"] = True
+            param_vec["contains_yield"] = 1
 
     def build_context_of_block_node(self, block_node: Node, param_vec: dict):
         """Build the context of the block like in Zhenhao et al."""
@@ -82,7 +82,7 @@ class PythonExtractor(Extractor):
                 def_node = def_node.parent
 
         def add_relevant_node(node: Node, context: list):
-            if node.is_named and node.type in visible_node_types:
+            if node.is_named and node.type in most_node_types:
                 if node.type == "call" and keyword.search(node.text.decode("UTF-8").lower()):
                     return
                 else:
@@ -99,7 +99,7 @@ class PythonExtractor(Extractor):
         # Add the ast nodes in the block and it's children
         for node in traverse_sub_tree(block_node):
             add_relevant_node(node, context)
-        param_vec["context"] = "|".join(context)
+        param_vec["context"] = "".join(context)
 
     def check_block(self, block_node: Node, param_vec: dict):
         """Checks a block node for contained features, including logging by calling check_expression().
@@ -132,9 +132,9 @@ class PythonExtractor(Extractor):
             # Handle decorators so that they are counted as their respective class or function definition
             elif child.type == "decorated_definition":
                 if child.child_by_field_name("definition").type == "class_definition":
-                    param_vec["contains_class_definition"] = True
+                    param_vec["contains_class_definition"] = 1
                 elif child.child_by_field_name("definition").type == "function_definition":
-                    param_vec["contains_function_definition"] = True
+                    param_vec["contains_function_definition"] = 1
                 else:
                     self.debug_helper(child)
                     raise RuntimeError("Decorated definition not handled")
@@ -143,7 +143,7 @@ class PythonExtractor(Extractor):
             # Check if the child is a compound or simple statement
             for key, clause in zip(cfg.contains_only_statements, contains_types):
                 if child.type == clause:
-                    param_vec[key] = True
+                    param_vec[key] = 1
                     break
             else:
                 if child.type != "expression_statement":
@@ -162,15 +162,15 @@ class PythonExtractor(Extractor):
             while parent.parent:
                 parent = parent.parent
                 if parent.type == "block":
-                    param_vec["parent"] = parent.parent.type
+                    param_vec["parent"] = node_dict[parent.parent.type]
                     return
                 if parent.type == "module":
-                    param_vec["parent"] = "module"
+                    param_vec["parent"] = node_dict["module"]
                     return
             raise RuntimeError("Could not find parent of node")
         elif node.type in extra_clauses:
             assert node.parent.type in compound_statements
-            param_vec["parent"] = node.parent.type
+            param_vec["parent"] = node_dict[node.parent.type]
         else:
             raise RuntimeError("Node type not handled")
 
@@ -195,7 +195,7 @@ class PythonExtractor(Extractor):
                 else:
                     param_vec_used = par_vec_onehot
                 param_vec = copy(param_vec_used)
-                param_vec["type"] = node_type
+                param_vec["type"] = node_dict[node_type]
                 param_vec["line"] = node.start_point[0] + 1
                 # Check parent
                 if node_type != "module":
@@ -274,7 +274,7 @@ class PythonExtractor(Extractor):
                                 func_call = exp_child.child_by_field_name("function")
                                 # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
                                 if keyword.search(func_call.text.decode("UTF-8").lower()):
-                                    param_vec["contains_logging"] = True
+                                    param_vec["contains_logging"] = 1
 
                         if child.child_count != 1:
                             for exp_child in child.children:
