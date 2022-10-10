@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import importlib
 import argparse
-from config import par_vec_onehot, reindex, par_vec_onehot_expanded
+from config import par_vec_onehot, reindex, par_vec_onehot_expanded, par_vec_zhenhao
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
@@ -45,14 +45,19 @@ def extract(train_mode: bool = True):
                                   args.language.capitalize() + "Extractor")
         extractor = extractor_class(sourcecode, tree_lang, tree, file, args)
         # Start the extraction
-        file_param_vecs = extractor.fill_param_vecs_ast_new(training=train_mode)
+        if args.zhenhao:
+            file_param_vecs = extractor.fill_param_vecs_zhenhao(training=train_mode) # Zhenhao
+        else:
+            file_param_vecs = extractor.fill_param_vecs_ast_new(training=train_mode) # Regular
         if args.debug:
             param_vectors += [file]
         param_vectors += file_param_vecs
-    if args.alt:
-        param_vec_used = par_vec_onehot_expanded
+    if args.zhenhao:
+        param_vec_used = par_vec_zhenhao # Only Shenzen
+    elif args.alt:
+        param_vec_used = par_vec_onehot_expanded # New integer representation with context
     else:
-        param_vec_used = par_vec_onehot
+        param_vec_used = par_vec_onehot # Old without context
     if args.output:
         with open(args.output, "w") as out:
             out.write(",".join(key for key in param_vec_used.keys()))
@@ -184,6 +189,8 @@ if __name__ == "__main__":
                             help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",
                             help="Use alternative / old functions")
+    arg_parser.add_argument("-z", "--zhenhao", action="store_true",
+                            help="Mimic Zhenhao et. al")
     args = arg_parser.parse_args()
 
     # Check arguments

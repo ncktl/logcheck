@@ -2,6 +2,7 @@ from tree_sitter import Language, Tree, Node
 from extractor import Extractor, traverse_sub_tree
 from config import par_vec_onehot, interesting_node_types, contains, visible_node_types, par_vec_onehot_expanded
 from config import compound_statements, simple_statements, extra_clauses, contains_types, keyword, node_dict
+from config import par_vec_zhenhao
 import config as cfg
 import re
 from copy import copy
@@ -28,11 +29,12 @@ class PythonExtractor(Extractor):
         # print(node.text.decode("UTF-8"))
 
     def check_expression(self, exp_child: Node, param_vec: dict):
+        """Checks an expression node for contained features of the parent block node"""
+
         # Call
         if exp_child.type == "call":
-            # Check call nodes for logging
+            # Check call nodes for logging. Only if it's not a logging statement do we count it as a call.
             func_call = exp_child.child_by_field_name("function")
-            # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
             if keyword.search(func_call.text.decode("UTF-8").lower()):
                 param_vec["contains_logging"] = True
             else:
@@ -45,8 +47,8 @@ class PythonExtractor(Extractor):
             if assign_rhs and assign_rhs.type == "call":
                 param_vec["contains_call"] = True
                 # Check call nodes for logging?
-                # No because a logging method call on the right-hand side of an assigment
-                #  is usually not a logging call but rather an instantiation of a logging class
+                # No, because a logging method call on the right-hand side of an assigment
+                # is usually not a logging call but rather an instantiation of a logging class
                 # func_call = assign_rhs.child_by_field_name("function")
                 # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
                 #     param_vec["contains_logging"] = True
@@ -63,29 +65,49 @@ class PythonExtractor(Extractor):
         elif exp_child.type == "yield":
             param_vec["contains_yield"] = True
 
-    def check_block(self, block_node: Node, param_vec: dict):
-        # Build the context of the block like in Li et. al
-        # Difference: We consider blocks that have no func def in their ancestry, e.g. module > if > block
-        if self.args.alt:
-            def_node = block_node
+    def build_context_of_block_node(self, block_node: Node, param_vec: dict):
+        """Build the context of the block like in Zhenhao et al."""
+
+        # Find the containing (function) definition
+        def_node = block_node.parent
+        # For doing it exactly like Zhenhao et al.:
+        if self.args.zhenhao:
+            while def_node.type != "function_definition":
+                def_node = def_node.parent
+        # For our approach of looking at interesting nodes:
+        # There will be blocks that aren't inside a function/method
+        # This will limit the context to a containing class in case of func def >..> class def >..> block
+        else:
             while def_node.type not in ["module", "class_definition", "function_definition"]:
                 def_node = def_node.parent
 
-            def add_relevant_node(node: Node, context: list):
-                if node.is_named and node.type in visible_node_types:
-                    if node.type == "call" and keyword.search(node.text.decode("UTF-8").lower()):
-                        return
-                    else:
-                        context.append(node_dict[node.type])
+        def add_relevant_node(node: Node, context: list):
+            if node.is_named and node.type in visible_node_types:
+                if node.type == "call" and keyword.search(node.text.decode("UTF-8").lower()):
+                    return
+                else:
+                    context.append(node_dict[node.type])
 
-            context = []
-            # The ast nodes that came before the block in its parent (func|class) def or module
-            for node in traverse_sub_tree(def_node, block_node):
-                add_relevant_node(node, context)
-            # The ast nodes in the block and it's children
-            for node in traverse_sub_tree(block_node):
-                add_relevant_node(node, context)
-            param_vec["context"] = "|".join(context)
+        context = []
+        # Add the ast nodes that came before the block in its parent (func|class) def or module
+        for node in traverse_sub_tree(def_node, block_node):
+            add_relevant_node(node, context)
+        # Debug
+        if self.args.debug:
+            context.append("%%%%")
+        # /Debug
+        # Add the ast nodes in the block and it's children
+        for node in traverse_sub_tree(block_node):
+            add_relevant_node(node, context)
+        param_vec["context"] = "|".join(context)
+
+    def check_block(self, block_node: Node, param_vec: dict):
+        """Checks a block node for contained features, including logging by calling check_expression().
+        Optionally also build the node's context."""
+
+        # Build the context of the block like in Zhenhao et al.
+        if self.args.alt:
+            self.build_context_of_block_node(block_node, param_vec)
 
         # Check the contents of the block, find logging
         for child in block_node.children:
@@ -117,6 +139,7 @@ class PythonExtractor(Extractor):
                     self.debug_helper(child)
                     raise RuntimeError("Decorated definition not handled")
                 continue
+            # Build the contains_features
             # Check if the child is a compound or simple statement
             for key, clause in zip(cfg.contains_only_statements, contains_types):
                 if child.type == clause:
@@ -129,6 +152,7 @@ class PythonExtractor(Extractor):
 
     def check_parent(self, node: Node, param_vec: dict):
         """Checks the node's parent. Not used for the module node."""
+
         if node.type in compound_statements:
             # if node.parent.type != "module":
             #     if node.parent.parent.type not in interesting_node_types:
@@ -207,6 +231,13 @@ class PythonExtractor(Extractor):
                         print(param_vec_used.keys())
                         print(param_vec.keys())
                         raise RuntimeError("Parameter vector length mismatch")
+                    # Debug
+                    # if self.args.debug:
+                    #     if node_type == "function_definition" and param_vec["parent"] == "function_definition":
+                    #         if param_vec["context"].startswith("2|3|24|27|27|27|27|3|3|27|25|27|25|27|8|25|3|27|25|27"
+                    #                                            "|25|27|8|25"):
+                    #             self.debug_helper(node)
+                    # /Debug
                     param_vectors.append(param_vec_list)
                 else:
                     # For prediction, the extracted parameters will be returned as a list of dicts for subsequent
@@ -214,4 +245,47 @@ class PythonExtractor(Extractor):
                     # Only recommend for a node that doesn't have logging already
                     if not param_vec["contains_logging"]:
                         param_vectors.append(param_vec)
+        return param_vectors
+
+    def fill_param_vecs_zhenhao(self, training: bool = True) -> list:
+        """Extracts features like Zhenhao et al., i.e. looks at all blocks that are inside functions."""
+        param_vectors = []
+        function_definiton_query = self.lang.query("(function_definition) @funcdef")
+        function_definiton_nodes = function_definiton_query.captures(self.tree.root_node)
+        block_query = self.lang.query("(block) @block")
+        for funcdef_node, tag in function_definiton_nodes:
+            funcdef_node: Node
+            block_nodes = block_query.captures(funcdef_node)
+            for block_node, tag in block_nodes:
+                block_node: Node
+                param_vec = copy(par_vec_zhenhao)
+                param_vec["type"] = node_dict[block_node.parent.type]
+                param_vec["line"] = block_node.start_point[0] + 1
+                self.build_context_of_block_node(block_node, param_vec)
+                # Check for logging, slimmed version of check_block() and check_expression():
+                for child in block_node.children:
+                    child: Node
+                    # Check expression statements for logging(special case of call)
+                    if child.type == "expression_statement":
+
+                        def check_micro_expression(exp_child, param_vec):
+                            if exp_child.type == "call":
+                                # Check call nodes for logging
+                                func_call = exp_child.child_by_field_name("function")
+                                # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
+                                if keyword.search(func_call.text.decode("UTF-8").lower()):
+                                    param_vec["contains_logging"] = True
+
+                        if child.child_count != 1:
+                            for exp_child in child.children:
+                                check_micro_expression(exp_child, param_vec)
+                        else:
+                            check_micro_expression(child.children[0], param_vec)
+
+                if training:
+                    param_vec_list = list(param_vec.values())
+                    param_vectors.append(param_vec_list)
+                else:
+                    # Prediction
+                    pass
         return param_vectors

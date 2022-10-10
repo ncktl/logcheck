@@ -91,6 +91,13 @@ par_vec_onehot = dict([x for y in features_onehot for x in y])
 features_onehot_expanded = make_features([("type", ""), ("parent", ""), ("context", "")])
 par_vec_onehot_expanded = dict([x for y in features_onehot_expanded for x in y])
 
+par_vec_zhenhao = {
+    "line": -1,
+    "type": "",
+    "context": "",
+    "contains_logging": 0
+}
+
 # List of par_vec_onehot keys with onehot values expanded for reindexing the parameter vector during prediction
 reindex = ["contains_class_definition", "contains_for_statement",
            "contains_function_definition", "contains_if_statement",
@@ -124,3 +131,35 @@ if __name__ == "__main__":
     print(contains)
     print(node_dict)
     print(len(visible_node_types))
+
+"""
+{'class_definition': '0',
+ 'for_statement': '1',
+ 'function_definition': '2',
+ 'if_statement': '3',
+ 'try_statement': '4',
+ 'while_statement': '5',
+ 'with_statement': '6',
+ 'elif_clause': '7',
+ 'else_clause': '8',
+ 'except_clause': '9',
+ 'finally_clause': '10',
+ 'assert_statement': '11',
+ 'break_statement': '12',
+ 'continue_statement': '13',
+ 'delete_statement': '14',
+ 'exec_statement': '15',
+ 'future_import_statement': '16',
+ 'global_statement': '17',
+ 'import_from_statement': '18',
+ 'import_statement': '19',
+ 'nonlocal_statement': '20',
+ 'pass_statement': '21',
+ 'print_statement': '22',
+ 'raise_statement': '23',
+ 'return_statement': '24',
+ 'assignment': '25',
+ 'await': '26',
+ 'call': '27',
+ 'yield': '28'}
+"""
