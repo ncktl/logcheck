@@ -83,7 +83,8 @@ contains = prefix("contains_")(contains_types + expressions + ["logging"])
 
 
 def make_features(x):
-    return [[("line", -1)] + x + vectorize(contains)]
+    # return [[("line", -1)] + x + vectorize(contains)]
+    return [x + vectorize(contains)]
 
 
 features_onehot = make_features([("type", ""), ("parent", "")])
@@ -93,7 +94,7 @@ features_onehot_expanded = make_features([("type", ""), ("parent", ""), ("contex
 par_vec_onehot_expanded = dict([x for y in features_onehot_expanded for x in y])
 
 par_vec_zhenhao = {
-    "line": -1,
+    # "line": -1,
     "type": "",
     "context": "",
     "contains_logging": 0

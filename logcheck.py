@@ -51,7 +51,7 @@ def extract(train_mode: bool = True):
         else:
             file_param_vecs = extractor.fill_param_vecs_ast_new(training=train_mode) # Regular
         if args.debug:
-            param_vectors += [file]
+            param_vectors += ["/" + str(file) + "y"]
         param_vectors += file_param_vecs
     if args.zhenhao:
         param_vec_used = par_vec_zhenhao # Only Shenzen
@@ -59,20 +59,13 @@ def extract(train_mode: bool = True):
         param_vec_used = par_vec_onehot_expanded # New integer representation with context
     else:
         param_vec_used = par_vec_onehot # Old without context
-    if args.output:
-        with open(args.output, "w") as out:
-            out.write(",".join(key for key in param_vec_used.keys()))
-            out.write("\n")
-            out.write("\n".join([str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
-            out.write("\n")
-    else:
-        out = sys.stdout
-        out.write(",".join(key for key in param_vec_used.keys()))
-        out.write("\n")
-        out.write("\n".join(
-            [str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
-        out.write("\n")
-        out.close()
+    # Write output
+    header = (["line"] if args.debug else []) + list(param_vec_used.keys())
+    out.write(",".join(header))
+    out.write("\n")
+    out.write("\n".join(
+        [str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
+    out.write("\n")
 
 
 def analyze_newer():
@@ -216,8 +209,9 @@ if __name__ == "__main__":
     #         else:
     #             args.output = Path("analysis/" + args.path.name + ".txt")
     #             print(f"No output file specified. Using: {args.output}")
+
+    # File overwrite dialog
     if args.output and args.output.is_file() and not args.force:
-        # arg_parser.error("Output file exists. Use the -f argument to overwrite.")
         def overwrite():
             force = input("Output file exists. Overwrite? [y/n]: ")
             if force.lower() in ["y", "yes"]:
@@ -228,13 +222,11 @@ if __name__ == "__main__":
             else:
                 overwrite()
         overwrite()
-    if args.output:
-        print(f"Output file: {args.output}")
-        # Catch permission errors before program execution
-        try:
-            args.output.touch()
-        except PermissionError as e:
-            arg_parser.error(e)
+    # Catch permission errors before program execution
+    try:
+        out = open(args.output, "w") if args.output else sys.stdout
+    except PermissionError as e:
+        arg_parser.error(e)
     # Ensure language is known
     # DEPRECATED because python is the default
     if args.batch:

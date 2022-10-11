@@ -196,7 +196,8 @@ class PythonExtractor(Extractor):
                     param_vec_used = par_vec_onehot
                 param_vec = copy(param_vec_used)
                 param_vec["type"] = node_dict[node_type]
-                param_vec["line"] = node.start_point[0] + 1
+                if self.args.debug:
+                    param_vec = {"line": node.start_point[0] + 1, **param_vec}
                 # Check parent
                 if node_type != "module":
                     self.check_parent(node, param_vec)
@@ -226,7 +227,7 @@ class PythonExtractor(Extractor):
                     # For extraction of features to a file, we need to return a list of lists of parameters
                     param_vec_list = list(param_vec.values())
                     # Check that no parameters have been accidentally added
-                    if len(param_vec_list) != len(param_vec_used):
+                    if not self.args.debug and len(param_vec_list) != len(param_vec_used):
                         self.debug_helper(node)
                         print(param_vec_used.keys())
                         print(param_vec.keys())
@@ -260,7 +261,8 @@ class PythonExtractor(Extractor):
                 block_node: Node
                 param_vec = copy(par_vec_zhenhao)
                 param_vec["type"] = node_dict[block_node.parent.type]
-                param_vec["line"] = block_node.start_point[0] + 1
+                if self.args.debug:
+                    param_vec = {"line": block_node.start_point[0] + 1, **param_vec}
                 self.build_context_of_block_node(block_node, param_vec)
                 # Check for logging, slimmed version of check_block() and check_expression():
                 for child in block_node.children:
@@ -284,6 +286,12 @@ class PythonExtractor(Extractor):
 
                 if training:
                     param_vec_list = list(param_vec.values())
+                    # # Check that no parameters have been accidentally added
+                    # if len(param_vec_list) != len(par_vec_zhenhao):
+                    #     self.debug_helper(block_node)
+                    #     print(par_vec_zhenhao.keys())
+                    #     print(param_vec.keys())
+                    #     raise RuntimeError("Parameter vector length mismatch")
                     param_vectors.append(param_vec_list)
                 else:
                     # Prediction
