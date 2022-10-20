@@ -12,6 +12,12 @@ The Tree-sitter python bindings as well as pandas and scikit-learn are required:
 python3 -m pip install tree_sitter pandas scikit-learn
 ```
 
+For the Jupyter notebooks, the following additional packages are required (not listed in requirements.txt):
+
+```sh
+python3 -m pip install numpy matplotlib imblearn tensorflow keras gensim
+```
+
 Additionally, the tree-sitter repository has to be cloned into the Logcheck directory and built:
 ```sh
 cd logcheck/
@@ -31,26 +37,23 @@ I.e. the folders "tree-sitter" and "tree-sitter-python" must be inside the folde
 ## Usage
 
 ```
-usage: logcheck.py [-h] [-b] [-e] [-o OUTPUT] [-f] [-l {java,python}] [-m {bool,onehot}] [-s] path
+usage: logcheck.py [-h] [-e] [-o OUTPUT] [-f] [-l {java,javascript,python}] [-d] [-a] [-z] path
 
 positional arguments:
   path
 
 optional arguments:
   -h, --help            show this help message and exit
-  -b, --batch           Enable batch mode. Logcheck will be run on all source code files of the 
-                        given programming language found in the specified directory and 
-                        subdirectories. Requires the -l / --language argument.
-  -e, --extract         Enables feature extraction mode. Logcheck will output parameter vectors 
+  -e, --extract         Enables feature extraction mode. Logcheck will output parameter vectors
                         from its analysis instead of logging recommendations.
   -o OUTPUT, --output OUTPUT
                         Specify the output file.
   -f, --force           Force overwrite of output file
-  -l {java,python}, --language {java,python}
+  -l {java,javascript,python}, --language {java,javascript,python}
                         Specify the language. Default: python
-  -m {bool,onehot}, --mode {bool,onehot}
-                        Mode of encoding. Default: onehot
-  -s, --suffix          Add mode of encoding to file name
+  -d, --debug           Enable debug mode.
+  -a, --alt             Also extract the context when in extraction mode
+  -z, --zhenhao         Mimic Zhenhao et al. approach when in extraction mode
 ```
 
 ### Feature extraction
@@ -58,22 +61,23 @@ optional arguments:
 To extract parameter vectors from files for learning a classifier, use the -e extract option like this:
 
 ```sh
-python3 logcheck.py -e <file to extract features from>
+python3 logcheck.py -e <path to file or directory to extract features from>
 ```
 
-Or extract parameter vectors from all files in a directory, using the -b batch option like so (recommended):
+To also extract the context, additionally use the "-a" argument.
 
 ```sh
-python3 logcheck.py -e -b <path to directory>
+python3 logcheck.py -e -a <path>
 ```
 
-E.g. with the provided code examples:
+To instead extract the context like Zhenhao et al., instead additionally use the "-z" argument.
 
 ```sh
-python3 logcheck.py -e -b code-examples/
+python3 logcheck.py -e -z <path>
 ```
 
 ### Classification learning
+#### * Currently defunct *
 
 The classifier can be retrained using its own python script. This will use the extracted features in the features/combination.csv file:
 
@@ -83,16 +87,10 @@ python3 classification_learner.py
 
 
 ### Recommendation
+#### * Currently defunct *
 
 By default, Logcheck will analyse the source code of the given file(s) and give recommendations for logging.
 
 ```sh
 python3 logcheck.py <file to be analyzed>
 ```
-
-Generate logging recommendations for all files in a directory, using the -b batch option like so (recommended):
-
-```sh
-python3 logcheck.py -b <path to directory>
-```
-
