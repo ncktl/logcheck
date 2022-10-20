@@ -1,0 +1,57 @@
+Name, max_length, vocab_size, batch_size, Balanced_Accuracy, Precision_Score, Recall_Score, F1_Score
+['Standard', 80, 30, 24, 0.6071377004753654, 0.43902439024390244, 0.21951219512195122, 0.2926829268292683]
+['len70', 70, 30, 24, 0.601609356257497, 0.4857142857142857, 0.2073170731707317, 0.29059829059829057]
+['len60', 60, 30, 24, 0.6183082322626505, 0.38461538461538464, 0.24390243902439024, 0.2985074626865672]
+['len50', 50, 30, 24, 0.607365387178462, 0.46153846153846156, 0.21951219512195122, 0.29752066115702486]
+['len40', 40, 30, 24, 0.5951702652272425, 0.43243243243243246, 0.1951219512195122, 0.26890756302521013]
+['len30', 30, 30, 24, 0.601609356257497, 0.4857142857142857, 0.2073170731707317, 0.29059829059829057]
+['Actual_vocab_size', 80, 25, 24, 0.6131214180994269, 0.4418604651162791, 0.23170731707317074, 0.304]
+Name, max_length, vocab_size, batch_size, Balanced_Accuracy, Precision_Score, Recall_Score, F1_Score
+['Actual_vocab_size', 80, 25, 24, 0.5949425785241459, 0.41025641025641024, 0.1951219512195122, 0.2644628099173553]
+['Actual_vocab_size2', 80, 25, 24, 0.6055438935536896, 0.32727272727272727, 0.21951219512195122, 0.26277372262773724]
+['Actual_vocab_size3', 80, 25, 24, 0.6067961704207206, 0.4090909090909091, 0.21951219512195122, 0.28571428571428575]
+['Actual_vocab_size4', 80, 25, 24, 0.6066823270691724, 0.4, 0.21951219512195122, 0.2834645669291339]
+Name, max_length, vocab_size, batch_size, Balanced_Accuracy, Precision_Score, Recall_Score, F1_Score
+['trainable', 80, 25, 24, 0.6188774490203919, 0.425531914893617, 0.24390243902439024, 0.310077519379845]
+['len20', 20, 25, 24, 0.601153982851304, 0.4358974358974359, 0.2073170731707317, 0.2809917355371901]
+['len25', 25, 25, 24, 0.6013816695544004, 0.4594594594594595, 0.2073170731707317, 0.2857142857142857]
+['len90', 90, 25, 24, 0.595397951930339, 0.45714285714285713, 0.1951219512195122, 0.27350427350427353]
+['len110', 110, 25, 24, 0.595397951930339, 0.45714285714285713, 0.1951219512195122, 0.27350427350427353]
+['len150', 150, 25, 24, 0.6012678262028522, 0.4473684210526316, 0.2073170731707317, 0.2833333333333333]
+Name, max_length, vocab_size, batch_size, trainable, dropout, Bal_Acc, Precision, Recall, F1_Score
+['NoDrop_NoTrain', 80, 30, 24, 0.5952841085787907, 0.4444444444444444, 0.1951219512195122, 0.27118644067796616]
+['NoDrop_Train', 80, 30, 24, 0.6075930738815585, 0.4864864864864865, 0.21951219512195122, 0.3025210084033613]
+['Drop_NoTrain', 80, 30, 24, 0.6067961704207206, 0.4090909090909091, 0.21951219512195122, 0.28571428571428575]
+['Drop_Train', 80, 30, 24, 0.6013816695544004, 0.4594594594594595, 0.2073170731707317, 0.2857142857142857]
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, Bal_Acc, Precision, Recall, F1_Score
+Sigmoid, 80, 30, 24, False, 0.2, True, 60, 44, 20, 27
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, Bal_Acc, Precision, Recall, F1_Score
+Two_LSTM_Layers, 80, 30, 24, False, 0.2, True, 61, 54, 23, 32
+Two_CuDNNLSTM_Layers, 80, 30, 24, False, 0.2, True, 60, 38, 21, 27
+Two_CuDNNLSTM+dense_relu, 80, 30, 24, False, 0.2, True, 63, 54, 27, 36
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, Bal_Acc, Precision, Recall, F1_Score
+Two_CuDNNLSTM+dense_relu, 80, 30, 24, True, 0.2, True, 62, 56, 24, 34
+Two_LSTM_Layers+dense_relu, 80, 30, 24, False, 0.2, True, 61, 46, 22, 30
+Two_LSTM_Layers+dense_relu, 80, 30, 24, True, 0.2, True, 62, 54, 24, 34
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, Bal_Acc, Precision, Recall, F1_Score
+Two_CuDNNLSTM+dense_relu, 80, 30, 24, False, 0.2, True, 0.1, False, 60, 42, 21, 28
+Two_Cu+de|callb_loss, 80, 30, 24, False, 0.2, True, 0.0, True, 59, 37, 20, 26
+Two_Cu+de|callb_loss, 80, 30, 24, False, 0.2, True, 0.1, True, 62, 38, 26, 31
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, Bal_Acc, Precision, Recall, F1_Score
+Two_Cu+de|callb_acc, 80, 30, 24, False, 0.2, True, 0.0, True, 60, 38, 21, 27
+Two_Cu+de|callb_acc, 80, 30, 24, False, 0.2, True, 0.1, True, 62, 43, 24, 31
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, Bal_Acc, Precision, Recall, F1_Score
+Two_Cu+de|val_split, 80, 30, 24, False, 0.2, True, 0.0, False, 60, 41, 21, 28
+Two_Cu+de|val_split, 80, 30, 24, False, 0.2, True, 0.1, False, 61, 42, 23, 30
+Two_Cu+de|val_split, 80, 30, 24, False, 0.2, True, 0.2, False, 59, 43, 18, 26
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, Bal_Acc, Precision, Recall, F1_Score
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, Bal_Acc, Precision, Recall, F1_Score
+Two_CuDNNLSTM+dense_relu, 80, 30, 24, False, 0.2, True, 61, 44, 23, 30
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, Bal_Acc, Precision, Recall, F1_Score
+bidirectional, 80, 30, 24, False, 0.2, True, 60, 50, 20, 28
+bidirectional, 80, 30, 48, False, 0.2, True, 61, 55, 22, 31
+Name, max_length, vocab_size, batch_size, dropout, Bal_Acc, Precision, Recall, F1_Score
+Dropout, 80, 30, 24, False, 0.2, True, 60, 43, 20, 27
+Hybrid:
+combination_combined, 80, 30, 24, 0.2, 62, 92, 24, 39
+web2py_combined, 80, 30, 24, 0.2, 66, 56, 32, 41
