@@ -69,7 +69,7 @@ def extract(train_mode: bool = True):
 
 
 def analyze_newer():
-    """ Recommend logging"""
+    """ Recommend logging. CURRENTLY NOT FUNCTIONAL"""
     output = []
     # Todo: Decide the type of classifier here and in the learner in the config
     classifier: RandomForestClassifier = pickle.load(open('classifier', 'rb'))
@@ -125,7 +125,7 @@ def analyze_newer():
 
 # DEPRECATED
 def analyze():
-    """ Analyses the code in the file(s) """
+    """ Calls analysis functions for development and debugging """
     # print("analyze")
     # print(args.language)
     output = []
@@ -161,10 +161,6 @@ if __name__ == "__main__":
     # Handle arguments
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("path", type=Path)
-    arg_parser.add_argument("-b", "--batch", action="store_true",
-                            help="Enable batch mode. Logcheck will be run on all source code files of"
-                                 " the given programming language found in the specified directory and "
-                                 "subdirectories. Requires the -l / --language argument.")
     arg_parser.add_argument("-e", "--extract", action="store_true",
                             help="Enables feature extraction mode. Logcheck will output parameter "
                                  "vectors from its analysis instead of logging recommendations.")
@@ -177,17 +173,17 @@ if __name__ == "__main__":
     arg_parser.add_argument("-d", "--debug", action="store_true",
                             help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",
-                            help="Use alternative / old functions")
+                            help="Also extract the context when in extraction mode")
     arg_parser.add_argument("-z", "--zhenhao", action="store_true",
-                            help="Mimic Zhenhao et. al")
+                            help="Mimic Zhenhao et al. approach when in extraction mode")
     args = arg_parser.parse_args()
 
     # Check arguments
     if not args.path.exists():
         arg_parser.error("Path does not exist.")
     # Detect batch mode
-    if args.path.is_dir(): args.batch = True
-    elif args.path.is_file(): args.batch = False
+    if args.path.is_dir(): batch = True
+    elif args.path.is_file(): batch = False
     else: arg_parser.error("Path is neither file nor directory.")
 
     # Default output handling disabled in favor of printing to stdout
@@ -195,7 +191,7 @@ if __name__ == "__main__":
     # if not args.output:
     #     # Feature extraction
     #     if args.extract:
-    #         if args.batch:
+    #         if batch:
     #             args.output = Path("features/demofile.csv")
     #             print(f"No output file specified. Using default: {args.output}")
     #         else:
@@ -203,7 +199,7 @@ if __name__ == "__main__":
     #             print(f"No output file specified. Using: {args.output}")
     #     # Analysis
     #     else:
-    #         if args.batch:
+    #         if batch:
     #             args.output = Path("analysis/demofile.txt")
     #             print(f"No output file specified. Using default: {args.output}")
     #         else:
@@ -229,7 +225,7 @@ if __name__ == "__main__":
         arg_parser.error(e)
     # Ensure language is known
     # DEPRECATED because python is the default
-    if args.batch:
+    if batch:
         if args.language is None:
             arg_parser.error("Batch option requires specification of language.")
     # Without batch mode, determine language if not specified
@@ -243,7 +239,7 @@ if __name__ == "__main__":
     parser = Parser()
     parser.set_language(tree_lang)
     # Determine files to work on
-    if args.batch:
+    if batch:
         files = args.path.glob(f"**/*{suf[args.language]}")
     else:
         files = [args.path]
