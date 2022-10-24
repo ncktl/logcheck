@@ -121,9 +121,9 @@ class PythonExtractor(Extractor):
                 #           Has tuple form 'identifier.call(params), "text" * 10' for some reason
                 # if len(child.children) != 1:
                 if child.child_count != 1:
-                    print(self.file)
-                    print("Expression statement with more than one child!")
-                    print(child)
+                    # print(self.file)
+                    # print("Expression statement with more than one child!")
+                    # print(child)
                     for exp_child in child.children:
                         self.check_expression(exp_child, param_vec)
                 else:
