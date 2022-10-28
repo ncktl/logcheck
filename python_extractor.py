@@ -145,10 +145,10 @@ class PythonExtractor(Extractor):
                 if child.type == clause:
                     param_vec[key] = 1
                     break
-            else:
-                if child.type != "expression_statement":
-                    self.debug_helper(child)
-                    raise RuntimeError("Child of block not in contains")
+            # else:
+            #     if child.type != "ERROR":
+            #         self.debug_helper(child)
+            #         raise RuntimeError("Child of block not in contains")
 
     def check_parent(self, node: Node, param_vec: dict):
         """Checks the node's parent. Not used for the module node."""
