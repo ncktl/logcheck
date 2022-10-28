@@ -8,6 +8,7 @@ from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import pickle
+from tqdm import tqdm
 supported_languages = ["java", "javascript", "python"]
 suf = {
     "java": ".java",
@@ -34,7 +35,7 @@ def create_ts_lang_obj(language: str) -> Language:
 def extract(train_mode: bool = True):
     """ Extracts parameter vectors from the file(s) """
     param_vectors = []
-    for file in files:
+    for file in tqdm(files):
         with open(file) as f:
             sourcecode = f.read()
             f.close()
@@ -240,7 +241,7 @@ if __name__ == "__main__":
     parser.set_language(tree_lang)
     # Determine files to work on
     if batch:
-        files = args.path.glob(f"**/*{suf[args.language]}")
+        files = list(args.path.glob(f"**/*{suf[args.language]}"))
     else:
         files = [args.path]
     # Branch into extraction or analysis
