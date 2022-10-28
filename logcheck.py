@@ -25,8 +25,8 @@ def create_ts_lang_obj(language: str) -> Language:
     :param language: string containing the programming language to be analyzed
     :return: tree-sitter language object
     """
-    lib_path = Path(Path(__file__).parent / "build/my-languages.so").resolve()
-    lang_paths = [Path(Path(__file__).parent / ("tree-sitter-" + lang)).resolve() for lang in supported_languages]
+    lib_path = str(Path(Path(__file__).parent / "build/my-languages.so").resolve())
+    lang_paths = [str(Path(Path(__file__).parent / ("tree-sitter-" + lang)).resolve()) for lang in supported_languages]
     Language.build_library(lib_path, lang_paths)
     ts_lang = Language(lib_path, language)
     return ts_lang
