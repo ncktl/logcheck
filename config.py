@@ -90,12 +90,13 @@ def make_features(x):
 features_onehot = make_features([("type", ""), ("parent", "")])
 par_vec_onehot = dict([x for y in features_onehot for x in y])
 
-features_onehot_expanded = make_features([("type", ""), ("parent", ""), ("context", "")])
+features_onehot_expanded = make_features([("type", ""), ("location", ""), ("parent", ""), ("context", "")])
 par_vec_onehot_expanded = dict([x for y in features_onehot_expanded for x in y])
 
 par_vec_zhenhao = {
     # "line": -1,
     "type": "",
+    "location": "",
     "context": "",
     "contains_logging": 0
 }

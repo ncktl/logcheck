@@ -182,7 +182,7 @@ class PythonExtractor(Extractor):
             nodes = node_query.captures(self.tree.root_node)
             for node, tag in nodes:
                 node: Node
-                # Uniqueness check is unnecessary?
+                # Uniqueness check is unnecessary? Yes!
                 if (node.start_byte, node.end_byte) in visited_nodes:
                     raise RuntimeError
                 else:
@@ -196,6 +196,9 @@ class PythonExtractor(Extractor):
                     param_vec_used = par_vec_onehot
                 param_vec = copy(param_vec_used)
                 param_vec["type"] = node_dict[node_type]
+                if self.args.alt:
+                    param_vec["location"] = f"{node.start_point[0]};{node.start_point[1]}-" \
+                                            f"{node.end_point[0]};{node.end_point[1]}"
                 if self.args.debug:
                     param_vec = {"line": node.start_point[0] + 1, **param_vec}
                 # Check parent
@@ -261,6 +264,8 @@ class PythonExtractor(Extractor):
                 block_node: Node
                 param_vec = copy(par_vec_zhenhao)
                 param_vec["type"] = node_dict[block_node.parent.type]
+                param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
+                                        f"{block_node.end_point[0]};{block_node.end_point[1]}"
                 if self.args.debug:
                     param_vec = {"line": block_node.start_point[0] + 1, **param_vec}
                 self.build_context_of_block_node(block_node, param_vec)
