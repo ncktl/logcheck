@@ -96,7 +96,8 @@ class PythonAnalyzer(PythonExtractor):
             for node in traverse_sub_tree(self.tree.root_node):
                 # if node.is_named and node.type == "expression_statement":
                 if node.is_named:
-                    print(node.text.decode("UTF-8"), "\t\t\t", node)
+                #     print(node.text.decode("UTF-8"), "\t\t\t", node)
+                    print(node)
             return []
         else:
             # print_children(self.tree.root_node)

@@ -6,6 +6,7 @@ from config import par_vec_zhenhao
 import config as cfg
 import re
 from copy import copy
+import logging
 
 
 class PythonExtractor(Extractor):
@@ -18,6 +19,8 @@ class PythonExtractor(Extractor):
         """
 
         super().__init__(src, lang, tree, file, args)
+        logging.basicConfig(level=logging.DEBUG)
+        self.logger = logging.getLogger(__name__)
         # Name of the Python logging module
         # self.keyword = "logg(ing|er)"
 
@@ -162,15 +165,30 @@ class PythonExtractor(Extractor):
             while parent.parent:
                 parent = parent.parent
                 if parent.type == "block":
-                    param_vec["parent"] = node_dict[parent.parent.type]
+                    try:
+                        param_vec["parent"] = node_dict[parent.parent.type]
+                    except KeyError as e:
+                        # Todo: Convert all these debugging statements into logging
+                        self.debug_helper(node)
+                        print(f"great*-grandparent.type: {parent.parent.type}")
+                        raise RuntimeError("Node type not handled")
                     return
                 if parent.type == "module":
-                    param_vec["parent"] = node_dict["module"]
+                    try:
+                        param_vec["parent"] = node_dict["module"]
+                    except KeyError as e:
+                        self.debug_helper(node)
+                        print(f"great*-grandparent.type: {parent.parent.type}")
+                        raise RuntimeError("Node type not handled")
                     return
             raise RuntimeError("Could not find parent of node")
         elif node.type in extra_clauses:
-            assert node.parent.type in compound_statements
-            param_vec["parent"] = node_dict[node.parent.type]
+            try:
+                param_vec["parent"] = node_dict[node.parent.type]
+            except KeyError as e:
+                self.debug_helper(node)
+                print(f"node.parent.type: {node.parent.type}")
+                raise RuntimeError("Node type not handled")
         else:
             raise RuntimeError("Node type not handled")
 
@@ -196,9 +214,8 @@ class PythonExtractor(Extractor):
                     param_vec_used = par_vec_onehot
                 param_vec = copy(param_vec_used)
                 param_vec["type"] = node_dict[node_type]
-                if self.args.alt:
-                    param_vec["location"] = f"{node.start_point[0]};{node.start_point[1]}-" \
-                                            f"{node.end_point[0]};{node.end_point[1]}"
+                param_vec["location"] = f"{node.start_point[0]};{node.start_point[1]}-" \
+                                        f"{node.end_point[0]};{node.end_point[1]}"
                 if self.args.debug:
                     param_vec = {"line": node.start_point[0] + 1, **param_vec}
                 # Check parent
@@ -263,7 +280,12 @@ class PythonExtractor(Extractor):
             for block_node, tag in block_nodes:
                 block_node: Node
                 param_vec = copy(par_vec_zhenhao)
-                param_vec["type"] = node_dict[block_node.parent.type]
+                try:
+                    param_vec["type"] = node_dict[block_node.parent.type]
+                except KeyError as e:
+                    param_vec["type"] = "ERROR"
+                    self.logger.error(f"Encountered bad code in file {self.file} in line "
+                                      f"{block_node.parent.start_point[0] + 1}")
                 param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
                                         f"{block_node.end_point[0]};{block_node.end_point[1]}"
                 if self.args.debug:

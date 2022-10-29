@@ -1,16 +1,27 @@
+import sys
+from string import ascii_letters
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
 import pickle
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
+from config import reindex
+
+if len(sys.argv) != 2:
+    print("Please supply a .csv file to learn on")
+    exit(1)
 
 # Importing the dataset
-# Assumption: Onehot encoding
-# df = pd.read_csv('features/combination.csv')
-df = pd.read_csv('features/combination_without_web2py_all_files.csv')
-X = df.drop(["line", "contains_logging"], axis=1)
+df = pd.read_csv(sys.argv[1])
+# df = df.drop(["context"], axis=1)
+
+# Convert the compacted context from letters into strings of integers
+# df.context = [list(map(lambda y: str(ascii_letters.index(y)), list(str(x)))) for x in df.context]
+
+X = df.drop(["contains_logging", "location"], axis=1) #Todo Change back
 X = pd.get_dummies(X, columns=["type", "parent"])
+X = X.reindex(reindex, fill_value=0, axis="columns")
 y = df.contains_logging
 
 # Splitting the dataset into the Training set and Test set

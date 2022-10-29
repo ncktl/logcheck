@@ -1,14 +1,16 @@
 from tree_sitter import Language, Parser
 import sys
+import logging
 from pathlib import Path
 import importlib
 import argparse
-from config import par_vec_onehot, reindex, par_vec_onehot_expanded, par_vec_zhenhao
+from config import par_vec_onehot, reindex, par_vec_onehot_expanded, par_vec_zhenhao, rev_node_dict
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import pickle
 from tqdm import tqdm
+
 supported_languages = ["java", "javascript", "python"]
 suf = {
     "java": ".java",
@@ -16,7 +18,6 @@ suf = {
     "python": ".py"
 }
 rev_suf = dict(zip(suf.values(), suf.keys()))
-
 
 def create_ts_lang_obj(language: str) -> Language:
     """
@@ -36,9 +37,13 @@ def extract(train_mode: bool = True):
     """ Extracts parameter vectors from the file(s) """
     param_vectors = []
     for file in tqdm(files):
-        with open(file) as f:
-            sourcecode = f.read()
-            f.close()
+        try:
+            with open(file) as f:
+                sourcecode = f.read()
+                f.close()
+        except UnicodeDecodeError as e:
+            logger.error(f"Encountered UnicodeDecodeError in file {file}:\n{e}")
+            continue
         # print(f"File: {file}")
         # Create abstract syntax tree
         tree = parser.parse(bytes(sourcecode, "utf8"))
@@ -70,11 +75,10 @@ def extract(train_mode: bool = True):
 
 
 def analyze_newer():
-    """ Recommend logging. CURRENTLY NOT FUNCTIONAL"""
+    """ Recommend logging"""
     output = []
-    # Todo: Decide the type of classifier here and in the learner in the config
     classifier: RandomForestClassifier = pickle.load(open('classifier', 'rb'))
-    for file in files:
+    for file in tqdm(files):
         with open(file) as f:
             sourcecode = f.read()
             f.close()
@@ -90,38 +94,31 @@ def analyze_newer():
         # print(df.to_string())
         if file_param_vecs:
             # Build Pandas DataFrame from the list of parameter vectors
-            df = pd.DataFrame.from_dict(file_param_vecs).drop(["line", "contains_logging"], axis=1)
+            df = pd.DataFrame.from_dict(file_param_vecs)
+            X = df.drop(["contains_logging", "location"], axis=1)
+            # X = df.drop(["contains_logging"], axis=1)
             # One-hot encode the parameters type and parent
-            df = pd.get_dummies(df, columns=["type", "parent"])
+            X = pd.get_dummies(X, columns=["type", "parent"])
             # Reindex the dataframe to ensure all possible type and parent values are present as columns
-            df = df.reindex(reindex, fill_value=False, axis="columns")
+            X = X.reindex(reindex, fill_value=0, axis="columns")
             # print(classifier.predict(df))
-            # Predict logging for the parameters vectors, creating a list of booleans for the parameter vectors
-            recs = classifier.predict(df)
+            # Predict logging for the parameter vectors, creating a list of booleans for the parameter vectors
+            recs = classifier.predict(X)
+            df['predictions'] = recs
             # Write the yes-instances as recommendations to the output file
-            if True in recs:
+            if 1 in recs:
                 output.append(f"File: {file}")
                 for i, prediction in enumerate(recs):
                     if prediction:
-                        # Assumption: onehot
-                        output.append(f"We recommend logging in the {file_param_vecs[i]['type']} "
-                                      f"starting in line {file_param_vecs[i]['line']}")
-    if args.output:
-        with open(args.output, "w") as out:
-            if output:
-                out.write("\n".join(output))
-            else:
-                out.write("No recommendations")
-            out.write("\n")
-            out.close()
+                        line = file_param_vecs[i]['location'].split("-")[0].split(";")[0]
+                        output.append(f"We recommend logging in the {rev_node_dict[file_param_vecs[i]['type']]} "
+                                      f"starting in line {line}")
+    if output:
+        out.write("\n".join(output))
     else:
-        out = sys.stdout
-        if output:
-            out.write("\n".join(output))
-        else:
-            out.write("No recommendations")
-        out.write("\n")
-        out.close()
+        out.write("No recommendations")
+    out.write("\n")
+    out.close()
 
 
 # DEPRECATED
@@ -244,6 +241,9 @@ if __name__ == "__main__":
         files = list(args.path.glob(f"**/*{suf[args.language]}"))
     else:
         files = [args.path]
+    # Initialize logger
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger("Logcheck")
     # Branch into extraction or analysis
     if args.extract:
         extract()

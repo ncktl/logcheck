@@ -77,17 +77,16 @@ python3 logcheck.py -e -z <path>
 ```
 
 ### Classification learning
-#### * Currently defunct *
 
-The classifier can be retrained using its own python script. This will use the extracted features in the features/combination.csv file:
+
+The classifier can be retrained using its own python script. It will use the extracted features in the given .csv file:
 
 ```sh
-python3 classification_learner.py
+python3 classification_learner.py <path to extract .csv file>
 ```
 
 
 ### Recommendation
-#### * Currently defunct *
 
 By default, Logcheck will analyse the source code of the given file(s) and give recommendations for logging.
 
