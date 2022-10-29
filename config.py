@@ -1,21 +1,21 @@
 import re
 from string import ascii_letters
 
-keyword = re.compile("log(g(ing|er))?(\.|$)")
+keyword = re.compile("raise|print|log(g(ing|er))?(\.|$)")
 
 compound_statements = [
-    "class_definition",
+    # "class_definition",
     # "decorated_definition", # Not needed: It's just the @decorator_name line
     "function_definition",
     "if_statement",
-    "for_statement",
+    # "for_statement",
     "match_statement", # Python 3.10 feature
-    "while_statement",
+    # "while_statement",
     "try_statement",
     "with_statement"
 ]
 
-extra_clauses = ["elif_clause", "else_clause", "except_clause", "except_group_clause", "finally_clause", "case_clause"]
+extra_clauses = ["elif_clause", "else_clause", "except_clause", "finally_clause", "case_clause"]
 # Todo: Test with if_else, try_else,... instead of else_clause and so on
 # Todo: Consider the implication of except_clause=True (unambigous so try_except not needed) for parent_try_statement
 

@@ -5,16 +5,15 @@ from pathlib import Path
 import importlib
 import argparse
 from config import par_vec_onehot, reindex, par_vec_onehot_expanded, par_vec_zhenhao, rev_node_dict
-from sklearn.svm import LinearSVC
+import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import pickle
 from tqdm import tqdm
 
-supported_languages = ["java", "javascript", "python"]
+supported_languages = ["java", "python"]
 suf = {
     "java": ".java",
-    "javascript": ".js",
     "python": ".py"
 }
 rev_suf = dict(zip(suf.values(), suf.keys()))
@@ -73,7 +72,6 @@ def extract(train_mode: bool = True):
         [str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
     out.write("\n")
 
-
 def analyze_newer():
     """ Recommend logging"""
     output = []
@@ -103,7 +101,8 @@ def analyze_newer():
             X = X.reindex(reindex, fill_value=0, axis="columns")
             # print(classifier.predict(df))
             # Predict logging for the parameter vectors, creating a list of booleans for the parameter vectors
-            recs = classifier.predict(X)
+            predictions = classifier.predict_proba(X)
+            recs = np.where(predictions[:, 0] > 0.95, 1, 0)
             df['predictions'] = recs
             # Write the yes-instances as recommendations to the output file
             if 1 in recs:

@@ -31,7 +31,7 @@ y = df.contains_logging
 # classifier = LinearSVC(C=1)
 # classifier = KNeighborsClassifier(3)
 # classifier = KNeighborsClassifier(8)
-classifier = RandomForestClassifier(n_estimators=9)
+classifier = RandomForestClassifier(n_estimators=100, verbose= 2)
 # classifier.fit(X_train, y_train)
 classifier.fit(X, y)
 

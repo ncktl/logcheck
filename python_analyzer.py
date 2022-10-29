@@ -1,4 +1,6 @@
 # Generally DEPRECIATED
+import logging
+
 from python_extractor import PythonExtractor
 from tree_sitter import Language, Tree, Node, TreeCursor
 from pathlib import Path

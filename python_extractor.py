@@ -25,10 +25,11 @@ class PythonExtractor(Extractor):
         # self.keyword = "logg(ing|er)"
 
     def debug_helper(self, node: Node):
-        print(self.file)
-        print(f"Parent: {node.parent}")
-        print(node)
-        print(f"Children: {node.children}")
+        pass
+        # print(self.file)
+        # print(f"Parent: {node.parent}")
+        # print(node)
+        # print(f"Children: {node.children}")
         # print(node.text.decode("UTF-8"))
 
     def check_expression(self, exp_child: Node, param_vec: dict):
@@ -170,15 +171,15 @@ class PythonExtractor(Extractor):
                     except KeyError as e:
                         # Todo: Convert all these debugging statements into logging
                         self.debug_helper(node)
-                        print(f"great*-grandparent.type: {parent.parent.type}")
-                        raise RuntimeError("Node type not handled")
+                        # print(f"great*-grandparent.type: {parent.parent.type}")
+                        # raise RuntimeError("Node type not handled")
                     return
                 if parent.type == "module":
                     try:
                         param_vec["parent"] = node_dict["module"]
                     except KeyError as e:
                         self.debug_helper(node)
-                        print(f"great*-grandparent.type: {parent.parent.type}")
+                        # print(f"great*-grandparent.type: {parent.parent.type}")
                         raise RuntimeError("Node type not handled")
                     return
             raise RuntimeError("Could not find parent of node")
@@ -187,8 +188,8 @@ class PythonExtractor(Extractor):
                 param_vec["parent"] = node_dict[node.parent.type]
             except KeyError as e:
                 self.debug_helper(node)
-                print(f"node.parent.type: {node.parent.type}")
-                raise RuntimeError("Node type not handled")
+                # print(f"node.parent.type: {node.parent.type}")
+                # raise RuntimeError("Node type not handled")
         else:
             raise RuntimeError("Node type not handled")
 
@@ -249,9 +250,10 @@ class PythonExtractor(Extractor):
                     # Check that no parameters have been accidentally added
                     if not self.args.debug and len(param_vec_list) != len(param_vec_used):
                         self.debug_helper(node)
-                        print(param_vec_used.keys())
-                        print(param_vec.keys())
-                        raise RuntimeError("Parameter vector length mismatch")
+                        # print(param_vec_used.keys())
+                        # print(param_vec.keys())
+                        # raise RuntimeError("Parameter vector length mismatch")
+                        continue
                     # Debug
                     # if self.args.debug:
                     #     if node_type == "function_definition" and param_vec["parent"] == "function_definition":
