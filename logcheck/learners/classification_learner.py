@@ -1,10 +1,6 @@
 import sys
-from string import ascii_letters
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.svm import LinearSVC
 import pickle
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from logcheck.config import reindex
 

@@ -3,16 +3,14 @@ import logging
 import os
 import pickle
 import sys
-
 import pandas as pd
 import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
 from tree_sitter import Parser
-
-from logcheck.utils import create_ts_lang_obj, create_parser
-from . import PythonExtractor
+from .utils import create_tree_sitter_language_object, create_parser
+from .extractors.python_extractor import PythonExtractor
 from .config import par_vec_onehot, reindex, par_vec_onehot_expanded, par_vec_zhenhao
 
 logging.basicConfig(level=logging.DEBUG)
@@ -58,20 +56,14 @@ def extract(files, settings, train_mode: bool = True):
     else:
         param_vec_used = par_vec_onehot
         # Write output
-    header = (["line"] if settings.debug else []) + list(param_vec_used.keys())
-    out.write(",".join(header))
-    out.write("\n")
-    out.write("\n".join(
-        [str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
-    out.write("\n")
+    return param_vec_used
 
 
-def log_recommendations(sourcecode, settings):
+def log_recommendation(sourcecode, settings):
     """ Recommend logging for a file"""
-    tree_lang = create_ts_lang_obj(settings.language)
+    tree_lang = create_tree_sitter_language_object(settings.language)
     parser = Parser()
     parser.set_language(tree_lang)
-    file = ""
     output = []
     classifier: RandomForestClassifier = pickle.load(
         open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models/classifier'), 'rb'))
@@ -95,7 +87,7 @@ def log_recommendations(sourcecode, settings):
         # print(classifier.predict(df))
         # Predict logging for the parameter vectors, creating a list of booleans for the parameter vectors
         predictions = classifier.predict_proba(x)
-        recs = np.where(predictions[:, 0] > 0.99, 1, 0)
+        recs = np.where(predictions[:, 0] > 0.95, 1, 0)
         df['predictions'] = recs
         # Write the yes-instances as recommendations to the output file
         if 1 in recs:

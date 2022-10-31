@@ -3,24 +3,17 @@ from .extractor import Extractor
 from logcheck.config import par_vec_onehot, interesting_node_types, most_node_types, par_vec_onehot_expanded
 from logcheck.config import compound_statements, extra_clauses, contains_types, keyword, node_dict
 from logcheck.config import par_vec_zhenhao
-from logcheck import config as cfg
+from logcheck import config as cfg, Settings
 from copy import copy
 import logging
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 
 class PythonExtractor(Extractor):
-    def __init__(self, src: str, lang: Language, tree: Tree, settings):
-        """
-        :param src: Source code to extract paramaeter vectors from
-        :param lang: Treesitter language object
-        :param tree: Treesitter tree object
-        """
-
+    def __init__(self, src: str, lang: Language, tree: Tree, settings: Settings):
         super().__init__(src, lang, tree, settings)
-        logging.basicConfig(level=logging.DEBUG)
-        self.logger = logging.getLogger(__name__)
-        # Name of the Python logging module
-        # self.keyword = "logg(ing|er)"
 
     def check_expression(self, exp_child: Node, param_vec: dict):
         """Checks an expression node for contained features of the parent block node"""
@@ -65,7 +58,7 @@ class PythonExtractor(Extractor):
         # Find the containing (function) definition
         def_node = block_node.parent
         # For doing it exactly like Zhenhao et al.:
-        if self.args.zhenhao:
+        if self.settings.zhenhao:
             while def_node.type != "function_definition":
                 def_node = def_node.parent
         # For our approach of looking at interesting nodes:
@@ -87,7 +80,7 @@ class PythonExtractor(Extractor):
         for node in Extractor.traverse_sub_tree(def_node, block_node):
             add_relevant_node(node, context)
         # Debug
-        if self.args.debug:
+        if self.settings.debug:
             context.append("%%%%")
         # /Debug
         # Add the ast nodes in the block and it's children
@@ -100,7 +93,7 @@ class PythonExtractor(Extractor):
         Optionally also build the node's context."""
 
         # Build the context of the block like in Zhenhao et al.
-        if self.args.alt:
+        if self.settings.alt:
             self.build_context_of_block_node(block_node, param_vec)
 
         # Check the contents of the block, find logging
@@ -198,15 +191,14 @@ class PythonExtractor(Extractor):
                 if not node.is_named:
                     continue
                 # Parameter vector for this node
-                if self.args.alt:
+                if self.settings.alt:
                     param_vec_used = par_vec_onehot_expanded
                 else:
                     param_vec_used = par_vec_onehot
                 param_vec = copy(param_vec_used)
                 param_vec["type"] = node_dict[node_type]
-                param_vec["location"] = f"{node.start_point[0]};{node.start_point[1]}-" \
-                                        f"{node.end_point[0]};{node.end_point[1]}"
-                if self.args.debug:
+                param_vec["location"] = ((node.start_point[0], node.start_point[1]), (node.end_point[0], node.end_point[1]))
+                if self.settings.debug:
                     param_vec = {"line": node.start_point[0] + 1, **param_vec}
                 # Check parent
                 if node_type != "module":
@@ -237,7 +229,7 @@ class PythonExtractor(Extractor):
                     # For extraction of features to a file, we need to return a list of lists of parameters
                     param_vec_list = list(param_vec.values())
                     # Check that no parameters have been accidentally added
-                    if not self.args.debug and len(param_vec_list) != len(param_vec_used):
+                    if not self.settings.debug and len(param_vec_list) != len(param_vec_used):
                         self.debug_helper(node)
                         # print(param_vec_used.keys())
                         # print(param_vec.keys())
@@ -262,10 +254,10 @@ class PythonExtractor(Extractor):
     def fill_param_vecs_zhenhao(self, training: bool = True) -> list:
         """Extracts features like Zhenhao et al., i.e. looks at all blocks that are inside functions."""
         param_vectors = []
-        function_definiton_query = self.lang.query("(function_definition) @funcdef")
-        function_definiton_nodes = function_definiton_query.captures(self.tree.root_node)
+        function_definition_query = self.lang.query("(function_definition) @funcdef")
+        function_definition_nodes = function_definition_query.captures(self.tree.root_node)
         block_query = self.lang.query("(block) @block")
-        for funcdef_node, tag in function_definiton_nodes:
+        for funcdef_node, tag in function_definition_nodes:
             funcdef_node: Node
             block_nodes = block_query.captures(funcdef_node)
             for block_node, tag in block_nodes:
@@ -275,10 +267,10 @@ class PythonExtractor(Extractor):
                     param_vec["type"] = node_dict[block_node.parent.type]
                 except KeyError as e:
                     param_vec["type"] = "ERROR"
-                    self.logger.error(f"{e}")
+                    logger.error(f"{e}")
                 param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
                                         f"{block_node.end_point[0]};{block_node.end_point[1]}"
-                if self.args.debug:
+                if self.settings.debug:
                     param_vec = {"line": block_node.start_point[0] + 1, **param_vec}
                 self.build_context_of_block_node(block_node, param_vec)
                 # Check for logging, slimmed version of check_block() and check_expression():

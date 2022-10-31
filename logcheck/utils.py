@@ -1,23 +1,11 @@
-import sys
 from pathlib import Path
 
 from tree_sitter import Language, Parser
 
-from logcheck.dtos import Settings
+supported_languages = ["python"]
 
 
-def overwrite():
-    force = input("Output file exists. Overwrite? [y/n]: ")
-    if force.lower() in ["y", "yes"]:
-        pass
-    elif force.lower() in ["n", "no"]:
-        print("Exiting")
-        sys.exit()
-    else:
-        overwrite()
-
-
-def create_ts_lang_obj(language: str) -> Language:
+def create_tree_sitter_language_object(language: str) -> Language:
     """
     Creates a tree-sitter language library in the 'build' directory
     A given language library only needs to be built once across many executions.
@@ -32,7 +20,7 @@ def create_ts_lang_obj(language: str) -> Language:
 
 
 def create_parser(language):
-    tree_lang = create_ts_lang_obj(language)
+    tree_lang = create_tree_sitter_language_object(language)
     parser = Parser()
     parser.set_language(tree_lang)
     return parser, tree_lang

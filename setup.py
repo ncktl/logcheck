@@ -3,15 +3,17 @@ from setuptools import find_packages, setup
 VERSION = '0.0.1'
 
 setup(
-    name='logcheck',
+    name='LogCheck',
     version=VERSION,
-    description='Logsight SDK Python',
+    description='Logsight AutoLogger',
     long_description='',
     long_description_content_type='text/x-rst',
     author='logsight.ai',
     author_email='support@logsight.ai',
     license='unlicense',
-    packages=find_packages(exclude=("test",)),
+    packages=find_packages(),
+    package_data={'': ['license.txt']},
+    include_package_data=True,
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3.6",

@@ -1,26 +1,21 @@
 from tree_sitter import Language, Tree, Node, TreeCursor
 
+from ..dtos import Settings
+
 
 class Extractor:
-    def __init__(self, src: str, lang: Language, tree: Tree, file, args):
-        """
-        :param src: Source code to extract paramaeter vectors from
-        :param lang: Tree-sitter language object
-        :param tree: Treesitter tree object
-        :param file_path: Pathlib object of the file to analyze
-        """
-
+    def __init__(self, src: str, lang: Language, tree: Tree, settings: Settings):
         self.src: str = src
         self.lang: Language = lang
         self.tree: Tree = tree
-        self.file = file
         self.lines: list = src.splitlines()
-        self.args = args
+        self.settings = settings
+
+    def debug_helper(self, node: Node):
+        pass
 
     @staticmethod
     def traverse_sub_tree(root_node: Node, stop_node: Node = None):
-        """Traverses the sub-ast of the given root node and yields the nodes.
-        If a stop node is given, traversal ends there (inclusive)"""
         cursor: TreeCursor = root_node.walk()
 
         reached_root = False
@@ -50,5 +45,5 @@ class Extractor:
             return
         print(f"Line {node.start_point[0] + 1}: " + (level * 2) * "  " + str(node))
         for child in node.children:
-            if child.is_named: print_children(child, level + 1)
-            # print_children(child, level + 1)
+            if child.is_named:
+                Extractor.print_children(child, level + 1)
