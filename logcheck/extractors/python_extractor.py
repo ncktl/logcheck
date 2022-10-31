@@ -197,7 +197,7 @@ class PythonExtractor(Extractor):
                     param_vec_used = par_vec_onehot
                 param_vec = copy(param_vec_used)
                 param_vec["type"] = node_dict[node_type]
-                param_vec["location"] = ((node.start_point[0], node.start_point[1]), (node.end_point[0], node.end_point[1]))
+                param_vec["location"] = {"start_line_number": node.start_point[0], "start_col_number": node.start_point[1], "end_line_number": node.end_point[0], "end_col_number": node.end_point[1]}
                 if self.settings.debug:
                     param_vec = {"line": node.start_point[0] + 1, **param_vec}
                 # Check parent
