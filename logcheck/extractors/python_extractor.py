@@ -58,16 +58,18 @@ class PythonExtractor(Extractor):
         # Find the containing (function) definition
         def_node = block_node.parent
         # For doing it exactly like Zhenhao et al.:
-        if self.settings.zhenhao:
-            while def_node.type != "function_definition":
-                def_node = def_node.parent
-        # For our approach of looking at interesting nodes:
-        # There will be blocks that aren't inside a function/method
-        # This will limit the context to a containing class in case of func def >..> class def >..> block
-        else:
-            while def_node.type not in ["module", "class_definition", "function_definition"]:
-                def_node = def_node.parent
-
+        try:
+            if self.settings.zhenhao:
+                while def_node.type != "function_definition":
+                    def_node = def_node.parent
+            # For our approach of looking at interesting nodes:
+            # There will be blocks that aren't inside a function/method
+            # This will limit the context to a containing class in case of func def >..> class def >..> block
+            else:
+                while def_node.type not in ["module", "class_definition", "function_definition"]:
+                    def_node = def_node.parent
+        except Exception as e:
+            pass
         def add_relevant_node(node: Node, context: list):
             if node.is_named and node.type in most_node_types:
                 if node.type == "call" and keyword.search(node.text.decode("UTF-8").lower()):
@@ -197,7 +199,7 @@ class PythonExtractor(Extractor):
                     param_vec_used = par_vec_onehot
                 param_vec = copy(param_vec_used)
                 param_vec["type"] = node_dict[node_type]
-                param_vec["location"] = {"start_line_number": node.start_point[0], "start_col_number": node.start_point[1], "end_line_number": node.end_point[0], "end_col_number": node.end_point[1]}
+                param_vec["location"] = {"start_line_number": node.start_point[0], "start_col_number": node.start_point[1], "end_line_number": node.end_point[0], "end_col_number": node.end_point[1], "text": node.text.decode('utf-8')}
                 if self.settings.debug:
                     param_vec = {"line": node.start_point[0] + 1, **param_vec}
                 # Check parent

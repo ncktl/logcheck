@@ -6,12 +6,19 @@ import sys
 import pandas as pd
 import numpy as np
 
+from transformers import AutoTokenizer, AutoModelWithLMHead, SummarizationPipeline
 from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
 from tree_sitter import Parser
 from .utils import create_tree_sitter_language_object, create_parser
 from .extractors.python_extractor import PythonExtractor
 from .config import par_vec_onehot, reindex, par_vec_onehot_expanded, par_vec_zhenhao
+
+
+doc_pipeline = SummarizationPipeline(
+    model=AutoModelWithLMHead.from_pretrained("SEBIS/code_trans_t5_base_code_documentation_generation_python"),
+    tokenizer=AutoTokenizer.from_pretrained("SEBIS/code_trans_t5_base_code_documentation_generation_python",
+                                            skip_special_tokens=True))
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("LogCheck")
@@ -90,8 +97,12 @@ def log_recommendation(sourcecode, settings):
         recs = np.where(predictions[:, 0] > 0.99, 1, 0)
         df['predictions'] = recs
         # Write the yes-instances as recommendations to the output file
-        if 1 in recs:
+        if (1 in recs) or (2 in recs):
             for i, prediction in enumerate(recs):
                 if prediction:
+                    file_param_vectors[i]['location']['log_message'] = \
+                        "# logging.debug(\"" + \
+                        doc_pipeline([file_param_vectors[i]['location']['text']])[0]['summary_text'] + "\")"
+
                     output.append(file_param_vectors[i]['location'])
     return sorted(output, key=lambda d: d['start_line_number'])
