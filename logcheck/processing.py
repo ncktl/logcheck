@@ -94,7 +94,7 @@ def log_recommendation(sourcecode, settings):
         # print(classifier.predict(df))
         # Predict logging for the parameter vectors, creating a list of booleans for the parameter vectors
         predictions = classifier.predict_proba(x)
-        recs = np.where(predictions[:, 0] > 0.99, 1, 0)
+        recs = np.where(predictions[:, 1] > 0.99, 1, 0)
         df['predictions'] = recs
         # Write the yes-instances as recommendations to the output file
         if (1 in recs) or (2 in recs):
