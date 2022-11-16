@@ -1,6 +1,11 @@
 import logging
 import sys
 
+def hi():
+    logger = logging.getLogger(__name__)
+    logger.info("huch")
+    a = 1
+
 def greeting(message):
 	match message.split():
 		case ["hello"]:

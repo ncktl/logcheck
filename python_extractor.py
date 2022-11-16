@@ -181,6 +181,7 @@ class PythonExtractor(Extractor):
                         print(f"great*-grandparent.type: {parent.parent.type}")
                         raise RuntimeError("Node type not handled")
                     return
+            self.debug_helper(node)
             raise RuntimeError("Could not find parent of node")
         elif node.type in extra_clauses:
             try:
