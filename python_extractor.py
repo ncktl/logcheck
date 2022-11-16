@@ -76,12 +76,21 @@ class PythonExtractor(Extractor):
         # For doing it exactly like Zhenhao et al.:
         if self.args.zhenhao:
             while def_node.type != "function_definition":
+                if def_node.type == "ERROR":
+                    param_vec["type"] = node_dict[def_node.type]
+                    param_vec["context"] = node_dict[def_node.type]
+                    return
                 def_node = def_node.parent
         # For our approach of looking at interesting nodes:
         # There will be blocks that aren't inside a function/method
         # This will limit the context to a containing class in case of func def >..> class def >..> block
         else:
             while def_node.type not in ["module", "class_definition", "function_definition"]:
+                if def_node.type == "ERROR":
+                    param_vec["type"] = node_dict[def_node.type]
+                    param_vec["parent"] = node_dict[def_node.type]
+                    param_vec["context"] = node_dict[def_node.type]
+                    return
                 def_node = def_node.parent
 
         def add_relevant_node(node: Node, context: list):
@@ -173,9 +182,17 @@ class PythonExtractor(Extractor):
                         print(f"great*-grandparent.type: {parent.parent.type}")
                         raise RuntimeError("Node type not handled")
                     return
-                if parent.type in ["module", "ERROR"]:
+                if parent.type == "module":
                     try:
                         param_vec["parent"] = node_dict[parent.type]
+                    except KeyError as e:
+                        self.debug_helper(node)
+                        raise RuntimeError("Node type not handled")
+                    return
+                if parent.type == "ERROR":
+                    try:
+                        param_vec["parent"] = node_dict[parent.type]
+                        param_vec["type"] = node_dict[parent.type]
                     except KeyError as e:
                         self.debug_helper(node)
                         raise RuntimeError("Node type not handled")
