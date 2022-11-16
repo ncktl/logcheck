@@ -173,12 +173,11 @@ class PythonExtractor(Extractor):
                         print(f"great*-grandparent.type: {parent.parent.type}")
                         raise RuntimeError("Node type not handled")
                     return
-                if parent.type == "module":
+                if parent.type in ["module", "ERROR"]:
                     try:
-                        param_vec["parent"] = node_dict["module"]
+                        param_vec["parent"] = node_dict[parent.type]
                     except KeyError as e:
                         self.debug_helper(node)
-                        print(f"great*-grandparent.type: {parent.parent.type}")
                         raise RuntimeError("Node type not handled")
                     return
             self.debug_helper(node)
@@ -284,9 +283,10 @@ class PythonExtractor(Extractor):
                 try:
                     param_vec["type"] = node_dict[block_node.parent.type]
                 except KeyError as e:
-                    param_vec["type"] = "ERROR"
+                    param_vec["type"] = node_dict["ERROR"]
                     self.logger.error(f"Encountered bad code in file {self.file} in line "
                                       f"{block_node.parent.start_point[0] + 1}")
+
                 param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
                                         f"{block_node.end_point[0]};{block_node.end_point[1]}"
                 if self.args.debug:
