@@ -17,7 +17,7 @@ from pathlib import Path
 from langdetect import detect
 
 # MIN_LINES_PER_FILE = 50
-MIN_LINES_PER_FILE = 200
+MIN_LINES_PER_FILE = 50
 # MAX_LINES_PER_FILE = 1000
 MAX_LINES_PER_FILE = 1000000
 
@@ -51,7 +51,8 @@ class RepositoryCloner:
                     logger.error(e)
         return repositories
 
-    def filter_repository_files(self, repository_dir='../data/repositories/', output_dir='../data/filter/'):
+    def filter_repository_files(self, repository_dir='../data/repositories/',
+                                output_dir='../data/filter/', skip_nonlogging=True):
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
             logger.debug(f'Created folder: {output_dir} successfully')
@@ -68,20 +69,21 @@ class RepositoryCloner:
         for repo_num, repo in enumerate(repos):
             repo_is_included = False
             files = list(repo.rglob(f"*.{extension_mappings[self.language]}"))
-            # cmd = f'find {str(repo)}/ -type f -iname "*.py" | xargs grep -l -e "^import logging" | wc -l'
-            # xargs -I arg is A LOT slower but handles spaces in file names. Grep used instead of rg for compatability
-            # cmd = f'find {str(repo)}/ -type f -iname "*.py" | xargs -I'+' {} grep -l -e "^import logging" {} | wc -l'
-            # find -print0 and xargs -0 use the ASCII NUL character as a separator which helps with spaces in filenames
-            # cmd = f'find {str(repo)}/ -type f -iname "*.py" -print0 | xargs -0 -I'+' {} grep -l -e "^import logging" {} | wc -l'
-            # Now works without xargs -I {}:
-            cmd = f'find {str(repo)}/ -type f -iname "*.py" -print0 | xargs -0 grep -l -e "^import logging" | wc -l'
-            stream = os.popen(cmd)
-            files_importing_logging_count = int(stream.read())
-            if files_importing_logging_count == 0:
-                logger.debug(f"{repo_num + 1}/{repo_count} "
-                             f"Skipping {str(repo.name)} because it doesn't use logging at all.")
-                skipped_repos_count += 1
-                continue
+            if skip_nonlogging:
+                # cmd = f'find {str(repo)}/ -type f -iname "*.py" | xargs grep -l -e "^import logging" | wc -l'
+                # xargs -I arg is A LOT slower but handles spaces in file names. Grep used instead of rg for compatability
+                # cmd = f'find {str(repo)}/ -type f -iname "*.py" | xargs -I'+' {} grep -l -e "^import logging" {} | wc -l'
+                # find -print0 and xargs -0 use the ASCII NUL character as a separator which helps with spaces in filenames
+                # cmd = f'find {str(repo)}/ -type f -iname "*.py" -print0 | xargs -0 -I'+' {} grep -l -e "^import logging" {} | wc -l'
+                # Now works without xargs -I {}:
+                cmd = f'find {str(repo)}/ -type f -iname "*.py" -print0 | xargs -0 grep -l -e "^import logging" | wc -l'
+                stream = os.popen(cmd)
+                files_importing_logging_count = int(stream.read())
+                if files_importing_logging_count == 0:
+                    logger.debug(f"{repo_num + 1}/{repo_count} "
+                                 f"Skipping {str(repo.name)} because it doesn't use logging at all.")
+                    skipped_repos_count += 1
+                    continue
             for index, file in enumerate(files):
                 if not file.is_file(): continue
                 # with open(file, 'r', errors='replace') as f:
@@ -99,8 +101,9 @@ class RepositoryCloner:
             if repo_is_included:
                 included_repos.append(str(repo.name))
         logger.debug("Filtering finished successfully.")
-        logger.info(f"Skipped {skipped_repos_count} out of {repo_count} repositories due to lack of logging.\n"
-                    f"Included {continuous_index} {self.language} files "
+        if skip_nonlogging:
+            logger.info(f"Skipped {skipped_repos_count} out of {repo_count} repositories due to lack of logging.")
+        logger.info(f"Included {continuous_index} {self.language} files "
                     f"from {repo_count - skipped_repos_count} repositories:")
         logger.info(str(included_repos))
 
@@ -122,11 +125,12 @@ if __name__ == '__main__':
     logger.setLevel(logging.DEBUG)
 
     repo_dir = "../repos/python/300repos/"
-    filter_dir = f"../repos/python/filter/300repos_minus_nonlogged_min{MIN_LINES_PER_FILE}_max{MAX_LINES_PER_FILE}/"
+    # filter_dir = f"../repos/python/filter/300repos_minus_nonlogged_min{MIN_LINES_PER_FILE}_max{MAX_LINES_PER_FILE}/"
+    filter_dir = f"../repos/python/filter/300repos_min{MIN_LINES_PER_FILE}_max{MAX_LINES_PER_FILE}/"
 
     # repo_dir = "/Users/nickkeutel/code/ma/100repos/"
     # filter_dir = f"/Users/nickkeutel/code/ma/filter/100repos_minus_nonlogged_min{MIN_LINES_PER_FILE}_max{MAX_LINES_PER_FILE}/"
 
     repository_cleaner = RepositoryCloner(n_results=100)
 #     repository_cleaner.clone_repositories(output_dir=repo_dir)
-    repository_cleaner.filter_repository_files(repository_dir=repo_dir, output_dir=filter_dir)
+    repository_cleaner.filter_repository_files(repository_dir=repo_dir, output_dir=filter_dir, skip_nonlogging=False)
