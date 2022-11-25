@@ -1,0 +1,68 @@
+100 Repos:
+Best_Params = {'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 5, 'n_estimators': 100}
+Best_Score = 0.3467816291090432
+Best_Params = {'min_samples_leaf': 1, 'min_samples_split': 5, 'n_estimators': 100}
+Best_Score = 0.3467816291090432
+Best_Params = {'min_samples_split': 5, 'n_estimators': 100}
+Best_Score = 0.3467816291090432
+Best_Params = {'min_samples_split': 5, 'n_estimators': 100}
+Best_Score = 0.3467816291090432
+
+Combination: (possibly bad bc try to filter error?) apparently not!
+Best_Params = {'min_samples_leaf': 1, 'min_samples_split': 5, 'n_estimators': 15}
+Best_Score = 0.36972153860398266
+    Random_state=0
+Best_Params = {'min_samples_split': 5, 'n_estimators': 16}
+Best_Score = 0.36994095087517176
+    No Random_state
+Best_Params = {'min_samples_split': 3, 'n_estimators': 14}
+Best_Score = 0.3696235088310047
+Best_Params = {'min_samples_split': 5, 'n_estimators': 9}
+Best_Score = 0.3692944118601568
+Best_Params = {'min_samples_split': 5, 'n_estimators': 12}
+Best_Score = 0.36948315861947173
+
+Combination:
+    Random_state=0
+Best_Params = {'min_samples_split': 5, 'n_estimators': 16}
+Best_Score = 0.36994095087517176
+
+Viewfinder:
+    Random_state=0
+Best_Params = {'min_samples_split': 3, 'n_estimators': 10}
+Best_Score = 0.3606258669360389
+Best_Params = {'min_samples_leaf': 1, 'min_samples_split': 3, 'n_estimators': 10}
+Best_Score = 0.3606258669360389
+
+Web2py:
+Best_Params = {'min_samples_leaf': 1, 'min_samples_split': 5, 'n_estimators': 14}
+Best_Score = 0.32023412258514605
+Best_Params = {'class_weight': {False: 1, True: 1}, 'min_samples_split': 5, 'n_estimators': 14}
+Best_Score = 0.32023412258514605
+
+Combination:
+Random_state=0
+Best_Params = {'class_weight': {False: 1, True: 4}, 'min_samples_split': 5, 'n_estimators': 200}
+Best_Score = 0.3790072771282032
+
+100 Repos:
+Random_state=0
+Best_Params = {'class_weight': {False: 1, True: 3}, 'min_samples_split': 5, 'n_estimators': 100}
+Best_Score = 0.3510696248377606
+Random_state=None
+Best_Params = {'class_weight': {False: 1, True: 2.95}, 'min_samples_split': 5, 'n_estimators': 100}
+Best_Score = 0.35107810861532657
+Best_Params = {'class_weight': {False: 1, True: 3}, 'min_samples_split': 5, 'n_estimators': 100}
+Best_Score = 0.3510639854524073
+
+300 Repos:
+
+174repos_min200_max1000000_expanded
+Best_Params = {'class_weight': {False: 1, True: 4}, 'min_samples_split': 5, 'n_estimators': 100}
+Best_Score = 0.34852194633549205
+174repos_min200_max1000000_expanded
+Best_Params = {'class_weight': {False: 1, True: 4}, 'min_samples_split': 5, 'n_estimators': 90}
+Best_Score = 0.3490319454314263
+174repos_min50_max1000000_expanded
+Best_Params = {'class_weight': {False: 1, True: 4}, 'min_samples_split': 5, 'n_estimators': 31}
+Best_Score = 0.34899632615667503
