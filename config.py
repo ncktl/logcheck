@@ -1,7 +1,8 @@
 import re
 from string import ascii_letters
 
-keyword = re.compile("log(g(ing|er))?(\.|$)")
+# keyword = re.compile("log(g(ing|er))?(\.|$)")
+keyword = re.compile("\w+\.(debug|info|warning|error|critical|log|exception)")
 
 compound_statements = [
     "class_definition",

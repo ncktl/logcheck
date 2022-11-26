@@ -38,7 +38,7 @@ class PythonExtractor(Extractor):
         if exp_child.type == "call":
             # Check call nodes for logging. Only if it's not a logging statement do we count it as a call.
             func_call = exp_child.child_by_field_name("function")
-            if keyword.search(func_call.text.decode("UTF-8").lower()):
+            if keyword.match(func_call.text.decode("UTF-8").lower()):
                 param_vec["contains_logging"] = 1
             else:
                 param_vec["contains_call"] = 1
@@ -95,7 +95,8 @@ class PythonExtractor(Extractor):
 
         def add_relevant_node(node: Node, context: list):
             if node.is_named and node.type in most_node_types:
-                if node.type == "call" and keyword.search(node.text.decode("UTF-8").lower()):
+                if node.type == "call" \
+                        and keyword.match(node.child_by_field_name("function").text.decode("UTF-8").lower()):
                     return
                 else:
                     context.append(node_dict[node.type])
@@ -320,7 +321,7 @@ class PythonExtractor(Extractor):
                                 # Check call nodes for logging
                                 func_call = exp_child.child_by_field_name("function")
                                 # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
-                                if keyword.search(func_call.text.decode("UTF-8").lower()):
+                                if keyword.match(func_call.text.decode("UTF-8").lower()):
                                     param_vec["contains_logging"] = 1
 
                         if child.child_count != 1:

@@ -141,7 +141,7 @@ class PythonAnalyzer(PythonExtractor):
                     # last_node = None
                     def check_and_print(node: Node):
                         if node.is_named and node.type in most_node_types:
-                            if node.type == "call" and keyword.search(node.text.decode("UTF-8").lower()):
+                            if node.type == "call" and keyword.match(node.text.decode("UTF-8").lower()):
                                 #print("Logging call found")
                                 return
                             print(node.type)
