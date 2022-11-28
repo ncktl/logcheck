@@ -13,7 +13,7 @@ from numpy import zeros
 
 iteration_features = "Name, Timestamp, sampling_strategy, max_length, vocab_size, batch_size, trainable," \
                      " dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight," \
-                     " cmpltn_metrics, settings_hash, execution_time"
+                     " cmpltn_metrics, run_folder, execution_time"
 
 
 class MyCorpus:
@@ -99,7 +99,7 @@ def build_model(name, vocab_size, output_dims, embedding_matrix, max_length, tra
     return model
 
 
-def build_callbacks(callback, callback_monitor, repo_name, settings_hash, kfold):
+def build_callbacks(callback, callback_monitor, repo_name, run_folder, kfold, zhenhao=True):
     callbacks = []
     if "es" in callback:
         es = EarlyStopping(monitor=callback_monitor,
@@ -110,9 +110,12 @@ def build_callbacks(callback, callback_monitor, repo_name, settings_hash, kfold)
         callbacks.append(es)
     model_cp_filepath = ""
     if "cp" in callback:
-        # No more epoch in filepath for loading the model weights after fit
-        # filepath = f"zhenhao_models/{repo_name}/{settings_hash}/" + "epoch{epoch}"
-        model_cp_filepath = f"zhenhao_models/{repo_name}/{settings_hash}/fold{kfold}"
+        if zhenhao:
+            # No more epoch in filepath for loading the model weights after fit
+            # filepath = f"zhenhao_models/{repo_name}/{run_folder}/" + "epoch{epoch}"
+            model_cp_filepath = f"zhenhao_models/{repo_name}/{run_folder}/fold{kfold}"
+        else:
+            model_cp_filepath = f"hybrid_models/{repo_name}/{run_folder}/fold{kfold}"
         cp = ModelCheckpoint(filepath=model_cp_filepath,
                              monitor=callback_monitor,
                              mode="max",
