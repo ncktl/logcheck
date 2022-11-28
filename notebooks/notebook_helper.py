@@ -26,9 +26,20 @@ class MyCorpus:
         for line in self.text_list:
             yield line
 
+def build_others_model(vocab_size, output_dims, embedding_matrix, max_length,
+                       trainable, num_nodes, dropout, other_input_num_cols):
+    """Build a tensorflow model using only the other features as input"""
+
+    model = Sequential()
+    model.add(keras.Input(shape=(other_input_num_cols,)))
+    model.add(Dense(300, activation='relu'))
+    model.add(Dense(1, activation='sigmoid'))
+
+    return model
+
 def build_hybrid_model(vocab_size, output_dims, embedding_matrix, max_length,
                        trainable, num_nodes, dropout, other_input_num_cols):
-    """Build and run the tensorflow model using both the context and the other features as inputs"""
+    """Build a tensorflow model using both the context and the other features as inputs"""
 
     context_input = keras.Input(shape=(max_length,), name="context")
     other_input = keras.Input(shape=(other_input_num_cols,), name="other")
