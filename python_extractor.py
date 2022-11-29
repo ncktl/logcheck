@@ -239,6 +239,8 @@ class PythonExtractor(Extractor):
                 param_vec["type"] = node_dict[node_type]
                 param_vec["location"] = f"{node.start_point[0]};{node.start_point[1]}-" \
                                         f"{node.end_point[0]};{node.end_point[1]}"
+                if self.args.alt:
+                    param_vec["length"] = node.end_point[0] - node.start_point[0] + 1
                 if self.args.debug:
                     param_vec = {"line": node.start_point[0] + 1, **param_vec}
                 # Check parent
