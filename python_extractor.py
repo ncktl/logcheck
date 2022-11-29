@@ -41,16 +41,17 @@ class PythonExtractor(Extractor):
             if keyword.match(func_call.text.decode("UTF-8").lower()):
                 if self.args.debug:
                     print("check_expression: ", func_call.text.decode("UTF-8"))
+                    # "contains_logging" remains 0/1 as it is the target
                 param_vec["contains_logging"] = 1
             else:
-                param_vec["contains_call"] = 1
+                param_vec["contains_call"] += 1
         # Assignment
         elif exp_child.type == "assignment" or exp_child.type == "augmented_assignment":
-            param_vec["contains_assignment"] = 1
+            param_vec["contains_assignment"] += 1
             # Check assignment nodes for calls
             assign_rhs = exp_child.child_by_field_name("right")
             if assign_rhs and assign_rhs.type == "call":
-                param_vec["contains_call"] = 1
+                param_vec["contains_call"] += 1
                 # Check call nodes for logging?
                 # No, because a logging method call on the right-hand side of an assigment
                 # is usually not a logging call but rather an instantiation of a logging class
@@ -59,16 +60,16 @@ class PythonExtractor(Extractor):
                 #     param_vec["contains_logging"] = 1
         # Await
         elif exp_child.type == "await":
-            param_vec["contains_await"] = 1
+            param_vec["contains_await"] += 1
             assert exp_child.child_count == 2
             assert exp_child.children[0].type == "await"
             # Check await node for call
             if exp_child.children[1].type == "call":
-                param_vec["contains_call"] = 1
+                param_vec["contains_call"] += 1
                 # Eventual check for logging?
         # Yield
         elif exp_child.type == "yield":
-            param_vec["contains_yield"] = 1
+            param_vec["contains_yield"] += 1
 
     def build_context_of_block_node(self, block_node: Node, param_vec: dict):
         """Build the context of the block like in Zhenhao et al."""
@@ -149,9 +150,9 @@ class PythonExtractor(Extractor):
             # Handle decorators so that they are counted as their respective class or function definition
             elif child.type == "decorated_definition":
                 if child.child_by_field_name("definition").type == "class_definition":
-                    param_vec["contains_class_definition"] = 1
+                    param_vec["contains_class_definition"] += 1
                 elif child.child_by_field_name("definition").type == "function_definition":
-                    param_vec["contains_function_definition"] = 1
+                    param_vec["contains_function_definition"] += 1
                 else:
                     self.debug_helper(child)
                     raise RuntimeError("Decorated definition not handled")
@@ -160,7 +161,7 @@ class PythonExtractor(Extractor):
             # Check if the child is a compound or simple statement
             for key, clause in zip(cfg.contains_only_statements, contains_types):
                 if child.type == clause:
-                    param_vec[key] = 1
+                    param_vec[key] += 1
                     break
             # else:
             #     if child.type != "ERROR":
