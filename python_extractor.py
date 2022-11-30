@@ -171,49 +171,30 @@ class PythonExtractor(Extractor):
     def check_parent(self, node: Node, param_vec: dict):
         """Checks the node's parent. Not used for the module node."""
 
+        parent = None
         if node.type in compound_statements:
-            # if node.parent.type != "module":
-            #     if node.parent.parent.type not in interesting_node_types:
-            #         self.debug_helper(node)
             # Using the loop allows us to skip function decorators for the parent parameter
             parent = node
             while parent.parent:
                 parent = parent.parent
                 if parent.type == "block":
-                    try:
-                        param_vec["parent"] = node_dict[parent.parent.type]
-                    except KeyError as e:
-                        # Todo: Convert all these debugging statements into logging
-                        self.debug_helper(node)
-                        print(f"great*-grandparent.type: {parent.parent.type}")
-                        raise RuntimeError("Node type not handled")
-                    return
+                    parent = parent.parent
+                    break
                 if parent.type == "module":
-                    try:
-                        param_vec["parent"] = node_dict[parent.type]
-                    except KeyError as e:
-                        self.debug_helper(node)
-                        raise RuntimeError("Node type not handled")
-                    return
+                    break
                 if parent.type == "ERROR":
-                    try:
-                        param_vec["parent"] = node_dict[parent.type]
-                        param_vec["type"] = node_dict[parent.type]
-                    except KeyError as e:
-                        self.debug_helper(node)
-                        raise RuntimeError("Node type not handled")
+                    param_vec["parent"] = node_dict[parent.type]
+                    param_vec["type"] = node_dict[parent.type]
                     return
-            self.debug_helper(node)
-            raise RuntimeError("Could not find parent of node")
-        elif node.type in extra_clauses:
-            try:
-                param_vec["parent"] = node_dict[node.parent.type]
-            except KeyError as e:
+            else:
                 self.debug_helper(node)
-                print(f"node.parent.type: {node.parent.type}")
-                raise RuntimeError("Node type not handled")
+                raise RuntimeError("Could not find parent of node")
+        elif node.type in extra_clauses:
+            parent = node.parent
         else:
             raise RuntimeError("Node type not handled")
+        assert parent is not None
+        param_vec["parent"] = node_dict[parent.type]
 
     def fill_param_vecs_ast_new(self, training: bool = True) -> list:
         param_vectors = []
