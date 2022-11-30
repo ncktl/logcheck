@@ -195,6 +195,7 @@ class PythonExtractor(Extractor):
             raise RuntimeError("Node type not handled")
         assert parent is not None
         param_vec["parent"] = node_dict[parent.type]
+        param_vec["num_siblings"] = parent.named_child_count
 
     def fill_param_vecs_ast_new(self, training: bool = True) -> list:
         param_vectors = []
