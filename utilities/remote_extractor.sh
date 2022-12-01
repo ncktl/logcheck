@@ -20,7 +20,7 @@ for min in $minimums; do
 	# output_path="features/300repos_min"$min"_max1000000_"
 	# output_path="features/174repos_min"$min"_max1000000_counts_"
 #	output_path="features/174repos_min"$min"_max1000000_node_len_"
-	output_path="features/174repos_min"$min"_max1000000_num_siblings_"
+	output_path="features/174_min"$min"_parallelized_"
 
 	# echo $filtering_path
 	# echo $output_path

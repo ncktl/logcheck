@@ -1,3 +1,4 @@
+import multiprocessing as mp
 from tree_sitter import Language, Parser
 import sys
 import logging
@@ -19,8 +20,6 @@ suf = {
 }
 rev_suf = dict(zip(suf.values(), suf.keys()))
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger("LogCheck")
 
 def create_ts_lang_obj(language: str) -> Language:
     """
@@ -36,32 +35,45 @@ def create_ts_lang_obj(language: str) -> Language:
     return ts_lang
 
 
+def extract_file(file, settings, train_mode):
+    try:
+        with open(file) as f:
+            sourcecode = f.read()
+            f.close()
+    except UnicodeDecodeError as e:
+        logger.error(f"Encountered UnicodeDecodeError in file {file}:\n{e}")
+        return []
+    tree_lang = create_ts_lang_obj(settings.language)
+    parser = Parser()
+    parser.set_language(tree_lang)
+    # Create abstract syntax tree
+    tree = parser.parse(bytes(sourcecode, "utf8"))
+    # Import the appropriate extractor and instantiate it
+    extractor_class = getattr(importlib.import_module(settings.language + "_extractor"),
+                              settings.language.capitalize() + "Extractor")
+    extractor = extractor_class(sourcecode, tree_lang, tree, file, settings)
+    # Start the extraction
+    if settings.zhenhao:
+        file_param_vecs = extractor.fill_param_vecs_zhenhao(training=train_mode)  # Zhenhao
+    else:
+        file_param_vecs = extractor.fill_param_vecs_ast_new(training=train_mode)  # Regular
+    if settings.debug:
+        file_param_vecs = ["/" + str(file) + "y"] + file_param_vecs
+    return file_param_vecs
+
+
+
 def extract(files, settings, train_mode: bool = True):
     """ Extracts parameter vectors from the file(s) """
-    param_vectors = []
-    for file in tqdm(files):
-        try:
-            with open(file) as f:
-                sourcecode = f.read()
-                f.close()
-        except UnicodeDecodeError as e:
-            logger.error(f"Encountered UnicodeDecodeError in file {file}:\n{e}")
-            continue
-        # print(f"File: {file}")
-        # Create abstract syntax tree
-        tree = parser.parse(bytes(sourcecode, "utf8"))
-        # Import the appropriate extractor and instantiate it
-        extractor_class = getattr(importlib.import_module(settings.language + "_extractor"),
-                                  settings.language.capitalize() + "Extractor")
-        extractor = extractor_class(sourcecode, tree_lang, tree, file, settings)
-        # Start the extraction
-        if settings.zhenhao:
-            file_param_vecs = extractor.fill_param_vecs_zhenhao(training=train_mode) # Zhenhao
-        else:
-            file_param_vecs = extractor.fill_param_vecs_ast_new(training=train_mode) # Regular
-        if settings.debug:
-            param_vectors += ["/" + str(file) + "y"]
-        param_vectors += file_param_vecs
+
+    pool = mp.Pool(mp.cpu_count())
+    # Async variant
+    # param_vectors = pool.starmap_async(extract_file, [(file, settings, train_mode) for file in files]).get()
+    # Ordered parallelization
+    param_vectors = pool.starmap(extract_file, [(file, settings, train_mode) for file in files])
+    param_vectors = [par_vec for par_vec_list in param_vectors for par_vec in par_vec_list]
+    pool.close()
+
     if settings.zhenhao:
         param_vec_used = par_vec_zhenhao # Only Shenzen
     elif settings.alt:
@@ -70,8 +82,10 @@ def extract(files, settings, train_mode: bool = True):
         param_vec_used = par_vec_onehot # Old without context
     # Write output
     header = (["line"] if settings.debug else []) + list(param_vec_used.keys())
-    out.write(",".join(header))
-    out.write("\n")
+    out.write(",".join(header) + "\n")
+
+    # out.write(str(param_vectors))
+
     out.write("\n".join(
         [str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
     out.write("\n")
