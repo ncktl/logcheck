@@ -105,6 +105,8 @@ def analyze_newer():
         # Import the appropriate extractor and instantiate it
         extractor_class = getattr(importlib.import_module(args.language + "_extractor"),
                                   args.language.capitalize() + "Extractor")
+        # TODO: Dont do this dirty hack
+        args.alt = True
         extractor = extractor_class(sourcecode, tree_lang, tree, file, args)
         # Build a list of parameter vectors for all interesting nodes in the current file
         file_param_vecs = extractor.fill_param_vecs_ast_new(training=False)
@@ -112,7 +114,8 @@ def analyze_newer():
         if file_param_vecs:
             # Build Pandas DataFrame from the list of parameter vectors
             df = pd.DataFrame.from_dict(file_param_vecs)
-            X = df.drop(["contains_logging", "location"], axis=1)
+            # logger.debug(df); exit()
+            X = df.drop(["contains_logging", "location", "context"], axis=1)
             # X = df.drop(["contains_logging"], axis=1)
             # One-hot encode the parameters type and parent
             X = pd.get_dummies(X, columns=["type", "parent"])
