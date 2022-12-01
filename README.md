@@ -64,7 +64,8 @@ To extract parameter vectors from files for learning a classifier, use the -e ex
 python3 logcheck.py -e <path to file or directory to extract features from>
 ```
 
-To also extract the context, additionally use the "-a" argument.
+Recommended: To also extract the context, additionally use the "-a" argument. This is currently required if you want to
+train the classifier with the extract.
 
 ```sh
 python3 logcheck.py -e -a <path>
