@@ -19,6 +19,9 @@ suf = {
 }
 rev_suf = dict(zip(suf.values(), suf.keys()))
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger("LogCheck")
+
 def create_ts_lang_obj(language: str) -> Language:
     """
     Creates a tree-sitter language library in the 'build' directory
@@ -33,7 +36,7 @@ def create_ts_lang_obj(language: str) -> Language:
     return ts_lang
 
 
-def extract(train_mode: bool = True):
+def extract(files, settings, train_mode: bool = True):
     """ Extracts parameter vectors from the file(s) """
     param_vectors = []
     for file in tqdm(files):
@@ -48,25 +51,25 @@ def extract(train_mode: bool = True):
         # Create abstract syntax tree
         tree = parser.parse(bytes(sourcecode, "utf8"))
         # Import the appropriate extractor and instantiate it
-        extractor_class = getattr(importlib.import_module(args.language + "_extractor"),
-                                  args.language.capitalize() + "Extractor")
-        extractor = extractor_class(sourcecode, tree_lang, tree, file, args)
+        extractor_class = getattr(importlib.import_module(settings.language + "_extractor"),
+                                  settings.language.capitalize() + "Extractor")
+        extractor = extractor_class(sourcecode, tree_lang, tree, file, settings)
         # Start the extraction
-        if args.zhenhao:
+        if settings.zhenhao:
             file_param_vecs = extractor.fill_param_vecs_zhenhao(training=train_mode) # Zhenhao
         else:
             file_param_vecs = extractor.fill_param_vecs_ast_new(training=train_mode) # Regular
-        if args.debug:
+        if settings.debug:
             param_vectors += ["/" + str(file) + "y"]
         param_vectors += file_param_vecs
-    if args.zhenhao:
+    if settings.zhenhao:
         param_vec_used = par_vec_zhenhao # Only Shenzen
-    elif args.alt:
+    elif settings.alt:
         param_vec_used = par_vec_onehot_expanded # New integer representation with context
     else:
         param_vec_used = par_vec_onehot # Old without context
     # Write output
-    header = (["line"] if args.debug else []) + list(param_vec_used.keys())
+    header = (["line"] if settings.debug else []) + list(param_vec_used.keys())
     out.write(",".join(header))
     out.write("\n")
     out.write("\n".join(
@@ -246,7 +249,7 @@ if __name__ == "__main__":
     logger = logging.getLogger("Logcheck")
     # Branch into extraction or analysis
     if args.extract:
-        extract()
+        extract(files, args)
     else:
         if args.alt:
             analyze()
