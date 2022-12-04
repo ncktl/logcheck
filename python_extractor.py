@@ -182,40 +182,51 @@ class PythonExtractor(Extractor):
     def check_parent(self, node: Node, param_vec: dict):
         """Checks the node's parent. Not used for the module node."""
 
+        # We try to find the node's logical parent,
+        # and the position of the highest ancestor of the node among the logical parent's children (sibling_index)
+        # This allows us e.g. to find the sibling_index of a function definition that is decorated among its enclosing
+        # block. Otherwise, the decorator would be considered the parent and the sibling_index would always be 0
         parent = None
+        considered_node = node
         # For compound statements (like function definition, if-statement, for-statement, etc.)
-        # we consider the enclosing block's parent as parent,
+        # we consider the enclosing block's parent as logical parent,
         # or the module, if there is no block between the compound statement and the module node
         # (module, the root, is essentially a block)
         if node.type in compound_statements:
             # Using the loop allows us to skip function decorators for the parent parameter
-            parent = node
-            while parent.parent:
-                parent = parent.parent
+            parent = considered_node.parent
+            while parent is not None:
                 if parent.type == "block":
-                    parent = parent.parent
+                    # parent = parent.parent
+                    param_vec["parent"] = node_dict[parent.parent.type]
                     break
                 if parent.type == "module":
+                    param_vec["parent"] = node_dict[parent.type]
                     break
                 if parent.type == "ERROR":
                     param_vec["parent"] = node_dict[parent.type]
                     param_vec["type"] = node_dict[parent.type]
                     return
+                considered_node = parent
+                parent = parent.parent
             else:
                 self.debug_helper(node)
                 raise RuntimeError("Could not find parent of node")
         # For the extra clauses (like else, elif, except, finally,etc.)
-        # we consider the parent compound statement as parent
+        # we consider the parent compound statement as logical parent
         elif node.type in extra_clauses:
             parent = node.parent
+            param_vec["parent"] = node_dict[parent.type]
         else:
             raise RuntimeError("Node type not handled")
         assert parent is not None
-        param_vec["parent"] = node_dict[parent.type]
+        # param_vec["parent"] = node_dict[parent.type]
         param_vec["num_siblings"] = parent.named_child_count
         # The position of the node among its siblings, (e.g. node is the 2nd child of its parent)
         # Actually makes the performance WORSE with rnd_forest classifier
-        param_vec["sibling_index"] = node.parent.children.index(node) + 1  # TODO: Check if +1 is best
+        # TODO: Check if +1 is best
+        # param_vec["sibling_index"] = node.parent.children.index(node) + 1
+        param_vec["sibling_index"] = parent.children.index(considered_node) + 1
 
     def fill_param_vecs_ast_new(self, training: bool = True) -> list:
         param_vectors = []
