@@ -92,6 +92,11 @@ class PythonExtractor(Extractor):
         else:
             # Measure the depth of nesting from the node's containing func/class def or module
             depth_from_def = 0
+            # For a block of a function definition we want to measure the depth
+            # from that function definition's containing ((function|class) definition|module)
+            if def_node.type == "function_definition":
+                def_node = def_node.parent
+                depth_from_def = 1
             while def_node.type not in ["module", "class_definition", "function_definition"]:
                 if def_node.type == "ERROR":
                     param_vec["type"] = node_dict[def_node.type]
