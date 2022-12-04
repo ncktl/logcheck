@@ -225,6 +225,7 @@ class PythonExtractor(Extractor):
                                         f"{node.end_point[0]};{node.end_point[1]}"
                 if self.args.alt:
                     param_vec["length"] = node.end_point[0] - node.start_point[0] + 1
+                    param_vec["num_children"] = node.named_child_count
                 if self.args.debug:
                     param_vec = {"line": node.start_point[0] + 1, **param_vec}
                 # Check parent
