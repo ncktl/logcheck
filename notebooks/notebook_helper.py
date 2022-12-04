@@ -1,5 +1,6 @@
 # Helper functions for the notebooks
 
+import pandas as pd
 # Tensorflow + Keras
 from keras.layers import CuDNNLSTM
 import tensorflow as tf
@@ -7,7 +8,6 @@ import tensorflow.keras as keras
 from tensorflow.keras.layers import Dense, LSTM, Embedding, Bidirectional
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-
 
 from numpy import zeros
 
@@ -26,6 +26,34 @@ class MyCorpus:
         for line in self.text_list:
             yield line
 
+
+def show_stats(df: pd.DataFrame):
+    no_log_cnt, log_cnt = df['contains_logging'].value_counts()
+    par_vec_cnt = no_log_cnt + log_cnt
+    log_ratio = log_cnt / par_vec_cnt
+    print("Shape:", str(df.shape))
+    print(f"Number of parameter vecs:\t{par_vec_cnt}")
+    print(f"without logging (negatives):\t{no_log_cnt}")
+    print(f"with logging (positives):\t{log_cnt}")
+    print(f"Log ratio:\t\t\t{log_ratio * 100:.2f}%")
+    # Compute the logging ratio by node type
+    positives = df[df["contains_logging"] == True]
+    cols = ["type", "count", "positives", "ratio"]
+    results = []
+    for type_feature in df.columns:
+        type_feature = str(type_feature)
+        if not type_feature.startswith("type"):
+            continue
+        type_name = type_feature[5:]
+        cnt = df[df[type_feature] == 1].shape[0]
+        pos_cnt = positives[positives[type_feature] == 1].shape[0]
+        ratio = pos_cnt / cnt
+        results.append([type_name, cnt, pos_cnt, ratio])
+    log_ratios_by_type_df = pd.DataFrame(results, columns=cols).sort_values(by="ratio", ascending=False)
+    print(log_ratios_by_type_df)
+
+
+
 def build_others_model(vocab_size, output_dims, embedding_matrix, max_length,
                        trainable, num_nodes, dropout, other_input_num_cols):
     """Build a tensorflow model using only the other features as input"""
@@ -36,6 +64,7 @@ def build_others_model(vocab_size, output_dims, embedding_matrix, max_length,
     model.add(Dense(1, activation='sigmoid'))
 
     return model
+
 
 def build_hybrid_model(vocab_size, output_dims, embedding_matrix, max_length,
                        trainable, num_nodes, dropout, other_input_num_cols):
@@ -110,7 +139,7 @@ def build_model(name, vocab_size, output_dims, embedding_matrix, max_length, tra
     return model
 
 
-def build_callbacks(callback, callback_monitor, repo_name, run_folder, kfold, zhenhao=True):
+def build_callbacks(callback, callback_monitor, repo_name, run_folder, kfold, zhenhao=True, old=False):
     callbacks = []
     if "es" in callback:
         es = EarlyStopping(monitor=callback_monitor,
@@ -124,7 +153,10 @@ def build_callbacks(callback, callback_monitor, repo_name, run_folder, kfold, zh
         if zhenhao:
             # No more epoch in filepath for loading the model weights after fit
             # filepath = f"zhenhao_models/{repo_name}/{run_folder}/" + "epoch{epoch}"
-            model_cp_filepath = f"zhenhao_models/{repo_name}/{run_folder}/fold{kfold}"
+            if old:
+                model_cp_filepath = f"zhenhao_models/{repo_name}/{run_folder}/fold{kfold}"
+            else:
+                model_cp_filepath = f"my_zhenhao_models/{repo_name}/{run_folder}/fold{kfold}"
         else:
             model_cp_filepath = f"hybrid_models/{repo_name}/{run_folder}/fold{kfold}"
         cp = ModelCheckpoint(filepath=model_cp_filepath,
@@ -154,6 +186,7 @@ def build_embedding_matrix(vocab_size, output_dims, gensim_model):
             embedding_matrix[i] = embedding_vector
 
     return embedding_matrix
+
 
 if __name__ == '__main__':
     print("Hello World!")

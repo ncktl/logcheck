@@ -26,8 +26,8 @@ for min in $minimums; do
 
 	# echo $filtering_path
 	# echo $output_path
-	echo expanded
-	python3 logcheck.py -e -a -o $output_path"expanded.csv" $filtering_path
-	# echo zhenhao
-	# python3 logcheck.py -e -z -o $output_path"zhenhao.csv" $filtering_path
+#	echo expanded
+#	python3 logcheck.py -e -a -o $output_path"expanded.csv" $filtering_path
+	 echo zhenhao
+	 python3 logcheck.py -e -z -o $output_path"zhenhao.csv" $filtering_path
 done

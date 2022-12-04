@@ -73,7 +73,7 @@ class PythonExtractor(Extractor):
         elif exp_child.type == "yield":
             param_vec["contains_yield"] += 1
 
-    def build_context_of_block_node(self, block_node: Node, param_vec: dict, func_def_node=None):
+    def build_context_of_block_node(self, block_node: Node, param_vec: dict):
         """Build the context of the block and computes depth from def"""
 
         # Find the containing (function) definition
@@ -89,7 +89,6 @@ class PythonExtractor(Extractor):
                     return
                 def_node = def_node.parent
                 depth_from_def += 1
-            assert def_node == func_def_node
         # For our approach of looking at interesting nodes:
         # There will be blocks that aren't inside a function/method
         # This will limit the context to a containing class in case of func def >..> class def >..> block
@@ -335,10 +334,15 @@ class PythonExtractor(Extractor):
                 # Rudimentary approach for num_siblings
                 param_vec["num_siblings"] = block_node.parent.parent.named_child_count
                 param_vec["num_children"] = block_node.named_child_count
-                param_vec["parent"] = node_dict[block_node.parent.type]
+                try:
+                    param_vec["parent"] = node_dict[block_node.parent.type]
+                except KeyError as e:
+                    param_vec["parent"] = node_dict["ERROR"]
+                    self.logger.error(f"Encountered bad code in file {self.file} in line "
+                                      f"{block_node.parent.start_point[0] + 1}")
                 if self.args.debug:
                     param_vec = {"line": block_node.start_point[0] + 1, **param_vec}
-                self.build_context_of_block_node(block_node, param_vec, funcdef_node)
+                self.build_context_of_block_node(block_node, param_vec)
                 # Check for logging, slimmed version of check_block() and check_expression():
                 for child in block_node.children:
                     child: Node
