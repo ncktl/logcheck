@@ -183,6 +183,10 @@ class PythonExtractor(Extractor):
         """Checks the node's parent. Not used for the module node."""
 
         parent = None
+        # For compound statements (like function definition, if-statement, for-statement, etc.)
+        # we consider the enclosing block's parent as parent,
+        # or the module, if there is no block between the compound statement and the module node
+        # (module, the root, is essentially a block)
         if node.type in compound_statements:
             # Using the loop allows us to skip function decorators for the parent parameter
             parent = node
@@ -200,6 +204,8 @@ class PythonExtractor(Extractor):
             else:
                 self.debug_helper(node)
                 raise RuntimeError("Could not find parent of node")
+        # For the extra clauses (like else, elif, except, finally,etc.)
+        # we consider the parent compound statement as parent
         elif node.type in extra_clauses:
             parent = node.parent
         else:
@@ -207,6 +213,9 @@ class PythonExtractor(Extractor):
         assert parent is not None
         param_vec["parent"] = node_dict[parent.type]
         param_vec["num_siblings"] = parent.named_child_count
+        # The position of the node among its siblings, (e.g. node is the 2nd child of its parent)
+        # Actually makes the performance WORSE with rnd_forest classifier
+        param_vec["sibling_index"] = node.parent.children.index(node) + 1  # TODO: Check if +1 is best
 
     def fill_param_vecs_ast_new(self, training: bool = True) -> list:
         param_vectors = []

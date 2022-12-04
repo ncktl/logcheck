@@ -3,7 +3,7 @@ from python_extractor import PythonExtractor
 from tree_sitter import Language, Tree, Node, TreeCursor
 from pathlib import Path
 from extractor import print_children, traverse_sub_tree
-from config import interesting_node_types, par_vec_onehot, most_node_types, keyword
+from config import interesting_node_types, par_vec_onehot, most_node_types, keyword, par_vec_onehot_expanded, node_dict
 import pickle
 from sklearn.svm import LinearSVC
 from copy import copy
@@ -92,7 +92,7 @@ class PythonAnalyzer(PythonExtractor):
     def analyze(self) -> list:
         """ Starts the analyses """
         if self.args.debug:
-            print_children(self.tree.root_node); exit()
+            # print_children(self.tree.root_node); exit()
             for node in traverse_sub_tree(self.tree.root_node):
                 # if node.is_named and node.type == "expression_statement":
                 if node.is_named:
@@ -108,57 +108,26 @@ class PythonAnalyzer(PythonExtractor):
                     # exit()
             return []
         else:
-            # print_children(self.tree.root_node)
-            function_definiton_query = self.lang.query("(function_definition) @funcdef")
-            function_definiton_nodes = function_definiton_query.captures(self.tree.root_node)
+            param_vectors = []
+            for node_type in interesting_node_types:
+                node_query = self.lang.query("(" + node_type + ") @" + node_type)
+                nodes = node_query.captures(self.tree.root_node)
+                for node, tag in nodes:
+                    node: Node
+                    if node.type == "function_definition":
+                        print(node)
+                        print(f"Parent: {node.parent}")
+                        print(f"Siblings: {node.parent.children}")
+                        print(f"Position among siblings: {node.parent.children.index(node)}")
 
-            block_query = self.lang.query("(block) @block")
-            # block_nodes = block_query.captures(self.tree.root_node)
-            # prev = None
-            for funcdef_node, tag in function_definiton_nodes:
-                funcdef_node: Node
-                block_nodes = block_query.captures(funcdef_node)
-                print("#" * 80)
-                print(funcdef_node)
-                print(funcdef_node.text.decode("UTF-8"))
-                print("+" * 80)
-                for block_node, tag in block_nodes:
-                    print(block_node)
-                    print(block_node.text.decode("UTF-8"))
-                    print("-" * 80)
-                    print("Ast path from function definition to block:")
-                    pathlist = []
-                    wandering_node = block_node
-                    while wandering_node != funcdef_node:
-                        pathlist.append(wandering_node)
-                        wandering_node = wandering_node.parent
-                    pathlist.reverse()
-                    for node in pathlist:
-                        if node.is_named and node.type in most_node_types:
-                            print(node.type)
-                    print("-" * 80)
-                    print("Previous nodes in function definition:")
-                    # last_node = None
-                    def check_and_print(node: Node):
-                        if node.is_named and node.type in most_node_types:
-                            if node.type == "call" and keyword.match(node.text.decode("UTF-8").lower()):
-                                #print("Logging call found")
-                                return
-                            print(node.type)
-                    for node in traverse_sub_tree(funcdef_node, block_node):
-                        if node.type != "function_definition":
-                            check_and_print(node)
-                            # print(node)
-                            # print(node.type)
-                            # last_node = node
-                            # print("-" * 80)
-                    # if last_node:
-                    #     for node2 in traverse_sub_tree(last_node):
-                    #         if node2.is_named and node2.type in visible_node_types:
-                    #             print(node2.type)
-                    for node in traverse_sub_tree(block_node):
-                        check_and_print(node)
-                    print("=" * 80)
+                    param_vec = copy(par_vec_onehot_expanded)
+                    param_vec["type"] = node_dict[node_type]
+                    param_vec["location"] = f"{node.start_point[0]};{node.start_point[1]}-" \
+                                            f"{node.end_point[0]};{node.end_point[1]}"
+                    param_vec["length"] = node.end_point[0] - node.start_point[0] + 1
+                    param_vec["num_children"] = node.named_child_count
+            # self.proto_context()
+
             return []
 
 
@@ -205,6 +174,60 @@ class PythonAnalyzer(PythonExtractor):
                     recommendations.append(f"We recommend logging in the {node_type} "
                                            f"starting in line {node.start_point[0] + 1}")
         return recommendations
+
+    def proto_context(self):
+        # print_children(self.tree.root_node)
+        function_definiton_query = self.lang.query("(function_definition) @funcdef")
+        function_definiton_nodes = function_definiton_query.captures(self.tree.root_node)
+        block_query = self.lang.query("(block) @block")
+        # block_nodes = block_query.captures(self.tree.root_node)
+        # prev = None
+        for funcdef_node, tag in function_definiton_nodes:
+            funcdef_node: Node
+            block_nodes = block_query.captures(funcdef_node)
+            print("#" * 80)
+            print(funcdef_node)
+            print(funcdef_node.text.decode("UTF-8"))
+            print("+" * 80)
+            for block_node, tag in block_nodes:
+                print(block_node)
+                print(block_node.text.decode("UTF-8"))
+                print("-" * 80)
+                print("Ast path from function definition to block:")
+                pathlist = []
+                wandering_node = block_node
+                while wandering_node != funcdef_node:
+                    pathlist.append(wandering_node)
+                    wandering_node = wandering_node.parent
+                pathlist.reverse()
+                for node in pathlist:
+                    if node.is_named and node.type in most_node_types:
+                        print(node.type)
+                print("-" * 80)
+                print("Previous nodes in function definition:")
+
+                # last_node = None
+                def check_and_print(node: Node):
+                    if node.is_named and node.type in most_node_types:
+                        if node.type == "call" and keyword.match(node.text.decode("UTF-8").lower()):
+                            # print("Logging call found")
+                            return
+                        print(node.type)
+
+                for node in traverse_sub_tree(funcdef_node, block_node):
+                    if node.type != "function_definition":
+                        check_and_print(node)
+                        # print(node)
+                        # print(node.type)
+                        # last_node = node
+                        # print("-" * 80)
+                # if last_node:
+                #     for node2 in traverse_sub_tree(last_node):
+                #         if node2.is_named and node2.type in visible_node_types:
+                #             print(node2.type)
+                for node in traverse_sub_tree(block_node):
+                    check_and_print(node)
+                print("=" * 80)
 
     def get_all_named_children_with_parent_of_type(self, node_type: str):
         query = self.lang.query("(" + node_type + " (_) @inner)")
