@@ -73,11 +73,13 @@ class PythonExtractor(Extractor):
         elif exp_child.type == "yield":
             param_vec["contains_yield"] += 1
 
-    def build_context_of_block_node(self, block_node: Node, param_vec: dict):
-        """Build the context of the block like in Zhenhao et al."""
+    def build_context_of_block_node(self, block_node: Node, param_vec: dict, func_def_node=None):
+        """Build the context of the block and computes depth from def"""
 
         # Find the containing (function) definition
         def_node = block_node.parent
+        # Measure the depth of nesting from the node's containing func/class def or module
+        depth_from_def = 0
         # For doing it exactly like Zhenhao et al.:
         if self.args.zhenhao:
             while def_node.type != "function_definition":
@@ -86,12 +88,12 @@ class PythonExtractor(Extractor):
                     param_vec["context"] = node_dict[def_node.type]
                     return
                 def_node = def_node.parent
+                depth_from_def += 1
+            assert def_node == func_def_node
         # For our approach of looking at interesting nodes:
         # There will be blocks that aren't inside a function/method
         # This will limit the context to a containing class in case of func def >..> class def >..> block
         else:
-            # Measure the depth of nesting from the node's containing func/class def or module
-            depth_from_def = 0
             # For a block of a function definition we want to measure the depth
             # from that function definition's containing ((function|class) definition|module)
             if def_node.type == "function_definition":
@@ -105,7 +107,7 @@ class PythonExtractor(Extractor):
                     return
                 def_node = def_node.parent
                 depth_from_def += 1
-            param_vec["depth_from_def"] = depth_from_def
+        param_vec["depth_from_def"] = depth_from_def
 
         def add_relevant_node(node: Node, context: list):
             if node.is_named and node.type in most_node_types:
@@ -250,8 +252,8 @@ class PythonExtractor(Extractor):
                     param_vec_used = par_vec_onehot
                 param_vec = copy(param_vec_used)
                 param_vec["type"] = node_dict[node_type]
-                param_vec["location"] = f"{node.start_point[0]};{node.start_point[1]}-" \
-                                        f"{node.end_point[0]};{node.end_point[1]}"
+                param_vec["location"] = f"{node.start_point[0] + 1};{node.start_point[1]}-" \
+                                        f"{node.end_point[0] + 1};{node.end_point[1]}"
                 if self.args.alt:
                     param_vec["length"] = node.end_point[0] - node.start_point[0] + 1
                     param_vec["num_children"] = node.named_child_count
@@ -328,9 +330,15 @@ class PythonExtractor(Extractor):
 
                 param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
                                         f"{block_node.end_point[0]};{block_node.end_point[1]}"
+                # Add +2 instead because the block lacks the parent's line?
+                param_vec["length"] = block_node.end_point[0] - block_node.start_point[0] + 1
+                # Rudimentary approach for num_siblings
+                param_vec["num_siblings"] = block_node.parent.parent.named_child_count
+                param_vec["num_children"] = block_node.named_child_count
+                param_vec["parent"] = node_dict[block_node.parent.type]
                 if self.args.debug:
                     param_vec = {"line": block_node.start_point[0] + 1, **param_vec}
-                self.build_context_of_block_node(block_node, param_vec)
+                self.build_context_of_block_node(block_node, param_vec, funcdef_node)
                 # Check for logging, slimmed version of check_block() and check_expression():
                 for child in block_node.children:
                     child: Node

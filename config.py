@@ -110,6 +110,11 @@ par_vec_zhenhao = {
     # "line": -1,
     "type": "",
     "location": "",
+    "length": 0,
+    "num_siblings": 0,
+    "num_children": 0,
+    "depth_from_def": 0,
+    "parent": "",
     "context": "",
     "contains_logging": 0
 }
