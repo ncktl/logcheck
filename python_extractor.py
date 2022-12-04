@@ -90,6 +90,8 @@ class PythonExtractor(Extractor):
         # There will be blocks that aren't inside a function/method
         # This will limit the context to a containing class in case of func def >..> class def >..> block
         else:
+            # Measure the depth of nesting from the node's containing func/class def or module
+            depth_from_def = 0
             while def_node.type not in ["module", "class_definition", "function_definition"]:
                 if def_node.type == "ERROR":
                     param_vec["type"] = node_dict[def_node.type]
@@ -97,6 +99,8 @@ class PythonExtractor(Extractor):
                     param_vec["context"] = node_dict[def_node.type]
                     return
                 def_node = def_node.parent
+                depth_from_def += 1
+            param_vec["depth_from_def"] = depth_from_def
 
         def add_relevant_node(node: Node, context: list):
             if node.is_named and node.type in most_node_types:
