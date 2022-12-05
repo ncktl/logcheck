@@ -271,15 +271,15 @@ class PythonExtractor(Extractor):
                               "else_clause"]
                 if node_type in body_block:
                     self.check_block(node.child_by_field_name("body"), param_vec)
-                elif node_type in ["if_statement", "elif_clause"]:
+                elif node_type in ["if_statement", "elif_clause", "case_clause"]:
                     self.check_block(node.child_by_field_name("consequence"), param_vec)
-                elif node_type in ["except_clause", "finally_clause"]:
+                elif node_type in ["except_clause", "finally_clause", "except_group_clause"]:
                     found_block = False
                     for child in node.children:
                         if child.type == "block":
                             if found_block:
                                 self.debug_helper(node)
-                                raise RuntimeError("Multiple blocks in except or finally clause")
+                                raise RuntimeError(f"Multiple blocks in {node_type}")
                             self.check_block(child, param_vec)
                             found_block = True
 
@@ -324,24 +324,16 @@ class PythonExtractor(Extractor):
                     param_vec["type"] = node_dict[block_node.parent.type]
                 except KeyError as e:
                     param_vec["type"] = node_dict["ERROR"]
-                    self.logger.error(f"Encountered bad code in file {self.file} in line "
-                                      f"{block_node.parent.start_point[0] + 1}")
-
+                    self.logger.error(f"Node type <{str(block_node.parent.type)}> key error in file {self.file} "
+                                      f"in line {block_node.parent.start_point[0] + 1}")
                 param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
                                         f"{block_node.end_point[0]};{block_node.end_point[1]}"
                 # Add +2 instead because the block lacks the parent's line?
                 param_vec["length"] = block_node.end_point[0] - block_node.start_point[0] + 1
-                # Rudimentary approach for num_siblings
-                param_vec["num_siblings"] = block_node.parent.parent.named_child_count
                 param_vec["num_children"] = block_node.named_child_count
-                try:
-                    param_vec["parent"] = node_dict[block_node.parent.type]
-                except KeyError as e:
-                    param_vec["parent"] = node_dict["ERROR"]
-                    self.logger.error(f"Encountered bad code in file {self.file} in line "
-                                      f"{block_node.parent.start_point[0] + 1}")
-                if self.args.debug:
-                    param_vec = {"line": block_node.start_point[0] + 1, **param_vec}
+                # Check parent
+                self.check_parent(block_node, param_vec)
+
                 self.build_context_of_block_node(block_node, param_vec)
                 # Check for logging, slimmed version of check_block() and check_expression():
                 for child in block_node.children:

@@ -4,17 +4,23 @@ from string import ascii_letters
 # keyword = re.compile("log(g(ing|er))?(\.|$)")
 keyword = re.compile("(\w|\.)+\.(debug|info|warning|error|critical|log|exception)$")
 
-compound_statements = [
+compound_statements_part_one = [
     "class_definition",
     # "decorated_definition", # Not needed: It's just the @decorator_name line
     "function_definition",
     "if_statement",
     "for_statement",
-    "match_statement", # Python 3.10 feature
+]
+compound_statements_part_two = [
     "while_statement",
     "try_statement",
-    "with_statement"
+    "with_statement",
 ]
+# Match doesn't have a block
+# Awkward because need to preserve order for now
+compound_statements = compound_statements_part_one +\
+                        ["match_statement"] +\
+                        compound_statements_part_two
 
 extra_clauses = ["elif_clause", "else_clause", "except_clause", "except_group_clause", "finally_clause", "case_clause"]
 # Todo: Test with if_else, try_else,... instead of else_clause and so on
@@ -46,7 +52,7 @@ expressions = [
     "yield"
 ]
 
-interesting_node_types = compound_statements + extra_clauses
+interesting_node_types = compound_statements_part_one + compound_statements_part_two  + extra_clauses
 # Should module be part of the interesting node types?
 #  How to handle a module's parent parameter?
 # interesting_node_types = compound_statements + extra_clauses + ["module"]
@@ -80,7 +86,7 @@ def vectorize(x):
     return list(zip(x, [0] * len(x)))
 
 
-interesting_nodes = prefix("")(interesting_node_types)
+# interesting_nodes = prefix("")(interesting_node_types)
 contains_only_statements = prefix("contains_")(contains_types)
 contains = prefix("contains_")(contains_types + expressions + ["logging"])
 
@@ -145,6 +151,7 @@ if __name__ == "__main__":
     print(contains)
     print(node_dict)
     print(len(most_node_types))
+    print(compound_statements)
 
 """
 {'module': 'a',
