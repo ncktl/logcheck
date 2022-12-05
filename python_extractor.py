@@ -136,8 +136,7 @@ class PythonExtractor(Extractor):
         Optionally also build the node's context."""
 
         # Build the context of the block like in Zhenhao et al.
-        if self.args.alt:
-            self.build_context_of_block_node(block_node, param_vec)
+        self.build_context_of_block_node(block_node, param_vec)
 
         # Check the contents of the block, find logging
         for child in block_node.children:
@@ -219,7 +218,8 @@ class PythonExtractor(Extractor):
             parent = node.parent
             param_vec["parent"] = node_dict[parent.type]
         else:
-            raise RuntimeError("Node type not handled")
+            err_str = f"Node type {node.type} not handled"
+            raise RuntimeError(err_str)
         assert parent is not None
         # param_vec["parent"] = node_dict[parent.type]
         param_vec["num_siblings"] = parent.named_child_count
@@ -311,6 +311,7 @@ class PythonExtractor(Extractor):
     def fill_param_vecs_zhenhao(self, training: bool = True) -> list:
         """Extracts features like Zhenhao et al., i.e. looks at all blocks that are inside functions."""
         param_vectors = []
+        visited_nodes = set()
         function_definiton_query = self.lang.query("(function_definition) @funcdef")
         function_definiton_nodes = function_definiton_query.captures(self.tree.root_node)
         block_query = self.lang.query("(block) @block")
@@ -319,54 +320,42 @@ class PythonExtractor(Extractor):
             block_nodes = block_query.captures(funcdef_node)
             for block_node, tag in block_nodes:
                 block_node: Node
-                param_vec = copy(par_vec_zhenhao)
+                # Uniqueness check using start and end byte tuple
+                check_value = (block_node.start_byte, block_node.end_byte)
+                if check_value in visited_nodes:
+                    continue
+                else:
+                    visited_nodes.add(check_value)
+                param_vec = copy(par_vec_onehot_expanded)
                 try:
                     param_vec["type"] = node_dict[block_node.parent.type]
                 except KeyError as e:
-                    param_vec["type"] = node_dict["ERROR"]
                     self.logger.error(f"Node type <{str(block_node.parent.type)}> key error in file {self.file} "
                                       f"in line {block_node.parent.start_point[0] + 1}")
+                    continue
                 param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
                                         f"{block_node.end_point[0]};{block_node.end_point[1]}"
                 # Add +2 instead because the block lacks the parent's line?
                 param_vec["length"] = block_node.end_point[0] - block_node.start_point[0] + 1
                 param_vec["num_children"] = block_node.named_child_count
                 # Check parent
-                self.check_parent(block_node, param_vec)
-
-                self.build_context_of_block_node(block_node, param_vec)
-                # Check for logging, slimmed version of check_block() and check_expression():
-                for child in block_node.children:
-                    child: Node
-                    # Check expression statements for logging(special case of call)
-                    if child.type == "expression_statement":
-
-                        def check_micro_expression(exp_child, param_vec):
-                            if exp_child.type == "call":
-                                # Check call nodes for logging
-                                func_call = exp_child.child_by_field_name("function")
-                                # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
-                                if keyword.match(func_call.text.decode("UTF-8").lower()):
-                                    if self.args.debug and extra_debugging:
-                                        print("Zhenhao: ", func_call.text.decode("UTF-8"))
-                                    param_vec["contains_logging"] = 1
-
-                        if child.child_count != 1:
-                            for exp_child in child.children:
-                                check_micro_expression(exp_child, param_vec)
-                        else:
-                            check_micro_expression(child.children[0], param_vec)
+                self.check_parent(block_node.parent, param_vec)
+                # Check node
+                self.check_block(block_node, param_vec)
 
                 if training:
                     param_vec_list = list(param_vec.values())
-                    # # Check that no parameters have been accidentally added
-                    # if len(param_vec_list) != len(par_vec_zhenhao):
-                    #     self.debug_helper(block_node)
-                    #     print(par_vec_zhenhao.keys())
-                    #     print(param_vec.keys())
-                    #     raise RuntimeError("Parameter vector length mismatch")
+                    # Check that no parameters have been accidentally added
+                    if len(param_vec_list) != len(par_vec_onehot_expanded):
+                        self.debug_helper(block_node)
+                        print(par_vec_onehot_expanded.keys())
+                        print(param_vec.keys())
+                        raise RuntimeError("Parameter vector length mismatch")
                     param_vectors.append(param_vec_list)
                 else:
-                    # Prediction
-                    pass
+                    # For prediction, the extracted parameters will be returned as a list of dicts for subsequent
+                    # pandas.Dataframe creation
+                    # Only recommend for a node that doesn't have logging already
+                    if not param_vec["contains_logging"]:
+                        param_vectors.append(param_vec)
         return param_vectors

@@ -22,12 +22,12 @@ for min in $minimums; do
 	# output_path="features/174repos_min"$min"_max1000000_counts_"
 #	output_path="features/174repos_min"$min"_max1000000_node_len_"
 #	output_path="features/174_min"$min"_num_children_depth_from_def_"
-	output_path="features/174_min"$min"_alt_siblings_"
+	output_path="features/174_min"$min"_"
 
 	# echo $filtering_path
 	# echo $output_path
-#	echo expanded
-#	python3 logcheck.py -e -a -o $output_path"expanded.csv" $filtering_path
-	 echo zhenhao
-	 python3 logcheck.py -e -z -o $output_path"zhenhao.csv" $filtering_path
+	echo expanded
+	python3 logcheck.py -e -a -o $output_path"expanded.csv" $filtering_path
+	echo zhenhao
+	python3 logcheck.py -e -z -o $output_path"zhenhao.csv" $filtering_path
 done

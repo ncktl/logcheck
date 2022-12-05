@@ -74,12 +74,13 @@ def extract(files, settings, train_mode: bool = True):
     param_vectors = [par_vec for par_vec_list in param_vectors for par_vec in par_vec_list]
     pool.close()
 
-    if settings.zhenhao:
-        param_vec_used = par_vec_zhenhao # Only Shenzen
-    elif settings.alt:
-        param_vec_used = par_vec_onehot_expanded # New integer representation with context
-    else:
-        param_vec_used = par_vec_onehot # Old without context
+    # if settings.zhenhao:
+    #     param_vec_used = par_vec_zhenhao # Only Shenzen
+    # elif settings.alt:
+    #     param_vec_used = par_vec_onehot_expanded # New integer representation with context
+    # else:
+    #     param_vec_used = par_vec_onehot # Old without context
+    param_vec_used = par_vec_onehot_expanded  # New integer representation with context
     # Write output
     header = (["line"] if settings.debug else []) + list(param_vec_used.keys())
     out.write(",".join(header) + "\n")
