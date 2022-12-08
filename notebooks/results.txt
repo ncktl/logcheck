@@ -1,0 +1,112 @@
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, Bal_Acc, Precision, Recall, F1_Score
+Two_CuDNNLSTM+dense_relu, 80, 30, 24, True, 0.2, True, 56, 56, 11, 19
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, Bal_Acc, Precision, Recall, F1_Score
+D_trainable_no_callback, 80, 30, 24, True, 0.2, True, 53, 57, 05, 10
+Name, max_length, vocab_size, batch_size, dropout, Bal_Acc, Precision, Recall, F1_Score
+100repos_hybrid, 80, 34, 24, 0.2, 62, 92, 24, 39
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, callback_monitor, Bal_Acc, Precision, Recall, F1_Score
+D_174_5, 80, 32, 24, False, 0.2, True, 53, 59, 07, 12
+The following are all combination_zhenhao.csv: {
+D_com_5, 80, 27, 24, False, 0.2, True, 59, 38, 19, 25
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, settings_hash, execution_time, Bal_Acc, Precision, Recall, F1_Score
+2 Epochs:
+Z_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 2, {0: 1.0, 1: 1.0}, 7925184528946712576, -163.8488585948944, 55, 61, 09, 16
+Z_combination_zhenhao_cploaded, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 2, {0: 1.0, 1: 1.0}, 7527826430001605632, -163.64455652236938, 51, 52, 02, 04
+Z_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 2, {0: 1.0, 1: 4.0}, 8691278573801042944, -162.78635382652283, 61, 37, 24, 29
+Z_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], accuracy, 128, 2, {0: 1.0, 1: 1.0}, 7283742459699365888, -163.0858223438263, 56, 56, 12, 20
+D_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 2, {0: 1.0, 1: 1.0}, 2179117289233773056, 220.72916841506958, 54, 59, 09, 15
+D_combination_zhenhao, 80, 28, 24, False, 0.2, True, 0.0, [cp], loss, 128, 2, {0: 1.0, 1: 1.0}, 1460154510129645824, 221.73205089569092, 56, 54, 12, 19
+60 Epochs:
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, settings_hash, execution_time, Bal_Acc, Precision, Recall, F1_Score
+Z_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 40, {0: 1.0, 1: 1.0}, 2282323452090951168, 3070.681629419327, 57, 46, 14, 21
+Z_combination_zhenhao_cploaded, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 40, {0: 1.0, 1: 1.0}, 1288093569425398272, 3081.9942996501923, 55, 58, 11, 18
+Z_combination_zhenhao_cploaded, 80, 27, 24, False, 0.2, True, 0.0, [cp], accuracy, 128, 40, {0: 1.0, 1: 1.0}, 6377206073885921280, 3087.16228055954, 58, 46, 16, 24
+Z_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 40, {0: 1.0, 1: 4.0}, 5462641691501253632, 3010.74241399765, 67, 31, 36, 33
+Z_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], accuracy, 128, 40, {0: 1.0, 1: 1.0}, 3157527249495498240, 3091.6480367183685, 58, 47, 16, 24
+Y_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 40, {0: 1.0, 1: 1.0}, 6766848563455335424, 3150.9481389522552, 57, 48, 15, 23
+Z_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 40, {0: 1.0, 1: 1.0}, 2282323452090951168, 3095.4277353286743, 57, 44, 14, 21
+Z_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], accuracy, 128, 40, {0: 1.0, 1: 1.0}, 3157527249495498240, 3095.636961221695, 57, 49, 14, 22
+Z_combination_zhenhao_cploaded, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 40, {0: 1.0, 1: 1.0}, 1288093569425398272, 3069.995710849762, 55, 59, 11, 18
+Z_combination_zhenhao_cploaded, 80, 27, 24, False, 0.2, True, 0.0, [cp], accuracy, 128, 40, {0: 1.0, 1: 1.0}, 6377206073885921280, 3094.4705080986023, 57, 44, 15, 23
+A_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 40, {0: 1.0, 1: 1.0}, 4002747629127801344, 4941.517577886581, 58, 41, 17, 24
+B_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 128, 40, {0: 1.0, 1: 1.0}, 4503050114556057088, 5007.395311832428, 58, 44, 17, 24
+Z_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 27, 40, {0: 1.0, 1: 1.0}, 8162141978110237696, 3014.0856614112854, 56, 57, 12, 20
+Z_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 13, 40, {0: 1.0, 1: 1.0}, 8772411870132067328, 3009.242627620697, 56, 57, 12, 19
+Z_combination_zhenhao, 80, 27, 24, False, 0.2, True, 0.0, [cp], loss, 54, 40, {0: 1.0, 1: 1.0}, 2179319842198749184, 2984.442262649536, 56, 57, 11, 19
+Z_combination_zhenhao, 80, 27, 24, True, 0.2, True, 0.0, [cp], loss, 128, 40, {0: 1.0, 1: 1.0}, 7049340775240297472, 3190.1589272022247, 59, 39, 18, 25
+Z_combination_zhenhao, 80, 28, 24, False, 0.2, True, 0.0, [cp], loss, 128, 40, {0: 1.0, 1: 1.0}, 6103484082013420544, 3103.626272916794, 58, 41, 16, 23
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, settings_hash, execution_time, Bal_Acc, Precision, Recall, F1_Score
+Z_combination_zhenhao, 80, 28, 24, True, 0.2, True, 0.0, [cp], accuracy, 128, 60, {0: 1.0, 1: 4.0}, 1389325897236883712, 4726.620486736298, 67, 29, 36, 32
+Z_combination_zhenhao_cploaded, 80, 28, 24, True, 0.2, True, 0.0, [cp], accuracy, 128, 60, {0: 1.0, 1: 4.0}, 1389325897236883712, 7.237419128417969, 67, 29, 38, 33
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Bal_Acc, Precision, Recall, F1_Score
+Z_combination_zhenhao, 80, 28, 24, True, 0.2, True, 0.0, [cp], accuracy, 128, 2, {0: 1.0, 1: 4.0}, [accuracy], 4514187549916839424, 171, 62, 37, 24, 29
+Z_combination_zhenhao_cploaded, 80, 28, 24, True, 0.2, True, 0.0, [cp], accuracy, 128, 2, {0: 1.0, 1: 4.0}, [accuracy], 4514187549916839424, 171, 62, 34, 26, 30
+Z_combination_zhenhao, 80, 28, 24, True, 0.2, True, 0.0, [cp], accuracy, 128, 2, {0: 1.0, 1: 4.0}, [accuracy], 4514187549916839424, 174, 62, 38, 25, 30
+Z_combination_zhenhao_cploaded, 80, 28, 24, True, 0.2, True, 0.0, [cp], accuracy, 128, 2, {0: 1.0, 1: 4.0}, [accuracy], 4514187549916839424, 174, 62, 38, 25, 30
+Z_combination_zhenhao, 80, 28, 24, True, 0.2, True, 0.0, [cp], val_loss, 128, 2, {0: 1.0, 1: 4.0}, [accuracy], 1939199975121748992, 174, 61, 39, 22, 28
+Z_combination_zhenhao, 80, 28, 24, True, 0.2, True, 0.0, [cp], f1_score, 128, 2, {0: 1.0, 1: 4.0}, [unused], 834047209092459008, 172, 60, 43, 21, 28
+Z_combination_zhenhao_cploaded, 80, 28, 24, True, 0.2, True, 0.0, [cp], f1_score, 128, 2, {0: 1.0, 1: 4.0}, [unused], 834047209092459008, 172, 60, 43, 21, 28
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1
+Z_combination_zhenhao, 80, 28, 24, True, 0.2, True, 0.0, [cp], f1_score, 128, 2, {0: 1.0, 1: 4.0}, [unused], 834047209092459008, 181, 61, 37, 24, 293, 61, 37, 24, 293
+Z_combination_zhenhao, 80, 28, 24, True, 0.2, True, 0.0, [cp], f1_score, 128, 60, {0: 1.0, 1: 3.0}, [unused], 1994046864810912512, 4827, 65, 30, 31, 309, 65, 29, 32, 305
+Z_combination_zhenhao, 80, 28, 24, True, 0.2, True, 0.0, [cp], f1_score, 128, 60, {0: 1.0, 1: 4.0}, [unused], 355928837267421760, 4830, 67, 30, 36, 329, 66, 30, 34, 316
+Z_combination_zhenhao, 80, 28, 24, True, 0.2, True, 0.0, [cp], f1_score, 128, 60, {0: 1.0, 1: 5.0}, [unused], 8788534615676096512, 4840, 69, 28, 40, 332, 68, 27, 40, 320
+Z_combination_zhenhao, 80, 28, 24, True, 0.2, True, 0.0, [cp], f1_score, 128, 60, {0: 1.0, 1: 6.0}, [unused], 5655936602271318016, 4843, 69, 27, 41, 324, 69, 26, 41, 317
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1
+Z_combination_zhenhao, 80, 28, 64, True, 0.2, True, 0.0, [cp], f1_score, 128, 60, {0: 1.0, 1: 5.0}, [unused], 2152629399923917568, 2177, 68, 26, 39, 312, 67, 28, 37, 317
+Z_combination_zhenhao, 80, 28, 24, True, 0.2, True, 0.0, [cp], f1_score, 128, 60, {0: 1.0, 1: 5.0}, [unused], 5951039438205711360, 4796, 68, 28, 39, 324, 66, 28, 36, 314
+Z_combination_zhenhao, 80, 28, 64, True, 0.2, True, 0.0, [cp], val_f1_score, 128, 20, {0: 1.0, 1: 5.0}, [unused], 4834870957733635072, 848, 68, 28, 40, 330, 69, 30, 40, 343
+Name, max_length, vocab_size, batch_size, trainable, dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1
+Z_combination_zhenhao, 80, 28, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 2, {0: 1.0, 1: 5.0}, [f1_score], 6071696951132218368, 177, 63, 34, 27, 300, 63, 34, 27, 300
+Z_combination_zhenhao_crossvalidated, 80, 28, 24, True, 0.2, 0.0, [cp], val_f1_score, 128, 100, {0: 1.0, 1: 5.0}, [f1_score], 8880367679111319552, 26125, 67, 27, 38, 314, 67, 32, 37, 344
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1
+Z_174repos_min5_max1000000_zhenhao, 80, 33, 64, True, 0.2, True, 0.0, [cp], val_f1_score, 128, 20, {0: 1.0, 1: 5.0}, [unused], 6489203261241788416, 9286, 61, 32, 24, 271, 61, 31, 24, 273
+Name, max_length, vocab_size, batch_size, trainable, dropout, sigmoid_out, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1
+Z_174repos_min50_max1000000_zhenhao, 80, 33, 64, True, 0.2, True, 0.0, [cp], val_f1_score, 128, 20, {0: 1.0, 1: 5.0}, [unused], 4436372641043260416, 9281, 62, 30, 25, 272, 61, 32, 24, 274
+Z_174repos_min50_max1000000_zhenhao, 80, 33, 32, True, 0.2, True, 0.0, [cp], val_f1_score, 128, 20, {0: 1.0, 1: 5.0}, [unused], 5747043085228493824, 18056, 59, 29, 19, 225, 60, 30, 21, 247
+Name, max_length, vocab_size, batch_size, trainable, dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1
+Z_174repos_min50_max1000000_zhenhao_cv3, 80, 33, 32, True, 0.2, 0.0, [es, cp], val_f1_score, 128, 20, {0: 1.0, 1: 5.0}, [f1_score], 1646147650589831168, 38149, 61, 29, 23, 253, 61, 29, 23, 253
+Timestamp, Name, max_length, vocab_size, batch_size, trainable, dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1
+174_min50_hybrid, Thu Nov 24 23:41:07 2022, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_not_supported, [f1_score], 8445492298841492480, 9704, 61, 93, 22, 358, 61, 90, 23, 362
+Name, Timestamp, sampling_strategy, max_length, vocab_size, batch_size, trainable, dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1
+174_min50_hybrid, Fri Nov 25 03:04:03 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 1, class_weight_not_supported, [f1_score], 5550613344230505472, 582, 62, 78, 25, 378, 62, 78, 25, 378
+174_min50_hybrid, Fri Nov 25 05:51:33 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_not_supported, [f1_score], 1055644524637670912, 9684, 64, 71, 29, 413, 65, 68, 30, 421
+174_min50_hybrid_cv2, Fri Nov 25 08:53:46 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 1, class_weight_not_supported, [f1_score], 7100077779753124864, 1234, 62, 81, 24, 370, 62, 81, 24, 370
+Name, Timestamp, sampling_strategy, max_length, vocab_size, batch_size, trainable, dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1, Best_Fold, Best_Fold_F1
+174_min50_hybrid_cv2, Fri Nov 25 09:38:06 2022, 0.05, 80, 35, 128, True, 0.2, 0.0, [cp], val_f1_score, 128, 1, class_weight_not_supported, [f1_score], 7100077779753124864, 664, 62, 76, 25, 376, 62, 76, 25, 376, 0, 377
+Name, Timestamp, sampling_strategy, max_length, vocab_size, batch_size, trainable, dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1, Best_Fold, Best_Fold_F1
+174_min50_hybrid_cv3, Fri Nov 25 17:53:21 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], 4609183334028858880, 29462, 64, 71, 28, 394, 65, 70, 31, 426, 2, 436
+Name, Timestamp, sampling_strategy, max_length, vocab_size, batch_size, trainable, dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1, Best_Fold, Best_Fold_F1
+174_min50_hybrid_cv2, Fri Nov 25 20:52:17 2022, 0.05, 80, 35, 128, True, 0.2, 0.0, [cp], val_f1_score, 128, 1, class_weight_not_supported, [f1_score], 6044455036533235712, 601, 62, 79, 24, 370, 62, 79, 24, 370, 1, 385
+Name, Timestamp, sampling_strategy, max_length, vocab_size, batch_size, trainable, dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1, Best_Fold, Best_Fold_F1
+174_min50_hybrid_cv3, Sat Nov 26 05:13:44 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], 7108309573633434624, 26617, 64, 72, 27, 394, 65, 69, 31, 424, 1, 437
+Name, Timestamp, sampling_strategy, max_length, vocab_size, batch_size, trainable, dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight, cmpltn_metrics, settings_hash, execution_time, Final_Bal_Acc, Final_Prec, Final_Recall, Final_F1, Best_Bal_Acc, Best_Prec, Best_Recall, Best_F1, Best_Fold, Best_Fold_F1, Best_Fold_Holdout_Bal_Acc, Best_Fold_Holdout_Prec, Best_Fold_Holdout_Recall, Best_Fold_Holdout_F1
+174_min50_hybrid_new_keyword_cv2, Sat Nov 26 07:12:07 2022, 0.05, 80, 35, 256, True, 0.2, 0.0, [cp], val_f1_score, 128, 1, class_weight_unsupported, [f1_score], 4874666400996539392, 343, 64, 70, 28, 401, 64, 70, 28, 401, 1, 404, 64, 66, 29, 404
+174_min50_hybrid_new_keyword_cv3, Sat Nov 26 14:41:31 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], 5910903667767433216, 26610, 64, 72, 28, 401, 66, 67, 33, 442, 2, 450, 67, 59, 34, 432
+174_min50_hybrid_new_keyword_cv3, Sun Nov 27 00:56:20 2022, 0.1, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], 5341975461842813952, 28032, 68, 44, 36, 398, 69, 50, 38, 432, 2, 442, 68, 48, 37, 417
+DEBUG_174_min50_hybrid_new_keyword_cv1, Sun Nov 27 15:20:32 2022, 0.07, 80, 35, 256, True, 0.2, 0.0, [cp], val_f1_score, 128, 1, class_weight_unsupported, [f1_score], 3906799568492134400, 180, 64, 75, 27, 399, 64, 75, 27, 399, 0, 399, 63, 71, 27, 390
+174_min50_hybrid_new_keyword_cv1, Sun Nov 27 17:59:50 2022, 0.07, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], 2173052719678902528, 9056, 68, 51, 36, 421, 67, 58, 34, 428, 0, 428, 67, 58, 34, 427
+174_min50_hybrid_new_keyword_cv3, Mon Nov 28 04:55:02 2022, 0.05, 80, 35, 64, False, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], 6535542305800181760, 26139, 65, 68, 30, 414, 65, 69, 30, 417, 1, 419, 65, 64, 31, 415
+174_min50_onlyOthers_new_keyword_cv3, Mon Nov 28 08:25:59 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], 382727995597231224, 7642, 61, 89, 22, 347, 61, 87, 22, 350, 0, 353, 61, 85, 21, 343
+DEBUG_174_min50_hybrid_new_keyword_cv1, Tue Nov 29 00:08:03 2022, 0.05, 80, 35, 256, True, 0.2, 0.0, [cp], val_f1_score, 128, 1, class_weight_unsupported, [f1_score], 2561039842902636279, 175, 64, 68, 29, 401, 64, 68, 29, 401, 0, 401, 64, 65, 28, 395
+DEBUG_174_min50_hybrid_new_keyword_cv1, Tue Nov 29 00:14:47 2022, 0.05, 80, 35, 256, True, 0.2, 0.0, [cp], val_f1_score, 128, 1, class_weight_unsupported, [f1_score], run1, 177, 63, 76, 26, 389, 63, 76, 26, 389, 0, 389, 63, 75, 26, 385
+DEBUG_174_min50_hybrid_new_keyword_cv1, Tue Nov 29 00:19:31 2022, 0.05, 80, 35, 256, True, 0.2, 0.0, [cp], val_f1_score, 128, 1, class_weight_unsupported, [f1_score], run2, 174, 62, 89, 24, 372, 62, 89, 24, 372, 0, 372, 61, 87, 23, 365
+174_min50_hybrid_counts_cv3, Tue Nov 29 10:07:34 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run1, 26884, 65, 67, 30, 413, 66, 68, 32, 439, 2, 453, 66, 69, 32, 435
+DEBUG_174_min50_hybrid_counts_node_len_cv3, Tue Nov 29 16:33:40 2022, 0.05, 80, 35, 256, True, 0.2, 0.0, [cp], val_f1_score, 128, 1, class_weight_unsupported, [f1_score], 1381618977421994510, 176, 68, 73, 37, 493, 68, 73, 37, 493, 0, 493, 68, 72, 37, 486
+174_min50_hybrid_counts_node_len_cv3, Wed Nov 30 00:06:21 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run2, 26497, 72, 63, 44, 518, 72, 67, 45, 537, 2, 544, 73, 62, 46, 527
+174_min50_hybrid_node_len_cv3, Wed Nov 30 08:00:41 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run3, 26618, 71, 64, 44, 518, 72, 68, 44, 533, 2, 544, 71, 69, 42, 526
+174_min50_parallelized_expanded.csv_cv3, Thu Dec  1 09:57:22 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run1, 26533, 71, 67, 43, 523, 73, 65, 46, 538, 2, 543, 73, 61, 47, 531
+174_min50_parallelized_expanded.csv_cv3, Fri Dec  2 00:05:39 2022, 0.05, 80, 35, 64, True, 0.0, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run2, 26496, 72, 63, 45, 524, 72, 67, 45, 537, 2, 541, 71, 68, 42, 523
+174_min50_parallelized_expanded.csv_cv3, Fri Dec  2 07:28:23 2022, 0.05, 80, 35, 64, True, 0.1, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run3, 26564, 72, 63, 45, 523, 72, 69, 44, 538, 2, 549, 71, 67, 43, 525
+174_min50_parallelized_expanded.csv_cv3, Sat Dec  3 04:47:43 2022, 0.05, 80, 35, 24, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run4, 59240, 70, 68, 40, 502, 70, 68, 41, 510, 0, 512, 71, 66, 42, 512
+300_min50_parallelized_expanded.csv_cv3, Sun Dec  4 00:35:04 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run1, 29982, 72, 63, 44, 516, 73, 65, 46, 537, 1, 547, 72, 64, 44, 520
+174_min50_alt_depth_expanded.csv_cv3, Sun Dec  4 13:34:32 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run1, 26915, 74, 69, 49, 571, 76, 68, 52, 587, 2, 596, 76, 64, 52, 575
+
+174_min50_alt_siblings_expanded.csv_drop_sibling_index_drop_contains_cv1, Mon Dec  5 03:33:54 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run2, 8882, 65, 49, 30, 371, 67, 47, 35, 399, 0, 399, 68, 47, 36, 408
+174_min50_alt_siblings_zhenhao.csv_cv1, Mon Dec  5 06:11:55 2022, 0.05, 80, 33, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run1, 8547, 70, 52, 40, 450, 70, 51, 42, 459, 0, 459, 70, 49, 40, 443
+
+174_min50_zhenhao_drop_sibling_index_cv1, Mon Dec  5 09:23:31 2022, 0.05, 80, 33, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run1, 8137, 83, 79, 67, 725, 83, 82, 66, 729, 0, 729, 83, 81, 66, 730
+
+174_min50_expanded_drop_sibling_index_cv3, Mon Dec  5 18:16:19 2022, 0.05, 80, 35, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run1, 26691, 74, 67, 49, 565, 74, 71, 49, 584, 2, 591, 74, 73, 48, 583
+174_min50_zhenhao_drop_sibling_index_cv3, Tue Dec  6 05:39:38 2022, 0.05, 80, 33, 64, True, 0.2, 0.0, [cp], val_f1_score, 128, 20, class_weight_unsupported, [f1_score], run2, 24254, 84, 78, 68, 728, 84, 83, 68, 743, 1, 752, 82, 85, 65, 735
