@@ -9,6 +9,7 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+extra_debugging = False
 
 
 class PythonExtractor(Extractor):
@@ -22,17 +23,20 @@ class PythonExtractor(Extractor):
         if exp_child.type == "call":
             # Check call nodes for logging. Only if it's not a logging statement do we count it as a call.
             func_call = exp_child.child_by_field_name("function")
-            if keyword.search(func_call.text.decode("UTF-8").lower()):
+            if keyword.match(func_call.text.decode("UTF-8").lower()):
+                if self.settings.debug and extra_debugging:
+                    print("check_expression: ", func_call.text.decode("UTF-8"))
+                    # "contains_logging" remains 0/1 as it is the target
                 param_vec["contains_logging"] = 1
             else:
-                param_vec["contains_call"] = 1
+                param_vec["contains_call"] += 1
         # Assignment
         elif exp_child.type == "assignment" or exp_child.type == "augmented_assignment":
-            param_vec["contains_assignment"] = 1
+            param_vec["contains_assignment"] += 1
             # Check assignment nodes for calls
             assign_rhs = exp_child.child_by_field_name("right")
             if assign_rhs and assign_rhs.type == "call":
-                param_vec["contains_call"] = 1
+                param_vec["contains_call"] += 1
                 # Check call nodes for logging?
                 # No, because a logging method call on the right-hand side of an assigment
                 # is usually not a logging call but rather an instantiation of a logging class
@@ -41,16 +45,16 @@ class PythonExtractor(Extractor):
                 #     param_vec["contains_logging"] = 1
         # Await
         elif exp_child.type == "await":
-            param_vec["contains_await"] = 1
+            param_vec["contains_await"] += 1
             assert exp_child.child_count == 2
             assert exp_child.children[0].type == "await"
             # Check await node for call
             if exp_child.children[1].type == "call":
-                param_vec["contains_call"] = 1
+                param_vec["contains_call"] += 1
                 # Eventual check for logging?
         # Yield
         elif exp_child.type == "yield":
-            param_vec["contains_yield"] = 1
+            param_vec["contains_yield"] += 1
 
     def build_context_of_block_node(self, block_node: Node, param_vec: dict):
         """Build the context of the block like in Zhenhao et al."""
@@ -58,21 +62,31 @@ class PythonExtractor(Extractor):
         # Find the containing (function) definition
         def_node = block_node.parent
         # For doing it exactly like Zhenhao et al.:
-        try:
-            if self.settings.zhenhao:
-                while def_node.type != "function_definition":
-                    def_node = def_node.parent
-            # For our approach of looking at interesting nodes:
-            # There will be blocks that aren't inside a function/method
-            # This will limit the context to a containing class in case of func def >..> class def >..> block
-            else:
-                while def_node.type not in ["module", "class_definition", "function_definition"]:
-                    def_node = def_node.parent
-        except Exception as e:
-            pass
+        if self.settings.zhenhao:
+            while def_node.type != "function_definition":
+                if def_node.type == "ERROR":
+                    param_vec["type"] = node_dict[def_node.type]
+                    param_vec["context"] = node_dict[def_node.type]
+                    return
+                def_node = def_node.parent
+        # For our approach of looking at interesting nodes:
+        # There will be blocks that aren't inside a function/method
+        # This will limit the context to a containing class in case of func def >..> class def >..> block
+        else:
+            while def_node.type not in ["module", "class_definition", "function_definition"]:
+                if def_node.type == "ERROR":
+                    param_vec["type"] = node_dict[def_node.type]
+                    param_vec["parent"] = node_dict[def_node.type]
+                    param_vec["context"] = node_dict[def_node.type]
+                    return
+                def_node = def_node.parent
+
         def add_relevant_node(node: Node, context: list):
             if node.is_named and node.type in most_node_types:
-                if node.type == "call" and keyword.search(node.text.decode("UTF-8").lower()):
+                if node.type == "call" \
+                        and keyword.match(node.child_by_field_name("function").text.decode("UTF-8").lower()):
+                    if self.settings.debug and extra_debugging:
+                        print("add_relevant_node: ", node.child_by_field_name("function").text.decode("UTF-8"))
                     return
                 else:
                     context.append(node_dict[node.type])
@@ -110,6 +124,7 @@ class PythonExtractor(Extractor):
                 #           Has tuple form 'identifier.call(params), "text" * 10' for some reason
                 # if len(child.children) != 1:
                 if child.child_count != 1:
+                    # print(self.file)
                     # print("Expression statement with more than one child!")
                     # print(child)
                     for exp_child in child.children:
@@ -120,9 +135,9 @@ class PythonExtractor(Extractor):
             # Handle decorators so that they are counted as their respective class or function definition
             elif child.type == "decorated_definition":
                 if child.child_by_field_name("definition").type == "class_definition":
-                    param_vec["contains_class_definition"] = 1
+                    param_vec["contains_class_definition"] += 1
                 elif child.child_by_field_name("definition").type == "function_definition":
-                    param_vec["contains_function_definition"] = 1
+                    param_vec["contains_function_definition"] += 1
                 else:
                     self.debug_helper(child)
                     raise RuntimeError("Decorated definition not handled")
@@ -131,7 +146,7 @@ class PythonExtractor(Extractor):
             # Check if the child is a compound or simple statement
             for key, clause in zip(cfg.contains_only_statements, contains_types):
                 if child.type == clause:
-                    param_vec[key] = 1
+                    param_vec[key] += 1
                     break
             # else:
             #     if child.type != "ERROR":
@@ -141,41 +156,31 @@ class PythonExtractor(Extractor):
     def check_parent(self, node: Node, param_vec: dict):
         """Checks the node's parent. Not used for the module node."""
 
+        parent = None
         if node.type in compound_statements:
-            # if node.parent.type != "module":
-            #     if node.parent.parent.type not in interesting_node_types:
-            #         self.debug_helper(node)
             # Using the loop allows us to skip function decorators for the parent parameter
             parent = node
             while parent.parent:
                 parent = parent.parent
                 if parent.type == "block":
-                    try:
-                        param_vec["parent"] = node_dict[parent.parent.type]
-                    except KeyError as e:
-                        # Todo: Convert all these debugging statements into logging
-                        self.debug_helper(node)
-                        # print(f"great*-grandparent.type: {parent.parent.type}")
-                        # raise RuntimeError("Node type not handled")
-                    return
+                    parent = parent.parent
+                    break
                 if parent.type == "module":
-                    try:
-                        param_vec["parent"] = node_dict["module"]
-                    except KeyError as e:
-                        self.debug_helper(node)
-                        # print(f"great*-grandparent.type: {parent.parent.type}")
-                        raise RuntimeError("Node type not handled")
+                    break
+                if parent.type == "ERROR":
+                    param_vec["parent"] = node_dict[parent.type]
+                    param_vec["type"] = node_dict[parent.type]
                     return
-            raise RuntimeError("Could not find parent of node")
-        elif node.type in extra_clauses:
-            try:
-                param_vec["parent"] = node_dict[node.parent.type]
-            except KeyError as e:
+            else:
                 self.debug_helper(node)
-                # print(f"node.parent.type: {node.parent.type}")
-                # raise RuntimeError("Node type not handled")
+                raise RuntimeError("Could not find parent of node")
+        elif node.type in extra_clauses:
+            parent = node.parent
         else:
             raise RuntimeError("Node type not handled")
+        assert parent is not None
+        param_vec["parent"] = node_dict[parent.type]
+        param_vec["num_siblings"] = parent.named_child_count
 
     def fill_param_vecs_ast_new(self, training: bool = True) -> list:
         param_vectors = []
@@ -199,7 +204,12 @@ class PythonExtractor(Extractor):
                     param_vec_used = par_vec_onehot
                 param_vec = copy(param_vec_used)
                 param_vec["type"] = node_dict[node_type]
-                param_vec["location"] = {"start_line_number": node.start_point[0], "start_col_number": node.start_point[1], "end_line_number": node.end_point[0], "end_col_number": node.end_point[1], "text": node.text.decode('utf-8')}
+                param_vec["location"] = {"start_line_number": node.start_point[0],
+                                         "start_col_number": node.start_point[1], "end_line_number": node.end_point[0],
+                                         "end_col_number": node.end_point[1], "text": node.text.decode('utf-8')}
+
+                if self.settings.alt:
+                    param_vec["length"] = node.end_point[0] - node.start_point[0] + 1
                 if self.settings.debug:
                     param_vec = {"line": node.start_point[0] + 1, **param_vec}
                 # Check parent
@@ -233,10 +243,9 @@ class PythonExtractor(Extractor):
                     # Check that no parameters have been accidentally added
                     if not self.settings.debug and len(param_vec_list) != len(param_vec_used):
                         self.debug_helper(node)
-                        # print(param_vec_used.keys())
-                        # print(param_vec.keys())
-                        # raise RuntimeError("Parameter vector length mismatch")
-                        continue
+                        print(param_vec_used.keys())
+                        print(param_vec.keys())
+                        raise RuntimeError("Parameter vector length mismatch")
                     # Debug
                     # if self.args.debug:
                     #     if node_type == "function_definition" and param_vec["parent"] == "function_definition":
@@ -256,10 +265,10 @@ class PythonExtractor(Extractor):
     def fill_param_vecs_zhenhao(self, training: bool = True) -> list:
         """Extracts features like Zhenhao et al., i.e. looks at all blocks that are inside functions."""
         param_vectors = []
-        function_definition_query = self.lang.query("(function_definition) @funcdef")
-        function_definition_nodes = function_definition_query.captures(self.tree.root_node)
+        function_definiton_query = self.lang.query("(function_definition) @funcdef")
+        function_definiton_nodes = function_definiton_query.captures(self.tree.root_node)
         block_query = self.lang.query("(block) @block")
-        for funcdef_node, tag in function_definition_nodes:
+        for funcdef_node, tag in function_definiton_nodes:
             funcdef_node: Node
             block_nodes = block_query.captures(funcdef_node)
             for block_node, tag in block_nodes:
@@ -268,8 +277,8 @@ class PythonExtractor(Extractor):
                 try:
                     param_vec["type"] = node_dict[block_node.parent.type]
                 except KeyError as e:
-                    param_vec["type"] = "ERROR"
-                    logger.error(f"{e}")
+                    param_vec["type"] = node_dict["ERROR"]
+
                 param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
                                         f"{block_node.end_point[0]};{block_node.end_point[1]}"
                 if self.settings.debug:
@@ -286,7 +295,9 @@ class PythonExtractor(Extractor):
                                 # Check call nodes for logging
                                 func_call = exp_child.child_by_field_name("function")
                                 # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
-                                if keyword.search(func_call.text.decode("UTF-8").lower()):
+                                if keyword.match(func_call.text.decode("UTF-8").lower()):
+                                    if self.settings.debug and extra_debugging:
+                                        print("Zhenhao: ", func_call.text.decode("UTF-8"))
                                     param_vec["contains_logging"] = 1
 
                         if child.child_count != 1:

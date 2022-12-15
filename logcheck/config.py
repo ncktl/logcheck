@@ -1,19 +1,26 @@
 import re
 from string import ascii_letters
 
-keyword = re.compile("raise|print|log(g(ing|er))?(\.|$)")
+# keyword = re.compile("log(g(ing|er))?(\.|$)")
+keyword = re.compile("(\w|\.)+\.(debug|info|warning|error|critical|log|exception)$")
 
-compound_statements = [
-    # "class_definition",
+compound_statements_part_one = [
+    "class_definition",
     # "decorated_definition", # Not needed: It's just the @decorator_name line
     "function_definition",
     "if_statement",
-    # "for_statement",
-    "match_statement", # Python 3.10 feature
-    # "while_statement",
-    "try_statement",
-    "with_statement"
+    "for_statement",
 ]
+compound_statements_part_two = [
+    "while_statement",
+    "try_statement",
+    "with_statement",
+]
+# Match doesn't have a block
+# Awkward because need to preserve order for now
+compound_statements = compound_statements_part_one +\
+                        ["match_statement"] +\
+                        compound_statements_part_two
 
 extra_clauses = ["elif_clause", "else_clause", "except_clause", "finally_clause", "case_clause"]
 # Todo: Test with if_else, try_else,... instead of else_clause and so on
@@ -45,7 +52,7 @@ expressions = [
     "yield"
 ]
 
-interesting_node_types = compound_statements + extra_clauses
+interesting_node_types = compound_statements_part_one + compound_statements_part_two  + extra_clauses
 # Should module be part of the interesting node types?
 #  How to handle a module's parent parameter?
 # interesting_node_types = compound_statements + extra_clauses + ["module"]
@@ -54,7 +61,8 @@ interesting_node_types = compound_statements + extra_clauses
 # contains_features check the node's direct children in its block
 contains_types = compound_statements + simple_statements
 
-# A list of all python syntax node types that are visible and non-literals and also not identifiers, plus module
+# A list of most python syntax node types that are visible and non-literals and also not identifiers,
+# plus module and error
 # Excludes e.g. block and expression_statement nodes
 most_node_types = ["module", "ERROR"] + compound_statements + extra_clauses + expressions + simple_statements
 
@@ -78,11 +86,7 @@ def vectorize(x):
     return list(zip(x, [0] * len(x)))
 
 
-suffix = {
-    "python": ".py"
-}
-
-interesting_nodes = prefix("")(interesting_node_types)
+# interesting_nodes = prefix("")(interesting_node_types)
 contains_only_statements = prefix("contains_")(contains_types)
 contains = prefix("contains_")(contains_types + expressions + ["logging"])
 
@@ -95,13 +99,28 @@ def make_features(x):
 features_onehot = make_features([("type", ""), ("location", ""), ("parent", "")])
 par_vec_onehot = dict([x for y in features_onehot for x in y])
 
-features_onehot_expanded = make_features([("type", ""), ("location", ""), ("parent", ""), ("context", "")])
+features_onehot_expanded = make_features([
+    ("type", ""),
+    ("location", ""),
+    ("length", 0),
+    ("num_siblings", 0),
+    ("sibling_index", 0),
+    ("num_children", 0),
+    ("depth_from_def", 0),
+    ("parent", ""),
+    ("context", "")
+])
 par_vec_onehot_expanded = dict([x for y in features_onehot_expanded for x in y])
 
 par_vec_zhenhao = {
     # "line": -1,
     "type": "",
     "location": "",
+    "length": 0,
+    "num_siblings": 0,
+    "num_children": 0,
+    "depth_from_def": 0,
+    "parent": "",
     "context": "",
     "contains_logging": 0
 }
@@ -132,6 +151,7 @@ if __name__ == "__main__":
     print(contains)
     print(node_dict)
     print(len(most_node_types))
+    print(compound_statements)
 
 """
 {'module': 'a',

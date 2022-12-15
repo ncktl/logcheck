@@ -16,9 +16,8 @@ from .config import par_vec_onehot, reindex, par_vec_onehot_expanded, par_vec_zh
 
 
 doc_pipeline = SummarizationPipeline(
-    model=AutoModelWithLMHead.from_pretrained("SEBIS/code_trans_t5_base_code_documentation_generation_python"),
-    tokenizer=AutoTokenizer.from_pretrained("SEBIS/code_trans_t5_base_code_documentation_generation_python",
-                                            skip_special_tokens=True))
+    model=AutoModelWithLMHead.from_pretrained("SEBIS/code_trans_t5_small_code_comment_generation_java_multitask"),
+    tokenizer=AutoTokenizer.from_pretrained("SEBIS/code_trans_t5_small_code_comment_generation_java_multitask", skip_special_tokens=True))
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("LogCheck")
@@ -85,7 +84,7 @@ def log_recommendation(sourcecode, settings):
     if file_param_vectors:
         # Build Pandas DataFrame from the list of parameter vectors
         df = pd.DataFrame.from_dict(file_param_vectors)
-        x = df.drop(["contains_logging", "location"], axis=1)
+        x = df.drop(["contains_logging", "location", "context"], axis=1)
         # X = df.drop(["contains_logging"], axis=1)
         # One-hot encode the parameters type and parent
         x = pd.get_dummies(x, columns=["type", "parent"])
@@ -94,10 +93,10 @@ def log_recommendation(sourcecode, settings):
         # print(classifier.predict(df))
         # Predict logging for the parameter vectors, creating a list of booleans for the parameter vectors
         predictions = classifier.predict_proba(x)
-        recs = np.where(predictions[:, 1] > 0.99, 1, 0)
+        recs = np.where(predictions[:, 0] < settings.probability, 1, 0)
         df['predictions'] = recs
         # Write the yes-instances as recommendations to the output file
-        if (1 in recs) or (2 in recs):
+        if 1 in recs:
             for i, prediction in enumerate(recs):
                 if prediction:
                     file_param_vectors[i]['location']['log_message'] = \
