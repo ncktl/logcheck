@@ -1,4 +1,4 @@
-from tree_sitter import Language, Tree
+from tree_sitter import Language, Tree, Node, TreeCursor
 import logging
 from pathlib import Path
 from time import perf_counter
@@ -23,7 +23,10 @@ class JavaAnalyzer(Extractor):
         Starts the analyses
         """
 
-        self.exception_handling_via_treesitter()
+        print_children(self.tree.root_node); exit()
+
+
+        # self.exception_handling_via_treesitter()
 
     def exception_handling_via_treesitter(self):
         """

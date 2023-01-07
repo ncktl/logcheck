@@ -187,8 +187,8 @@ if __name__ == "__main__":
                             help="Specify the output file.")
     arg_parser.add_argument("-f", "--force", action="store_true",
                             help="Force overwrite of output file")
-    arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages, default="python",
-                            help="Specify the language. Default: python")
+    arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages,
+                            help="Specify the language.")
     arg_parser.add_argument("-d", "--debug", action="store_true",
                             help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",

@@ -45,8 +45,5 @@ public class SimpleLoggingExample {
         catch (IOException e) {
             logger.error("Caught exception");
         }
-        try {
-            this.one();
-        } catch (IOException e) {logger.error("Caught exception");}
     }
 }
