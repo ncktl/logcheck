@@ -53,7 +53,6 @@ optional arguments:
                         Specify the language. Default: python
   -d, --debug           Enable debug mode.
   -a, --alt             Also extract the context when in extraction mode
-  -z, --zhenhao         Mimic Zhenhao et al. approach when in extraction mode
 ```
 
 ### Feature extraction
@@ -62,19 +61,6 @@ To extract parameter vectors from files for learning a classifier, use the -e ex
 
 ```sh
 python3 logcheck.py -e <path to file or directory to extract features from>
-```
-
-Recommended: To also extract the context, additionally use the "-a" argument. This is currently required if you want to
-train the classifier with the extract.
-
-```sh
-python3 logcheck.py -e -a <path>
-```
-
-To instead extract the context like Zhenhao et al., instead additionally use the "-z" argument.
-
-```sh
-python3 logcheck.py -e -z <path>
 ```
 
 ### Classification learning

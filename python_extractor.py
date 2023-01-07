@@ -1,11 +1,12 @@
-from tree_sitter import Language, Tree, Node
-from extractor import Extractor, traverse_sub_tree
-from config import interesting_node_types, contains, most_node_types, par_vec_onehot_expanded
-from config import compound_statements, simple_statements, extra_clauses, contains_types, keyword, node_dict
-import config as cfg
-import re
-from copy import copy
 import logging
+from copy import copy
+
+from tree_sitter import Language, Tree, Node
+
+import config as cfg
+from config import compound_statements, extra_clauses, contains_types, keyword, node_dict
+from config import interesting_node_types, most_node_types, par_vec_onehot_expanded
+from extractor import Extractor, traverse_sub_tree
 
 extra_debugging = False
 

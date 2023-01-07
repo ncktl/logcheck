@@ -1,16 +1,17 @@
-import multiprocessing as mp
-from tree_sitter import Language, Parser
-import sys
-import logging
-from pathlib import Path
-import importlib
 import argparse
-from config import reindex, par_vec_onehot_expanded, rev_node_dict
-from sklearn.svm import LinearSVC
-from sklearn.ensemble import RandomForestClassifier
-import pandas as pd
+import importlib
+import logging
+import multiprocessing as mp
 import pickle
+import sys
+from pathlib import Path
+
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
+from tree_sitter import Language, Parser
+
+from config import reindex, par_vec_onehot_expanded, rev_node_dict
 
 supported_languages = ["java", "javascript", "python"]
 suf = {
@@ -53,10 +54,7 @@ def extract_file(file, settings, train_mode):
                               settings.language.capitalize() + "Extractor")
     extractor = extractor_class(sourcecode, tree_lang, tree, file, settings)
     # Start the extraction
-    if settings.zhenhao:
-        file_param_vecs = extractor.fill_param_vecs_zhenhao(training=train_mode)  # Zhenhao
-    else:
-        file_param_vecs = extractor.fill_param_vecs_ast_new(training=train_mode)  # Regular
+    file_param_vecs = extractor.fill_param_vecs_zhenhao(training=train_mode)
     if settings.debug:
         file_param_vecs = ["/" + str(file) + "y"] + file_param_vecs
     return file_param_vecs
@@ -67,20 +65,14 @@ def extract(files, settings, train_mode: bool = True):
     """ Extracts parameter vectors from the file(s) """
 
     pool = mp.Pool(mp.cpu_count())
-    # Async variant
+    # Async variant:
     # param_vectors = pool.starmap_async(extract_file, [(file, settings, train_mode) for file in files]).get()
-    # Ordered parallelization
+    # Ordered parallelization:
     param_vectors = pool.starmap(extract_file, [(file, settings, train_mode) for file in files])
     param_vectors = [par_vec for par_vec_list in param_vectors for par_vec in par_vec_list]
     pool.close()
 
-    # if settings.zhenhao:
-    #     param_vec_used = par_vec_zhenhao # Only Shenzen
-    # elif settings.alt:
-    #     param_vec_used = par_vec_onehot_expanded # New integer representation with context
-    # else:
-    #     param_vec_used = par_vec_onehot # Old without context
-    param_vec_used = par_vec_onehot_expanded  # New integer representation with context
+    param_vec_used = par_vec_onehot_expanded
     # Write output
     header = (["line"] if settings.debug else []) + list(param_vec_used.keys())
     out.write(",".join(header) + "\n")
@@ -193,8 +185,6 @@ if __name__ == "__main__":
                             help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",
                             help="Also extract the context when in extraction mode")
-    arg_parser.add_argument("-z", "--zhenhao", action="store_true",
-                            help="Mimic Zhenhao et al. approach when in extraction mode")
     args = arg_parser.parse_args()
 
     # Check arguments

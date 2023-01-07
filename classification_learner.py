@@ -1,11 +1,9 @@
-import sys
-from string import ascii_letters
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.svm import LinearSVC
 import pickle
-from sklearn.neighbors import KNeighborsClassifier
+import sys
+
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+
 from config import reindex
 
 if len(sys.argv) != 2:
@@ -27,10 +25,6 @@ y = df.contains_logging
 # Splitting the dataset into the Training set and Test set
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
 
-# classifier = LinearSVC(C=0.025)
-# classifier = LinearSVC(C=1)
-# classifier = KNeighborsClassifier(3)
-# classifier = KNeighborsClassifier(8)
 classifier = RandomForestClassifier(n_estimators=50, n_jobs=-1)
 # classifier.fit(X_train, y_train)
 classifier.fit(X, y)
