@@ -102,13 +102,13 @@ def analyze_newer():
         args.alt = True
         extractor = extractor_class(sourcecode, tree_lang, tree, file, args)
         # Build a list of parameter vectors for all interesting nodes in the current file
-        file_param_vecs = extractor.fill_param_vecs_ast_new(training=False)
+        file_param_vecs = extractor.fill_param_vecs_zhenhao(training=False)
         # print(df.to_string())
         if file_param_vecs:
             # Build Pandas DataFrame from the list of parameter vectors
             df = pd.DataFrame.from_dict(file_param_vecs)
             # logger.debug(df); exit()
-            X = df.drop(["contains_logging", "location", "context"], axis=1)
+            X = df.drop(["contains_logging", "location", "context", "sibling_index"], axis=1)
             # X = df.drop(["contains_logging"], axis=1)
             # One-hot encode the parameters type and parent
             X = pd.get_dummies(X, columns=["type", "parent"])

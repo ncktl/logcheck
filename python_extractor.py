@@ -80,32 +80,33 @@ class PythonExtractor(Extractor):
         def_node = block_node.parent
         # Measure the depth of nesting from the node's containing func/class def or module
         depth_from_def = 0
-        # For doing it exactly like Zhenhao et al.:
-        if self.args.zhenhao:
-            while def_node.type != "function_definition":
-                if def_node.type == "ERROR":
-                    param_vec["type"] = node_dict[def_node.type]
-                    param_vec["context"] = node_dict[def_node.type]
-                    return
-                def_node = def_node.parent
-                depth_from_def += 1
+        while def_node.type != "function_definition":
+            if def_node.type == "ERROR":
+                param_vec["type"] = node_dict[def_node.type]
+                param_vec["context"] = node_dict[def_node.type]
+                return
+            def_node = def_node.parent
+            depth_from_def += 1
+
+        # DEPRECATED section:
         # For our approach of looking at interesting nodes:
         # There will be blocks that aren't inside a function/method
         # This will limit the context to a containing class in case of func def >..> class def >..> block
-        else:
-            # For a block of a function definition we want to measure the depth
-            # from that function definition's containing ((function|class) definition|module)
-            if def_node.type == "function_definition":
-                def_node = def_node.parent
-                depth_from_def = 1
-            while def_node.type not in ["module", "class_definition", "function_definition"]:
-                if def_node.type == "ERROR":
-                    param_vec["type"] = node_dict[def_node.type]
-                    param_vec["parent"] = node_dict[def_node.type]
-                    param_vec["context"] = node_dict[def_node.type]
-                    return
-                def_node = def_node.parent
-                depth_from_def += 1
+        #
+        # For a block of a function definition we want to measure the depth
+        # from that function definition's containing ((function|class) definition|module)
+        # if def_node.type == "function_definition":
+        #     def_node = def_node.parent
+        #     depth_from_def = 1
+        # while def_node.type not in ["module", "class_definition", "function_definition"]:
+        #     if def_node.type == "ERROR":
+        #         param_vec["type"] = node_dict[def_node.type]
+        #         param_vec["parent"] = node_dict[def_node.type]
+        #         param_vec["context"] = node_dict[def_node.type]
+        #         return
+        #     def_node = def_node.parent
+        #     depth_from_def += 1
+
         param_vec["depth_from_def"] = depth_from_def
 
         def add_relevant_node(node: Node, context: list):
@@ -230,6 +231,7 @@ class PythonExtractor(Extractor):
         param_vec["sibling_index"] = parent.children.index(considered_node) + 1
 
     def fill_param_vecs_ast_new(self, training: bool = True) -> list:
+        # DEPRECATED
         param_vectors = []
         visited_nodes = set()
         for node_type in interesting_node_types:
