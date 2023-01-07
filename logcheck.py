@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 import importlib
 import argparse
-from config import par_vec_onehot, reindex, par_vec_onehot_expanded, par_vec_zhenhao, rev_node_dict
+from config import reindex, par_vec_onehot_expanded, rev_node_dict
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd

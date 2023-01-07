@@ -1,8 +1,7 @@
 from tree_sitter import Language, Tree, Node
 from extractor import Extractor, traverse_sub_tree
-from config import par_vec_onehot, interesting_node_types, contains, most_node_types, par_vec_onehot_expanded
+from config import interesting_node_types, contains, most_node_types, par_vec_onehot_expanded
 from config import compound_statements, simple_statements, extra_clauses, contains_types, keyword, node_dict
-from config import par_vec_zhenhao
 import config as cfg
 import re
 from copy import copy
@@ -245,10 +244,7 @@ class PythonExtractor(Extractor):
                 if not node.is_named:
                     continue
                 # Parameter vector for this node
-                if self.args.alt:
-                    param_vec_used = par_vec_onehot_expanded
-                else:
-                    param_vec_used = par_vec_onehot
+                param_vec_used = par_vec_onehot_expanded
                 param_vec = copy(param_vec_used)
                 param_vec["type"] = node_dict[node_type]
                 param_vec["location"] = f"{node.start_point[0] + 1};{node.start_point[1]}-" \

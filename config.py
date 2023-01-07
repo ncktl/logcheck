@@ -52,7 +52,7 @@ expressions = [
     "yield"
 ]
 
-interesting_node_types = compound_statements_part_one + compound_statements_part_two  + extra_clauses
+interesting_node_types = compound_statements_part_one + compound_statements_part_two + extra_clauses
 # Should module be part of the interesting node types?
 #  How to handle a module's parent parameter?
 # interesting_node_types = compound_statements + extra_clauses + ["module"]
@@ -96,9 +96,6 @@ def make_features(x):
     return [x + vectorize(contains)]
 
 
-features_onehot = make_features([("type", ""), ("location", ""), ("parent", "")])
-par_vec_onehot = dict([x for y in features_onehot for x in y])
-
 features_onehot_expanded = make_features([
     ("type", ""),
     ("location", ""),
@@ -111,19 +108,6 @@ features_onehot_expanded = make_features([
     ("context", "")
 ])
 par_vec_onehot_expanded = dict([x for y in features_onehot_expanded for x in y])
-
-par_vec_zhenhao = {
-    # "line": -1,
-    "type": "",
-    "location": "",
-    "length": 0,
-    "num_siblings": 0,
-    "num_children": 0,
-    "depth_from_def": 0,
-    "parent": "",
-    "context": "",
-    "contains_logging": 0
-}
 
 # List of par_vec_onehot keys with onehot values expanded for reindexing the parameter vector during prediction
 reindex = ['contains_class_definition',
@@ -146,7 +130,6 @@ reindex = ['contains_class_definition',
        'parent_n', 'parent_o', 'parent_p']
 
 if __name__ == "__main__":
-    print(par_vec_onehot)
     print(contains_only_statements)
     print(contains)
     print(node_dict)

@@ -3,7 +3,7 @@ from python_extractor import PythonExtractor
 from tree_sitter import Language, Tree, Node, TreeCursor
 from pathlib import Path
 from extractor import print_children, traverse_sub_tree
-from config import interesting_node_types, par_vec_onehot, most_node_types, keyword, par_vec_onehot_expanded, node_dict
+from config import interesting_node_types, most_node_types, keyword, par_vec_onehot_expanded, node_dict
 import pickle
 from sklearn.svm import LinearSVC
 from copy import copy
@@ -143,7 +143,7 @@ class PythonAnalyzer(PythonExtractor):
                 print(f"{node_type} line {node.start_point[0] + 1}")
                 print(node.end_point[0] - node.start_point[0] + 1)
 
-                param_vec = copy(par_vec_onehot)
+                param_vec = copy(par_vec_onehot_expanded)
                 param_vec["type"] = node_type
                 if node_type == "if_statement":
                     check_if(node, param_vec, self.args, self.keyword)
