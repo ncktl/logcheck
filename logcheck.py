@@ -11,7 +11,6 @@ from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
 from tree_sitter import Language, Parser
 
-from config import reindex, par_vec_onehot_expanded, rev_node_dict
 
 supported_languages = ["java", "javascript", "python"]
 suf = {
@@ -36,7 +35,7 @@ def create_ts_lang_obj(language: str) -> Language:
     return ts_lang
 
 
-def extract_file(file, settings, train_mode):
+def extract_file(file, settings, Extractor, train_mode):
     """ Extracts features from a source code file and returns them as a list of parameter vectors (also lists) """
 
     # Read the source code
@@ -54,10 +53,8 @@ def extract_file(file, settings, train_mode):
     parser.set_language(tree_lang)
     # Create abstract syntax tree
     tree = parser.parse(bytes(sourcecode, "utf8"))
-    # Import the language's extractor and instantiate it
-    extractor_class = getattr(importlib.import_module(settings.language + "_extractor"),
-                              settings.language.capitalize() + "Extractor")
-    extractor = extractor_class(sourcecode, tree_lang, tree, file, settings)
+    # Instantiate the language's extractor
+    extractor = Extractor(sourcecode, tree_lang, tree, file, settings)
     # Start the extraction
     file_param_vecs = extractor.fill_param_vectors(training=train_mode)
     if settings.debug:
@@ -65,7 +62,7 @@ def extract_file(file, settings, train_mode):
     return file_param_vecs
 
 
-def extract(files, settings, output, train_mode: bool = True):
+def extract(files, settings, Extractor, output, train_mode: bool = True):
     """ Starts parallelized feature extraction and writes the result to output """
 
     # Extract features from each file by calling extract_file() in parallel
@@ -73,7 +70,7 @@ def extract(files, settings, output, train_mode: bool = True):
     # Async variant:
     # param_vectors = pool.starmap_async(extract_file, [(file, settings, train_mode) for file in files]).get()
     # Ordered parallelization:
-    param_vectors = pool.starmap(extract_file, [(file, settings, train_mode) for file in files])
+    param_vectors = pool.starmap(extract_file, [(file, settings, Extractor, train_mode) for file in files])
     param_vectors = [par_vec for par_vec_list in param_vectors for par_vec in par_vec_list]
     pool.close()
     # Write output
@@ -84,7 +81,7 @@ def extract(files, settings, output, train_mode: bool = True):
     output.write("\n")
 
 
-def recommend(files, settings, output):
+def recommend(files, settings, Extractor, output):
     """ Recommend logging """
     recommendations = []
     classifier: RandomForestClassifier = pickle.load(open('classifier', 'rb'))
@@ -99,10 +96,8 @@ def recommend(files, settings, output):
         parser.set_language(tree_lang)
         # Create abstract syntax tree
         tree = parser.parse(bytes(sourcecode, "utf8"))
-        # Import the appropriate extractor and instantiate it
-        extractor_class = getattr(importlib.import_module(settings.language + "_extractor"),
-                                  settings.language.capitalize() + "Extractor")
-        extractor = extractor_class(sourcecode, tree_lang, tree, file, settings)
+        # Instantiate the language's extractor
+        extractor = Extractor(sourcecode, tree_lang, tree, file, settings)
         # Build a list of parameter vectors for all interesting nodes in the current file
         file_param_vecs = extractor.fill_param_vectors(training=False)
         # print(df.to_string())
@@ -126,8 +121,8 @@ def recommend(files, settings, output):
                 for i, prediction in enumerate(file_recommendations):
                     if prediction:
                         line = file_param_vecs[i]['location'].split("-")[0].split(";")[0]
-                        recommendations.append(f"We recommend logging in the {rev_node_dict[file_param_vecs[i]['type']]} "
-                                      f"starting in line {line}")
+                        recommendations.append(f"We recommend logging in the "
+                                               f"{rev_node_dict[file_param_vecs[i]['type']]} starting in line {line}")
     if recommendations:
         output.write("\n".join(recommendations))
     else:
@@ -140,7 +135,7 @@ def recommend(files, settings, output):
 def analyze():
     """ Calls analysis functions for development and debugging """
     # print("analyze")
-    # print(args.language)
+    # print(settings.language)
     output = []
     for file in files:
         with open(file) as f:
@@ -148,15 +143,15 @@ def analyze():
             f.close()
         print(f"File: {file}")
         # Create tree-sitter parser
-        tree_lang = create_ts_lang_obj(args.language)
+        tree_lang = create_ts_lang_obj(settings.language)
         parser = Parser()
         parser.set_language(tree_lang)
         # Create abstract syntax tree
         tree = parser.parse(bytes(sourcecode, "utf8"))
         # Import the appropriate analyzer and instantiate it
-        analysis_class = getattr(importlib.import_module(args.language + "_analyzer"),
-                                 args.language.capitalize() + "Analyzer")
-        analyzer = analysis_class(sourcecode, tree_lang, tree, args.path, args)
+        analysis_class = getattr(importlib.import_module(settings.language + "_analyzer"),
+                                 settings.language.capitalize() + "Analyzer")
+        analyzer = analysis_class(sourcecode, tree_lang, tree, settings.path, settings)
         # Start the analysis
         file_analysis = analyzer.analyze()
         # output.append(f"{file}")
@@ -184,41 +179,41 @@ if __name__ == "__main__":
                             help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",
                             help="Also extract the context when in extraction mode")
-    args = arg_parser.parse_args()
+    settings = arg_parser.parse_args()
 
     # Check arguments
-    if not args.path.exists():
+    if not settings.path.exists():
         arg_parser.error("Path does not exist.")
     # Detect batch mode
-    if args.path.is_dir():
+    if settings.path.is_dir():
         batch = True
-    elif args.path.is_file():
+    elif settings.path.is_file():
         batch = False
     else:
         arg_parser.error("Path is neither file nor directory.")
 
     # Default output handling disabled in favor of printing to stdout
     # # Handle output
-    # if not args.output:
+    # if not settings.output:
     #     # Feature extraction
-    #     if args.extract:
+    #     if settings.extract:
     #         if batch:
-    #             args.output = Path("features/demofile.csv")
-    #             print(f"No output file specified. Using default: {args.output}")
+    #             settings.output = Path("features/demofile.csv")
+    #             print(f"No output file specified. Using default: {settings.output}")
     #         else:
-    #             args.output = Path("features/" + args.path.name + ".csv")
-    #             print(f"No output file specified. Using: {args.output}")
+    #             settings.output = Path("features/" + settings.path.name + ".csv")
+    #             print(f"No output file specified. Using: {settings.output}")
     #     # Analysis
     #     else:
     #         if batch:
-    #             args.output = Path("analysis/demofile.txt")
-    #             print(f"No output file specified. Using default: {args.output}")
+    #             settings.output = Path("analysis/demofile.txt")
+    #             print(f"No output file specified. Using default: {settings.output}")
     #         else:
-    #             args.output = Path("analysis/" + args.path.name + ".txt")
-    #             print(f"No output file specified. Using: {args.output}")
+    #             settings.output = Path("analysis/" + settings.path.name + ".txt")
+    #             print(f"No output file specified. Using: {settings.output}")
 
     # File overwrite dialog
-    if args.output and args.output.is_file() and not args.force:
+    if settings.output and settings.output.is_file() and not settings.force:
         def overwrite():
             force = input("Output file exists. Overwrite? [y/n]: ")
             if force.lower() in ["y", "yes"]:
@@ -231,32 +226,42 @@ if __name__ == "__main__":
         overwrite()
     # Catch permission errors before program execution
     try:
-        out = open(args.output, "w") if args.output else sys.stdout
+        out = open(settings.output, "w") if settings.output else sys.stdout
     except PermissionError as e:
         arg_parser.error(e)
     # Ensure language is known
     if batch:
-        if args.language is None:
+        if settings.language is None:
             arg_parser.error("Batch option requires specification of language.")
     # Without batch mode, determine language if not specified
-    elif args.language is None:
+    elif settings.language is None:
         try:
-            args.language = rev_suf[args.path.suffix]
+            settings.language = rev_suf[settings.path.suffix]
         except KeyError:
             arg_parser.error(f"Supported languages: {supported_languages}")
     # Determine files to work on
     if batch:
-        files = list(args.path.glob(f"**/*{suf[args.language]}"))
+        files = list(settings.path.glob(f"**/*{suf[settings.language]}"))
     else:
-        files = [args.path]
+        files = [settings.path]
     # Initialize logger
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger("Logcheck")
-    # Branch into extraction or analysis
-    if args.extract:
-        extract(files, args, out)
+    # Import the language's config and extractor
+    # The extractor class has to be passed on as an argument due to parallelization
+    if settings.language == "python":
+        from python_config import reindex, par_vec_onehot_expanded, rev_node_dict
+        from python_extractor import PythonExtractor as Extractor
+    elif settings.language == "java":
+        from java_config import reindex, par_vec_onehot_expanded, rev_node_dict
+        from java_extractor import JavaExtractor as Extractor
     else:
-        if args.alt:
+        raise RuntimeError(f"{settings.language} is not actually supported yet.")
+    # Branch into extraction or recommendation
+    if settings.extract:
+        extract(files, settings, Extractor, out)
+    else:
+        if settings.alt:
             analyze()
         else:
-            recommend(files, args, out)
+            recommend(files, settings, Extractor, out)

@@ -148,6 +148,7 @@ notes/
 notebooks/
 utilities/
 tree-sitter*
+THESIS/
 
 javascript_analyzer.py
 

@@ -1,8 +1,10 @@
 import re
 from string import ascii_letters
 
-# keyword = re.compile("log(g(ing|er))?(\.|$)")
-keyword = re.compile("(\w|\.)+\.(debug|info|warning|error|critical|log|exception)$")
+# Old:
+# keyword = re.compile("(\w|\.)+\.(debug|info|warning|error|critical|log|exception)$")
+# New:
+keyword = re.compile("(\w|\.)*log(g(ing|er))?\.(debug|info|warning|error|critical|log|exception)$")
 
 compound_statements = [
     "class_definition",
@@ -44,7 +46,6 @@ expressions = [
 ]
 
 
-# contains_features check the node's direct children in its block
 statements = compound_statements + simple_statements
 
 # A list of most python syntax node types that are visible and non-literals and also not identifiers,

@@ -3,7 +3,7 @@ from python_extractor import PythonExtractor
 from tree_sitter import Language, Tree, Node, TreeCursor
 from pathlib import Path
 from extractor import print_children, traverse_sub_tree
-from config import most_node_types, keyword, par_vec_onehot_expanded, node_dict
+from python_config import most_node_types, keyword, par_vec_onehot_expanded, node_dict
 import pickle
 from sklearn.svm import LinearSVC
 from copy import copy
@@ -78,34 +78,33 @@ def check_def(node: Node, param_vec: dict, args, keyword: str):
 
 
 class PythonAnalyzer(PythonExtractor):
-    def __init__(self, src: str, lang: Language, tree: Tree, file, args):
+    def __init__(self, src: str, lang: Language, tree: Tree, file, settings):
         """
         :param src: Source code to extract paramaeter vectors from
         :param lang: Treesitter language object
         :param tree: Treesitter tree object
         :param file: current file
         """
-        super().__init__(src, lang, tree, file, args)
+        super().__init__(src, lang, tree, file, settings)
         # Name of the Python logging module
         self.keyword = "logg(ing|er)"
 
     def analyze(self) -> list:
         """ Starts the analyses """
-        if self.args.debug:
-            print_children(self.tree.root_node); exit()
-            for node in traverse_sub_tree(self.tree.root_node):
-                # if node.is_named and node.type == "expression_statement":
-                if node.is_named:
-                #     print(node.text.decode("UTF-8"), "\t\t\t", node)
-                    if node.type == "function_definition":
-                        print(node.text.decode("UTF-8"))
-                        block_node = node.child_by_field_name("body")
-                        print(block_node.text.decode("UTF-8"))
-                        exit()
-                    # print(node.text)
-                    # print("#" * 80)
-                    # print(node.text.decode("UTF-8"))
-                    # exit()
+        print_children(self.tree.root_node); exit()
+        for node in traverse_sub_tree(self.tree.root_node):
+            # if node.is_named and node.type == "expression_statement":
+            if node.is_named:
+            #     print(node.text.decode("UTF-8"), "\t\t\t", node)
+                if node.type == "function_definition":
+                    print(node.text.decode("UTF-8"))
+                    block_node = node.child_by_field_name("body")
+                    print(block_node.text.decode("UTF-8"))
+                    exit()
+                # print(node.text)
+                # print("#" * 80)
+                # print(node.text.decode("UTF-8"))
+                # exit()
             return []
         recommendations = []
         return recommendations

@@ -3,16 +3,16 @@ from copy import copy
 
 from tree_sitter import Language, Tree, Node
 
-import config as cfg
-from config import compound_statements, extra_clauses, statements, keyword, node_dict
-from config import most_node_types, par_vec_onehot_expanded
+import python_config as cfg
+from python_config import compound_statements, extra_clauses, statements, keyword, node_dict
+from python_config import most_node_types, par_vec_onehot_expanded
 from extractor import Extractor, traverse_sub_tree
 
 extra_debugging = False
 
 
 class PythonExtractor(Extractor):
-    def __init__(self, src: str, lang: Language, tree: Tree, file, args):
+    def __init__(self, src: str, lang: Language, tree: Tree, file, settings):
         """
         :param src: Source code to extract paramaeter vectors from
         :param lang: Treesitter language object
@@ -20,7 +20,7 @@ class PythonExtractor(Extractor):
         :param file: current file
         """
 
-        super().__init__(src, lang, tree, file, args)
+        super().__init__(src, lang, tree, file, settings)
         logging.basicConfig(level=logging.DEBUG)
         self.logger = logging.getLogger(__name__)
         # Name of the Python logging module
@@ -41,7 +41,7 @@ class PythonExtractor(Extractor):
             # Check call nodes for logging. Only if it's not a logging statement do we count it as a call.
             func_call = exp_child.child_by_field_name("function")
             if keyword.match(func_call.text.decode("UTF-8").lower()):
-                if self.args.debug and extra_debugging:
+                if self.settings.debug and extra_debugging:
                     print("check_expression: ", func_call.text.decode("UTF-8"))
                     # "contains_logging" remains 0/1 as it is the target
                 param_vec["contains_logging"] = 1
@@ -93,7 +93,7 @@ class PythonExtractor(Extractor):
             if node.is_named and node.type in most_node_types:
                 if node.type == "call" \
                         and keyword.match(node.child_by_field_name("function").text.decode("UTF-8").lower()):
-                    if self.args.debug and extra_debugging:
+                    if self.settings.debug and extra_debugging:
                         print("add_relevant_node: ", node.child_by_field_name("function").text.decode("UTF-8"))
                     return
                 else:
@@ -104,7 +104,7 @@ class PythonExtractor(Extractor):
         for node in traverse_sub_tree(def_node, block_node):
             add_relevant_node(node, context)
         # Debug
-        if self.args.debug:
+        if self.settings.debug:
             context.append("%%%%")
         # /Debug
         # Add the ast nodes in the block and it's children
@@ -116,8 +116,9 @@ class PythonExtractor(Extractor):
         """Checks a block node for contained features, including logging by calling check_expression().
         Optionally also build the node's context."""
 
-        # Build the context of the block like in Zhenhao et al.
-        self.build_context_of_block_node(block_node, param_vec)
+        if self.settings.alt:
+            # Build the context of the block like in Zhenhao et al.
+            self.build_context_of_block_node(block_node, param_vec)
 
         # Check the contents of the block, find logging
         for child in block_node.children:

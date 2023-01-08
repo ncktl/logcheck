@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import recall_score, f1_score, precision_score, balanced_accuracy_score
 
-from config import reindex
+from python_config import reindex
 
 if len(sys.argv) != 2:
     print("Please supply a .csv file to learn on")

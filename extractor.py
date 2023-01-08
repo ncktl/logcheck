@@ -76,7 +76,7 @@ def traverse_sub_tree(root_node: Node, stop_node: Node = None):
 
 
 class Extractor:
-    def __init__(self, src: str, lang: Language, tree: Tree, file, args):
+    def __init__(self, src: str, lang: Language, tree: Tree, file, settings):
         """
         :param src: Source code to extract paramaeter vectors from
         :param lang: Tree-sitter language object
@@ -89,4 +89,4 @@ class Extractor:
         self.tree: Tree = tree
         self.file = file
         self.lines: list = src.splitlines()
-        self.args = args
+        self.settings = settings
