@@ -4,8 +4,8 @@ from copy import copy
 from tree_sitter import Language, Tree, Node
 
 import config as cfg
-from config import compound_statements, extra_clauses, contains_types, keyword, node_dict
-from config import interesting_node_types, most_node_types, par_vec_onehot_expanded
+from config import compound_statements, extra_clauses, statements, keyword, node_dict
+from config import most_node_types, par_vec_onehot_expanded
 from extractor import Extractor, traverse_sub_tree
 
 extra_debugging = False
@@ -56,9 +56,9 @@ class PythonExtractor(Extractor):
                 param_vec["contains_call"] += 1
                 # Check call nodes for logging?
                 # No, because a logging method call on the right-hand side of an assigment
-                # is usually not a logging call but rather an instantiation of a logging class
+                # is usually not a logging call but rather an instantiation of a logging class?
                 # func_call = assign_rhs.child_by_field_name("function")
-                # if re.search(keyword, func_call.text.decode("UTF-8").lower()):
+                # if keyword.match(func_call.text.decode("UTF-8").lower()):
                 #     param_vec["contains_logging"] = 1
         # Await
         elif exp_child.type == "await":
@@ -87,26 +87,6 @@ class PythonExtractor(Extractor):
                 return
             def_node = def_node.parent
             depth_from_def += 1
-
-        # DEPRECATED section:
-        # For our approach of looking at interesting nodes:
-        # There will be blocks that aren't inside a function/method
-        # This will limit the context to a containing class in case of func def >..> class def >..> block
-        #
-        # For a block of a function definition we want to measure the depth
-        # from that function definition's containing ((function|class) definition|module)
-        # if def_node.type == "function_definition":
-        #     def_node = def_node.parent
-        #     depth_from_def = 1
-        # while def_node.type not in ["module", "class_definition", "function_definition"]:
-        #     if def_node.type == "ERROR":
-        #         param_vec["type"] = node_dict[def_node.type]
-        #         param_vec["parent"] = node_dict[def_node.type]
-        #         param_vec["context"] = node_dict[def_node.type]
-        #         return
-        #     def_node = def_node.parent
-        #     depth_from_def += 1
-
         param_vec["depth_from_def"] = depth_from_def
 
         def add_relevant_node(node: Node, context: list):
@@ -171,7 +151,7 @@ class PythonExtractor(Extractor):
                 continue
             # Build the contains_features
             # Check if the child is a compound or simple statement
-            for key, clause in zip(cfg.contains_only_statements, contains_types):
+            for key, clause in zip(cfg.contains_only_statements, statements):
                 if child.type == clause:
                     param_vec[key] += 1
                     break
@@ -230,84 +210,7 @@ class PythonExtractor(Extractor):
         # param_vec["sibling_index"] = node.parent.children.index(node) + 1
         param_vec["sibling_index"] = parent.children.index(considered_node) + 1
 
-    def fill_param_vecs_ast_new(self, training: bool = True) -> list:
-        # DEPRECATED
-        param_vectors = []
-        visited_nodes = set()
-        for node_type in interesting_node_types:
-            node_query = self.lang.query("(" + node_type + ") @" + node_type)
-            nodes = node_query.captures(self.tree.root_node)
-            for node, tag in nodes:
-                node: Node
-                # Uniqueness check is unnecessary? Yes!
-                if (node.start_byte, node.end_byte) in visited_nodes:
-                    raise RuntimeError
-                else:
-                    visited_nodes.add((node.start_byte, node.end_byte))
-                if not node.is_named:
-                    continue
-                # Parameter vector for this node
-                param_vec_used = par_vec_onehot_expanded
-                param_vec = copy(param_vec_used)
-                param_vec["type"] = node_dict[node_type]
-                param_vec["location"] = f"{node.start_point[0] + 1};{node.start_point[1]}-" \
-                                        f"{node.end_point[0] + 1};{node.end_point[1]}"
-                if self.args.alt:
-                    param_vec["length"] = node.end_point[0] - node.start_point[0] + 1
-                    param_vec["num_children"] = node.named_child_count
-                if self.args.debug:
-                    param_vec = {"line": node.start_point[0] + 1, **param_vec}
-                # Check parent
-                if node_type != "module":
-                    self.check_parent(node, param_vec)
-                # Check node
-                body_block = ["class_definition",
-                              "for_statement",
-                              "function_definition",
-                              "try_statement",
-                              "while_statement",
-                              "with_statement",
-                              "else_clause"]
-                if node_type in body_block:
-                    self.check_block(node.child_by_field_name("body"), param_vec)
-                elif node_type in ["if_statement", "elif_clause", "case_clause"]:
-                    self.check_block(node.child_by_field_name("consequence"), param_vec)
-                elif node_type in ["except_clause", "finally_clause", "except_group_clause"]:
-                    found_block = False
-                    for child in node.children:
-                        if child.type == "block":
-                            if found_block:
-                                self.debug_helper(node)
-                                raise RuntimeError(f"Multiple blocks in {node_type}")
-                            self.check_block(child, param_vec)
-                            found_block = True
-
-                if training:
-                    # For extraction of features to a file, we need to return a list of lists of parameters
-                    param_vec_list = list(param_vec.values())
-                    # Check that no parameters have been accidentally added
-                    if not self.args.debug and len(param_vec_list) != len(param_vec_used):
-                        self.debug_helper(node)
-                        print(param_vec_used.keys())
-                        print(param_vec.keys())
-                        raise RuntimeError("Parameter vector length mismatch")
-                    # Debug
-                    # if self.args.debug:
-                    #     if node_type == "function_definition" and param_vec["parent"] == "function_definition":
-                    #         if param_vec["context"].startswith("2|3|24|27|27|27|27|3|3|27|25|27|25|27|8|25|3|27|25|27"
-                    #                                            "|25|27|8|25"):
-                    #             self.debug_helper(node)
-                    # /Debug
-                    param_vectors.append(param_vec_list)
-                else:
-                    # For prediction, the extracted parameters will be returned as a list of dicts for subsequent
-                    # pandas.Dataframe creation
-                    # Only recommend for a node that doesn't have logging already
-                    if not param_vec["contains_logging"]:
-                        param_vectors.append(param_vec)
-        return param_vectors
-
-    def fill_param_vecs_zhenhao(self, training: bool = True) -> list:
+    def fill_param_vectors(self, training: bool = True) -> list:
         """Extracts features like Zhenhao et al., i.e. looks at all blocks that are inside functions."""
         param_vectors = []
         visited_nodes = set()

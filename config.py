@@ -4,29 +4,20 @@ from string import ascii_letters
 # keyword = re.compile("log(g(ing|er))?(\.|$)")
 keyword = re.compile("(\w|\.)+\.(debug|info|warning|error|critical|log|exception)$")
 
-compound_statements_part_one = [
+compound_statements = [
     "class_definition",
     # "decorated_definition", # Not needed: It's just the @decorator_name line
     "function_definition",
     "if_statement",
     "for_statement",
-]
-compound_statements_part_two = [
+    "match_statement",
     "while_statement",
     "try_statement",
     "with_statement",
 ]
-# Match doesn't have a block
-# Awkward because need to preserve order for now
-compound_statements = compound_statements_part_one +\
-                        ["match_statement"] +\
-                        compound_statements_part_two
 
 extra_clauses = ["elif_clause", "else_clause", "except_clause", "except_group_clause", "finally_clause", "case_clause"]
-# Todo: Test with if_else, try_else,... instead of else_clause and so on
-# Todo: Consider the implication of except_clause=True (unambigous so try_except not needed) for parent_try_statement
 
-# Too much?
 simple_statements = [
     "return_statement",
     "assert_statement",
@@ -37,12 +28,12 @@ simple_statements = [
     "import_from_statement",
     "pass_statement",
     "delete_statement",
-    "exec_statement",  # Not in Viewfinder
-    # "expression_statement", #  Highest importance, disabled for testing, split up into finer
-    "future_import_statement",  # Not in Viewfinder
+    "exec_statement",
+    # "expression_statement", #  Split up
+    "future_import_statement",
     "global_statement",
-    "nonlocal_statement",  # Not in Viewfinder
-    "print_statement",  # Python 2 feature?
+    "nonlocal_statement",
+    "print_statement",  # Python 2 feature
 ]
 
 expressions = [
@@ -52,14 +43,9 @@ expressions = [
     "yield"
 ]
 
-interesting_node_types = compound_statements_part_one + compound_statements_part_two + extra_clauses
-# Should module be part of the interesting node types?
-#  How to handle a module's parent parameter?
-# interesting_node_types = compound_statements + extra_clauses + ["module"]
-
 
 # contains_features check the node's direct children in its block
-contains_types = compound_statements + simple_statements
+statements = compound_statements + simple_statements
 
 # A list of most python syntax node types that are visible and non-literals and also not identifiers,
 # plus module and error
@@ -72,11 +58,6 @@ for i, node_type in enumerate(most_node_types):
     node_dict[node_type] = ascii_letters[i]
 rev_node_dict = dict(zip(node_dict.values(), node_dict.keys()))
 
-# Todo: Test with node count for contains_features -> type(par_vec_extended["contains_features"]) == int
-# Todo: contains_open? Redundant with contains_with?
-
-# Todo: Add node length feature
-
 
 def prefix(string):
     return lambda x: [string + y for y in x]
@@ -86,13 +67,11 @@ def vectorize(x):
     return list(zip(x, [0] * len(x)))
 
 
-# interesting_nodes = prefix("")(interesting_node_types)
-contains_only_statements = prefix("contains_")(contains_types)
-contains = prefix("contains_")(contains_types + expressions + ["logging"])
+contains_only_statements = prefix("contains_")(statements)
+contains = prefix("contains_")(statements + expressions + ["logging"])
 
 
 def make_features(x):
-    # return [[("line", -1)] + x + vectorize(contains)]
     return [x + vectorize(contains)]
 
 
@@ -129,24 +108,6 @@ reindex = ['length', 'num_siblings', 'num_children', 'depth_from_def', 'context'
        'parent_g', 'parent_h', 'parent_i', 'parent_j', 'parent_k', 'parent_l',
        'parent_m', 'parent_n', 'parent_o', 'parent_p']
 
-# reindex = ['contains_class_definition',
-#        'contains_function_definition', 'contains_if_statement',
-#        'contains_for_statement', 'contains_match_statement',
-#        'contains_while_statement', 'contains_try_statement',
-#        'contains_with_statement', 'contains_return_statement',
-#        'contains_assert_statement', 'contains_break_statement',
-#        'contains_continue_statement', 'contains_raise_statement',
-#        'contains_import_statement', 'contains_import_from_statement',
-#        'contains_pass_statement', 'contains_delete_statement',
-#        'contains_exec_statement', 'contains_future_import_statement',
-#        'contains_global_statement', 'contains_nonlocal_statement',
-#        'contains_print_statement', 'contains_assignment', 'contains_call',
-#        'contains_await', 'contains_yield', 'type_c',
-#        'type_d', 'type_e', 'type_f', 'type_g', 'type_h', 'type_i', 'type_j',
-#        'type_k', 'type_l', 'type_m', 'type_n', 'type_o', 'type_p', 'parent_a',
-#        'parent_b', 'parent_c', 'parent_d', 'parent_e', 'parent_f', 'parent_g',
-#        'parent_h', 'parent_i', 'parent_j', 'parent_k', 'parent_l', 'parent_m',
-#        'parent_n', 'parent_o', 'parent_p']
 
 if __name__ == "__main__":
     print(contains_only_statements)

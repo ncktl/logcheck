@@ -3,7 +3,7 @@ from python_extractor import PythonExtractor
 from tree_sitter import Language, Tree, Node, TreeCursor
 from pathlib import Path
 from extractor import print_children, traverse_sub_tree
-from config import interesting_node_types, most_node_types, keyword, par_vec_onehot_expanded, node_dict
+from config import most_node_types, keyword, par_vec_onehot_expanded, node_dict
 import pickle
 from sklearn.svm import LinearSVC
 from copy import copy
@@ -107,72 +107,7 @@ class PythonAnalyzer(PythonExtractor):
                     # print(node.text.decode("UTF-8"))
                     # exit()
             return []
-        else:
-            param_vectors = []
-            for node_type in interesting_node_types:
-                node_query = self.lang.query("(" + node_type + ") @" + node_type)
-                nodes = node_query.captures(self.tree.root_node)
-                for node, tag in nodes:
-                    node: Node
-                    if node.type == "function_definition":
-                        print(node)
-                        print(f"Parent: {node.parent}")
-                        print(f"Siblings: {node.parent.children}")
-                        print(f"Position among siblings: {node.parent.children.index(node)}")
-
-                    param_vec = copy(par_vec_onehot_expanded)
-                    param_vec["type"] = node_dict[node_type]
-                    param_vec["location"] = f"{node.start_point[0]};{node.start_point[1]}-" \
-                                            f"{node.end_point[0]};{node.end_point[1]}"
-                    param_vec["length"] = node.end_point[0] - node.start_point[0] + 1
-                    param_vec["num_children"] = node.named_child_count
-            # self.proto_context()
-
-            return []
-
-
         recommendations = []
-        classifier: LinearSVC = pickle.load(open('classifier', 'rb'))
-        # print(classifier.predict([[False,False,False,False,False,False,False,False,False,False]]))
-
-        for node_type in interesting_node_types:
-            node_query = self.lang.query("(" + node_type + ") @" + node_type)
-            nodes = node_query.captures(self.tree.root_node)
-            for node, tag in nodes:
-
-                print(f"{node_type} line {node.start_point[0] + 1}")
-                print(node.end_point[0] - node.start_point[0] + 1)
-
-                param_vec = copy(par_vec_onehot_expanded)
-                param_vec["type"] = node_type
-                if node_type == "if_statement":
-                    check_if(node, param_vec, self.args, self.keyword)
-                elif node_type == "try_statement":
-                    check_try(node, param_vec, self.args, self.keyword)
-                elif node_type == "function_definition":
-                    check_def(node, param_vec, self.args, self.keyword)
-                # Only recommend for a node that doesn't have logging already
-                if param_vec["contains_logging"]:
-                    continue
-                # Check the parent
-                check_parent(node, param_vec)
-
-                # print(list(param_vec.items()))
-                # print(param_vec)
-                # print(classifier.predict([list(param_vec.values())]))
-
-                df = pd.DataFrame.from_dict([param_vec]).iloc[:, 2:-1]
-                # print(df)
-
-                # DEBUG
-                # test_vec = copy(par_vec_onehot)
-                # df = pd.DataFrame.from_dict([test_vec])
-                # print(classifier.predict(df)[0])
-                # DEBUG END
-
-                if classifier.predict(df)[0]:
-                    recommendations.append(f"We recommend logging in the {node_type} "
-                                           f"starting in line {node.start_point[0] + 1}")
         return recommendations
 
     def proto_context(self):

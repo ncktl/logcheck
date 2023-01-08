@@ -37,6 +37,9 @@ def create_ts_lang_obj(language: str) -> Language:
 
 
 def extract_file(file, settings, train_mode):
+    """ Extracts features from a source code file and returns them as a list of parameter vectors (also lists) """
+
+    # Read the source code
     try:
         with open(file) as f:
             sourcecode = f.read()
@@ -44,26 +47,28 @@ def extract_file(file, settings, train_mode):
     except UnicodeDecodeError as e:
         logger.error(f"Encountered UnicodeDecodeError in file {file}:\n{e}")
         return []
+    # Create Tree-Sitter language object and parser.
+    # These could be reused for another source code file, but this is nontrivial due to parallelization.
     tree_lang = create_ts_lang_obj(settings.language)
     parser = Parser()
     parser.set_language(tree_lang)
     # Create abstract syntax tree
     tree = parser.parse(bytes(sourcecode, "utf8"))
-    # Import the appropriate extractor and instantiate it
+    # Import the language's extractor and instantiate it
     extractor_class = getattr(importlib.import_module(settings.language + "_extractor"),
                               settings.language.capitalize() + "Extractor")
     extractor = extractor_class(sourcecode, tree_lang, tree, file, settings)
     # Start the extraction
-    file_param_vecs = extractor.fill_param_vecs_zhenhao(training=train_mode)
+    file_param_vecs = extractor.fill_param_vectors(training=train_mode)
     if settings.debug:
         file_param_vecs = ["/" + str(file) + "y"] + file_param_vecs
     return file_param_vecs
 
 
+def extract(files, settings, output, train_mode: bool = True):
+    """ Starts parallelized feature extraction and writes the result to output """
 
-def extract(files, settings, train_mode: bool = True):
-    """ Extracts parameter vectors from the file(s) """
-
+    # Extract features from each file by calling extract_file() in parallel
     pool = mp.Pool(mp.cpu_count())
     # Async variant:
     # param_vectors = pool.starmap_async(extract_file, [(file, settings, train_mode) for file in files]).get()
@@ -71,38 +76,35 @@ def extract(files, settings, train_mode: bool = True):
     param_vectors = pool.starmap(extract_file, [(file, settings, train_mode) for file in files])
     param_vectors = [par_vec for par_vec_list in param_vectors for par_vec in par_vec_list]
     pool.close()
-
-    param_vec_used = par_vec_onehot_expanded
     # Write output
-    header = (["line"] if settings.debug else []) + list(param_vec_used.keys())
-    out.write(",".join(header) + "\n")
-
-    # out.write(str(param_vectors))
-
-    out.write("\n".join(
+    header = list(par_vec_onehot_expanded.keys())
+    output.write(",".join(header) + "\n")
+    output.write("\n".join(
         [str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
-    out.write("\n")
+    output.write("\n")
 
 
-def analyze_newer():
-    """ Recommend logging"""
-    output = []
+def recommend(files, settings, output):
+    """ Recommend logging """
+    recommendations = []
     classifier: RandomForestClassifier = pickle.load(open('classifier', 'rb'))
     for file in tqdm(files):
         with open(file) as f:
             sourcecode = f.read()
             f.close()
-        #print(f"File: {file}")
+        # print(f"File: {file}")
+        # Create tree-sitter parser
+        tree_lang = create_ts_lang_obj(settings.language)
+        parser = Parser()
+        parser.set_language(tree_lang)
         # Create abstract syntax tree
         tree = parser.parse(bytes(sourcecode, "utf8"))
         # Import the appropriate extractor and instantiate it
-        extractor_class = getattr(importlib.import_module(args.language + "_extractor"),
-                                  args.language.capitalize() + "Extractor")
-        # TODO: Dont do this dirty hack
-        args.alt = True
-        extractor = extractor_class(sourcecode, tree_lang, tree, file, args)
+        extractor_class = getattr(importlib.import_module(settings.language + "_extractor"),
+                                  settings.language.capitalize() + "Extractor")
+        extractor = extractor_class(sourcecode, tree_lang, tree, file, settings)
         # Build a list of parameter vectors for all interesting nodes in the current file
-        file_param_vecs = extractor.fill_param_vecs_zhenhao(training=False)
+        file_param_vecs = extractor.fill_param_vectors(training=False)
         # print(df.to_string())
         if file_param_vecs:
             # Build Pandas DataFrame from the list of parameter vectors
@@ -116,22 +118,22 @@ def analyze_newer():
             X = X.reindex(reindex, fill_value=0, axis="columns")
             # print(classifier.predict(df))
             # Predict logging for the parameter vectors, creating a list of booleans for the parameter vectors
-            recs = classifier.predict(X)
-            df['predictions'] = recs
+            file_recommendations = classifier.predict(X)
+            df['predictions'] = file_recommendations
             # Write the yes-instances as recommendations to the output file
-            if 1 in recs:
-                output.append(f"File: {file}")
-                for i, prediction in enumerate(recs):
+            if 1 in file_recommendations:
+                recommendations.append(f"File: {file}")
+                for i, prediction in enumerate(file_recommendations):
                     if prediction:
                         line = file_param_vecs[i]['location'].split("-")[0].split(";")[0]
-                        output.append(f"We recommend logging in the {rev_node_dict[file_param_vecs[i]['type']]} "
+                        recommendations.append(f"We recommend logging in the {rev_node_dict[file_param_vecs[i]['type']]} "
                                       f"starting in line {line}")
-    if output:
-        out.write("\n".join(output))
+    if recommendations:
+        output.write("\n".join(recommendations))
     else:
-        out.write("No recommendations")
-    out.write("\n")
-    out.close()
+        output.write("No recommendations")
+    output.write("\n")
+    output.close()
 
 
 # DEPRECATED
@@ -145,6 +147,10 @@ def analyze():
             sourcecode = f.read()
             f.close()
         print(f"File: {file}")
+        # Create tree-sitter parser
+        tree_lang = create_ts_lang_obj(args.language)
+        parser = Parser()
+        parser.set_language(tree_lang)
         # Create abstract syntax tree
         tree = parser.parse(bytes(sourcecode, "utf8"))
         # Import the appropriate analyzer and instantiate it
@@ -159,13 +165,6 @@ def analyze():
             output.append(f"File: {file}")
             output.extend(file_analysis)
     print("\n".join(output))
-    # with open(args.output, "w") as out:
-    #     if output:
-    #         out.write("\n".join(output))
-    #     else:
-    #         out.write("No recommendations")
-    #     out.write("\n")
-    #     out.close()
 
 
 if __name__ == "__main__":
@@ -191,9 +190,12 @@ if __name__ == "__main__":
     if not args.path.exists():
         arg_parser.error("Path does not exist.")
     # Detect batch mode
-    if args.path.is_dir(): batch = True
-    elif args.path.is_file(): batch = False
-    else: arg_parser.error("Path is neither file nor directory.")
+    if args.path.is_dir():
+        batch = True
+    elif args.path.is_file():
+        batch = False
+    else:
+        arg_parser.error("Path is neither file nor directory.")
 
     # Default output handling disabled in favor of printing to stdout
     # # Handle output
@@ -233,7 +235,6 @@ if __name__ == "__main__":
     except PermissionError as e:
         arg_parser.error(e)
     # Ensure language is known
-    # DEPRECATED because python is the default
     if batch:
         if args.language is None:
             arg_parser.error("Batch option requires specification of language.")
@@ -243,10 +244,6 @@ if __name__ == "__main__":
             args.language = rev_suf[args.path.suffix]
         except KeyError:
             arg_parser.error(f"Supported languages: {supported_languages}")
-    # Create tree-sitter parser
-    tree_lang = create_ts_lang_obj(args.language)
-    parser = Parser()
-    parser.set_language(tree_lang)
     # Determine files to work on
     if batch:
         files = list(args.path.glob(f"**/*{suf[args.language]}"))
@@ -257,9 +254,9 @@ if __name__ == "__main__":
     logger = logging.getLogger("Logcheck")
     # Branch into extraction or analysis
     if args.extract:
-        extract(files, args)
+        extract(files, args, out)
     else:
         if args.alt:
             analyze()
         else:
-            analyze_newer()
+            recommend(files, args, out)
