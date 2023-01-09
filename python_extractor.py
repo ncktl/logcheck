@@ -26,13 +26,6 @@ class PythonExtractor(Extractor):
         # Name of the Python logging module
         # self.keyword = "logg(ing|er)"
 
-    def debug_helper(self, node: Node):
-        print(self.file)
-        print(f"Parent: {node.parent}")
-        print(node)
-        print(f"Children: {node.children}")
-        # print(node.text.decode("UTF-8"))
-
     def check_expression(self, exp_child: Node, param_vec: dict):
         """Checks an expression node for contained features of the parent block node"""
 

@@ -90,3 +90,10 @@ class Extractor:
         self.file = file
         self.lines: list = src.splitlines()
         self.settings = settings
+
+    def debug_helper(self, node: Node):
+        print(self.file)
+        print(f"Parent: {node.parent}")
+        print(node)
+        print(f"Children: {node.children}")
+        # print(node.text.decode("UTF-8"))
