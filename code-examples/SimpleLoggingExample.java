@@ -1,3 +1,7 @@
+/*
+Multiline comment
+*/
+
 // Example from https://logging.apache.org/log4j/2.x/manual/configuration.html
 import com.foo.Bar;
 import java.util.Scanner;
@@ -32,7 +36,22 @@ public class SimpleLoggingExample {
         System.out.println(message);
     }
 
-    public void two() {
+    public enum Color {
+        RED (1, 3),
+        GREEN (2, 4);
+
+        private final double mass;   // in kilograms
+        private final double radius; // in meters
+        Planet(double mass, double radius) {
+            this.mass = mass;
+            this.radius = radius;
+        }
+        private double mass() { return mass; }
+        private double radius() { return radius; }
+
+    }
+
+    public void two(int a) {
         try {
             this.one();
         }
@@ -44,6 +63,30 @@ public class SimpleLoggingExample {
         }
         catch (IOException e) {
             logger.error("Caught exception");
+        }
+        if (2 > 1) {
+            if (3 > 2) {
+                logger.info("2 > 1 and 3 > 2");
+            }
+            else if (4 < 3) {
+                logger.info("Hiii");
+            }
+            else {
+                logger.info("2 > 1 and 3 <= 2");
+            }
+        }
+        switch(a) {
+          case 1:
+            System.out.println("Good morning");
+            break;
+          case 2:
+            int c = 2;
+            break;
+          default:
+            logger.error("Default");
+            for (int i=0; i<5; i++) {
+                System.out.println("Good night");
+            }
         }
     }
 }

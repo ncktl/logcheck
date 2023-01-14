@@ -11,6 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
 from tree_sitter import Language, Parser
 
+from python_config import par_vec_onehot_expanded
 
 supported_languages = ["java", "javascript", "python"]
 suf = {
@@ -178,7 +179,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-d", "--debug", action="store_true",
                             help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",
-                            help="Also extract the context when in extraction mode")
+                            help="Also extract the context when in extraction mode. Type names will be ascii encoded.")
     settings = arg_parser.parse_args()
 
     # Check arguments
@@ -250,10 +251,10 @@ if __name__ == "__main__":
     # Import the language's config and extractor
     # The extractor class has to be passed on as an argument due to parallelization
     if settings.language == "python":
-        from python_config import reindex, par_vec_onehot_expanded, rev_node_dict
+        from python_config import reindex, rev_node_dict
         from python_extractor import PythonExtractor as Extractor
     elif settings.language == "java":
-        from java_config import reindex, par_vec_onehot_expanded, rev_node_dict
+        from java_config import reindex, rev_node_dict
         from java_extractor import JavaExtractor as Extractor
     else:
         raise RuntimeError(f"{settings.language} is not actually supported yet.")

@@ -19,18 +19,13 @@ class PythonExtractor(Extractor):
         :param tree: Treesitter tree object
         :param file: current file
         """
-
         super().__init__(src, lang, tree, file, settings)
-        logging.basicConfig(level=logging.DEBUG)
-        self.logger = logging.getLogger(__name__)
-        # Name of the Python logging module
-        # self.keyword = "logg(ing|er)"
 
     def check_expression(self, exp_child: Node, param_vec: dict):
         """Checks an expression node for contained features of the parent block node"""
 
         # Call
-        if exp_child.type == "call":
+        if exp_child.type == self.names.func_call:
             # Check call nodes for logging. Only if it's not a logging statement do we count it as a call.
             func_call = exp_child.child_by_field_name("function")
             if keyword.match(func_call.text.decode("UTF-8").lower()):
@@ -72,11 +67,12 @@ class PythonExtractor(Extractor):
         # Find the containing (function) definition
         def_node = block_node.parent
         # Measure the depth of nesting from the node's containing func/class def or module
+        # Remains 0 if the given block node is the child of a function definition
         depth_from_def = 0
-        while def_node.type != "function_definition":
-            if def_node.type == "ERROR":
-                param_vec["type"] = node_dict[def_node.type]
-                param_vec["context"] = node_dict[def_node.type]
+        while def_node.type != self.names.func_def:
+            if def_node.type == self.names.error:
+                param_vec["type"] = self.get_node_type(def_node)
+                param_vec["context"] = self.get_node_type(def_node)
                 return
             def_node = def_node.parent
             depth_from_def += 1
@@ -90,7 +86,7 @@ class PythonExtractor(Extractor):
                         print("add_relevant_node: ", node.child_by_field_name("function").text.decode("UTF-8"))
                     return
                 else:
-                    context.append(node_dict[node.type])
+                    context.append(self.get_node_type(node))
 
         context = []
         # Add the ast nodes that came before the block in its parent (func|class) def or module
@@ -123,15 +119,8 @@ class PythonExtractor(Extractor):
                 # Block level expression statements rarely have more than one child, if so we just check them all
                 # Example: web2py/gluon/contrib/login_methods/openid_auth.py line 551-556
                 #           Has tuple form 'identifier.call(params), "text" * 10' for some reason
-                # if len(child.children) != 1:
-                if child.child_count != 1:
-                    # print(self.file)
-                    # print("Expression statement with more than one child!")
-                    # print(child)
-                    for exp_child in child.children:
-                        self.check_expression(exp_child, param_vec)
-                else:
-                    self.check_expression(child.children[0], param_vec)
+                for exp_child in child.children:
+                    self.check_expression(exp_child, param_vec)
                 continue
             # Handle decorators so that they are counted as their respective class or function definition
             elif child.type == "decorated_definition":
@@ -154,9 +143,11 @@ class PythonExtractor(Extractor):
             #         self.debug_helper(child)
             #         raise RuntimeError("Child of block not in contains")
 
-    def check_parent(self, node: Node, param_vec: dict):
+    def check_parent(self, block_node: Node, param_vec: dict):
         """Checks the node's parent. Not used for the module node."""
 
+        # Get the block node's parent node
+        node: Node = block_node.parent
         # We try to find the node's logical parent,
         # and the position of the highest ancestor of the node among the logical parent's children (sibling_index)
         # This allows us e.g. to find the sibling_index of a function definition that is decorated among its enclosing
@@ -172,15 +163,14 @@ class PythonExtractor(Extractor):
             parent = considered_node.parent
             while parent is not None:
                 if parent.type == "block":
-                    # parent = parent.parent
-                    param_vec["parent"] = node_dict[parent.parent.type]
+                    param_vec["parent"] = self.get_node_type(parent.parent)
                     break
-                if parent.type == "module":
-                    param_vec["parent"] = node_dict[parent.type]
+                if parent.type == self.names.root:
+                    param_vec["parent"] = self.get_node_type(parent)
                     break
-                if parent.type == "ERROR":
-                    param_vec["parent"] = node_dict[parent.type]
-                    param_vec["type"] = node_dict[parent.type]
+                if parent.type == self.names.error:
+                    param_vec["parent"] = self.get_node_type(parent)
+                    param_vec["type"] = self.get_node_type(parent)
                     return
                 considered_node = parent
                 parent = parent.parent
@@ -191,67 +181,14 @@ class PythonExtractor(Extractor):
         # we consider the parent compound statement as logical parent
         elif node.type in extra_clauses:
             parent = node.parent
-            param_vec["parent"] = node_dict[parent.type]
+            param_vec["parent"] = self.get_node_type(parent)
         else:
             err_str = f"Node type {node.type} not handled"
             raise RuntimeError(err_str)
         assert parent is not None
-        # param_vec["parent"] = node_dict[parent.type]
         param_vec["num_siblings"] = parent.named_child_count
         # The position of the node among its siblings, (e.g. node is the 2nd child of its parent)
         # Actually makes the performance WORSE with rnd_forest classifier
         # TODO: Check if +1 is best
         # param_vec["sibling_index"] = node.parent.children.index(node) + 1
         param_vec["sibling_index"] = parent.children.index(considered_node) + 1
-
-    def fill_param_vectors(self, training: bool = True) -> list:
-        """Extracts features like Zhenhao et al., i.e. looks at all blocks that are inside functions."""
-        param_vectors = []
-        visited_nodes = set()
-        function_definiton_query = self.lang.query("(function_definition) @funcdef")
-        function_definiton_nodes = function_definiton_query.captures(self.tree.root_node)
-        block_query = self.lang.query("(block) @block")
-        for funcdef_node, tag in function_definiton_nodes:
-            funcdef_node: Node
-            block_nodes = block_query.captures(funcdef_node)
-            for block_node, tag in block_nodes:
-                block_node: Node
-                # Uniqueness check using start and end byte tuple
-                check_value = (block_node.start_byte, block_node.end_byte)
-                if check_value in visited_nodes:
-                    continue
-                else:
-                    visited_nodes.add(check_value)
-                param_vec = copy(par_vec_onehot_expanded)
-                try:
-                    param_vec["type"] = node_dict[block_node.parent.type]
-                except KeyError as e:
-                    self.logger.error(f"Node type <{str(block_node.parent.type)}> key error in file {self.file} "
-                                      f"in line {block_node.parent.start_point[0] + 1}")
-                    continue
-                param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
-                                        f"{block_node.end_point[0]};{block_node.end_point[1]}"
-                # Add +2 instead because the block lacks the parent's line?
-                param_vec["length"] = block_node.end_point[0] - block_node.start_point[0] + 1
-                param_vec["num_children"] = block_node.named_child_count
-                # Check parent
-                self.check_parent(block_node.parent, param_vec)
-                # Check node
-                self.check_block(block_node, param_vec)
-
-                if training:
-                    param_vec_list = list(param_vec.values())
-                    # Check that no parameters have been accidentally added
-                    if len(param_vec_list) != len(par_vec_onehot_expanded):
-                        self.debug_helper(block_node)
-                        print(par_vec_onehot_expanded.keys())
-                        print(param_vec.keys())
-                        raise RuntimeError("Parameter vector length mismatch")
-                    param_vectors.append(param_vec_list)
-                else:
-                    # For prediction, the extracted parameters will be returned as a list of dicts for subsequent
-                    # pandas.Dataframe creation
-                    # Only recommend for a node that doesn't have logging already
-                    if not param_vec["contains_logging"]:
-                        param_vectors.append(param_vec)
-        return param_vectors

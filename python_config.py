@@ -1,5 +1,41 @@
 import re
 from string import ascii_letters
+from dataclasses import dataclass
+
+
+# Shared node type names
+@dataclass
+class NodeNames:
+    error = "ERROR"
+    expr_stmt = "expression_statement"
+    if_stmt = "if_statement"
+
+
+@dataclass
+class PythonNodeNames(NodeNames):
+    root = "module"
+    block = ["block"]
+    func_def = "function_definition"
+    class_def = "class_definition"
+    func_call = "call"
+
+
+@dataclass
+class JavaNodeNames(NodeNames):
+    root = "program"
+    block = ["block", "constructor_body"]  # Who logs in a constructor?
+    # More types that can have statements which in turn can have blocks:
+    # do_statement enhanced_for_statement for_statement if_statement
+    # labeled_statement program switch_block_statement_group while_statement
+    func_def = "method_declaration"
+    class_def = "class_declaration"
+    func_call = "method_invocation"
+
+
+node_names = {
+    "python": PythonNodeNames(),
+    "java": JavaNodeNames()
+}
 
 # Old:
 # keyword = re.compile("(\w|\.)+\.(debug|info|warning|error|critical|log|exception)$")
@@ -18,7 +54,7 @@ compound_statements = [
     "with_statement",
 ]
 
-extra_clauses = ["elif_clause", "else_clause", "except_clause", "except_group_clause", "finally_clause", "case_clause"]
+extra_clauses = ["case_clause", "elif_clause", "else_clause", "except_clause", "except_group_clause", "finally_clause"]
 
 simple_statements = [
     "return_statement",
@@ -44,7 +80,6 @@ expressions = [
     "await",
     "yield"
 ]
-
 
 statements = compound_statements + simple_statements
 
@@ -91,24 +126,23 @@ par_vec_onehot_expanded = dict([x for y in features_onehot_expanded for x in y])
 
 # List of par_vec_onehot keys with onehot values expanded for reindexing the parameter vector during prediction
 reindex = ['length', 'num_siblings', 'num_children', 'depth_from_def', 'context',
-       'contains_class_definition', 'contains_function_definition',
-       'contains_if_statement', 'contains_for_statement',
-       'contains_match_statement', 'contains_while_statement',
-       'contains_try_statement', 'contains_with_statement',
-       'contains_return_statement', 'contains_assert_statement',
-       'contains_break_statement', 'contains_continue_statement',
-       'contains_raise_statement', 'contains_import_statement',
-       'contains_import_from_statement', 'contains_pass_statement',
-       'contains_delete_statement', 'contains_exec_statement',
-       'contains_future_import_statement', 'contains_global_statement',
-       'contains_nonlocal_statement', 'contains_print_statement',
-       'contains_assignment', 'contains_call', 'contains_await',
-       'contains_yield', 'type_c', 'type_d', 'type_e', 'type_f', 'type_h',
-       'type_i', 'type_j', 'type_k', 'type_l', 'type_m', 'type_n', 'type_o',
-       'type_p', 'parent_a', 'parent_c', 'parent_d', 'parent_e', 'parent_f',
-       'parent_g', 'parent_h', 'parent_i', 'parent_j', 'parent_k', 'parent_l',
-       'parent_m', 'parent_n', 'parent_o', 'parent_p']
-
+           'contains_class_definition', 'contains_function_definition',
+           'contains_if_statement', 'contains_for_statement',
+           'contains_match_statement', 'contains_while_statement',
+           'contains_try_statement', 'contains_with_statement',
+           'contains_return_statement', 'contains_assert_statement',
+           'contains_break_statement', 'contains_continue_statement',
+           'contains_raise_statement', 'contains_import_statement',
+           'contains_import_from_statement', 'contains_pass_statement',
+           'contains_delete_statement', 'contains_exec_statement',
+           'contains_future_import_statement', 'contains_global_statement',
+           'contains_nonlocal_statement', 'contains_print_statement',
+           'contains_assignment', 'contains_call', 'contains_await',
+           'contains_yield', 'type_c', 'type_d', 'type_e', 'type_f', 'type_h',
+           'type_i', 'type_j', 'type_k', 'type_l', 'type_m', 'type_n', 'type_o',
+           'type_p', 'parent_a', 'parent_c', 'parent_d', 'parent_e', 'parent_f',
+           'parent_g', 'parent_h', 'parent_i', 'parent_j', 'parent_k', 'parent_l',
+           'parent_m', 'parent_n', 'parent_o', 'parent_p']
 
 if __name__ == "__main__":
     print(contains_only_statements)
