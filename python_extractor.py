@@ -70,6 +70,7 @@ class PythonExtractor(Extractor):
         # Remains 0 if the given block node is the child of a function definition
         depth_from_def = 0
         while def_node.type != self.names.func_def:
+            # When encountering an error, set type to ERROR and stop
             if def_node.type == self.names.error:
                 param_vec["type"] = self.get_node_type(def_node)
                 param_vec["context"] = self.get_node_type(def_node)
@@ -102,8 +103,18 @@ class PythonExtractor(Extractor):
         param_vec["context"] = "".join(context)
 
     def check_block(self, block_node: Node, param_vec: dict):
-        """Checks a block node for contained features, including logging by calling check_expression().
+        """ Find the block node's parent's type.
+        Checks a block node for contained features, including logging by calling check_expression().
         Optionally also build the node's context."""
+
+        # Find the block node's parent's type. For Python, this is always simply its parent.
+        try:
+            param_vec["type"] = self.get_node_type(block_node.parent)
+        except KeyError as e:
+            param_vec["type"] = self.names.error
+            self.logger.error(f"Node type <{str(block_node.parent.type)}> key error in file {self.file} "
+                              f"in line {block_node.parent.start_point[0] + 1}")
+            return
 
         if self.settings.alt:
             # Build the context of the block like in Zhenhao et al.

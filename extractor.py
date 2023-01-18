@@ -7,10 +7,11 @@ from tree_sitter import Language, Tree, Node, TreeCursor
 from python_config import par_vec_onehot_expanded, node_dict, node_names
 
 
-def print_children(node: Node, level=0, maxdepth=999):
+def print_children(node: Node, level=0, print_unnamed=False, maxdepth=999):
     if level > maxdepth:
         return
-    print(f"Line {node.start_point[0] + 1}: " + (level * 2) * "  " + str(node))
+    if node.is_named or print_unnamed:
+        print(f"Line {node.start_point[0] + 1}: " + (level * 2) * "  " + str(node))
     ### Debug
     # if node.type == "elif_clause":
     #     special = node.child_by_field_name("consequence")
@@ -47,8 +48,8 @@ def print_children(node: Node, level=0, maxdepth=999):
     #     print("Left: ", node.child_by_field_name("left"))
     #     print("Right: ", node.child_by_field_name("right"))
     for child in node.children:
-        if child.is_named: print_children(child, level + 1)
-        # print_children(child, level + 1)
+        # if child.is_named: print_children(child, level + 1)
+        print_children(child, level + 1, print_unnamed)
 
 
 def traverse_sub_tree(root_node: Node, stop_node: Node = None):
@@ -121,10 +122,10 @@ class Extractor:
         func_def_query = self.lang.query(f"({self.names.func_def}) @funcdef")
         func_def_nodes = func_def_query.captures(self.tree.root_node)
         block_query = self.lang.query("(block) @block")
-        for funcdef_node, tag in func_def_nodes:
+        for funcdef_node, func_tag in func_def_nodes:
             funcdef_node: Node
             block_nodes = block_query.captures(funcdef_node)
-            for block_node, tag in block_nodes:
+            for block_node, block_tag in block_nodes:
                 block_node: Node
                 # Uniqueness check using start and end byte tuple
                 check_value = (block_node.start_byte, block_node.end_byte)
@@ -132,13 +133,8 @@ class Extractor:
                     continue
                 else:
                     visited_nodes.add(check_value)
+                # Create a parameter vector for the block node and enter some information
                 param_vec = copy(par_vec_onehot_expanded)
-                try:
-                    param_vec["type"] = self.get_node_type(block_node.parent)
-                except KeyError as e:
-                    self.logger.error(f"Node type <{str(block_node.parent.type)}> key error in file {self.file} "
-                                      f"in line {block_node.parent.start_point[0] + 1}")
-                    continue
                 param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
                                         f"{block_node.end_point[0]};{block_node.end_point[1]}"
                 # Add +2 instead because the block lacks the parent's line?
