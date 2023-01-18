@@ -103,18 +103,8 @@ class PythonExtractor(Extractor):
         param_vec["context"] = "".join(context)
 
     def check_block(self, block_node: Node, param_vec: dict):
-        """ Find the block node's parent's type.
-        Checks a block node for contained features, including logging by calling check_expression().
+        """Checks a block node for contained features, including logging by calling check_expression().
         Optionally also build the node's context."""
-
-        # Find the block node's parent's type. For Python, this is always simply its parent.
-        try:
-            param_vec["type"] = self.get_node_type(block_node.parent)
-        except KeyError as e:
-            param_vec["type"] = self.names.error
-            self.logger.error(f"Node type <{str(block_node.parent.type)}> key error in file {self.file} "
-                              f"in line {block_node.parent.start_point[0] + 1}")
-            return
 
         if self.settings.alt:
             # Build the context of the block like in Zhenhao et al.
@@ -155,7 +145,17 @@ class PythonExtractor(Extractor):
             #         raise RuntimeError("Child of block not in contains")
 
     def check_parent(self, block_node: Node, param_vec: dict):
-        """Checks the node's parent. Not used for the module node."""
+        """Find the block node's and parent's types.
+        Collect information pertaining to the block node's ancestors and siblings"""
+
+        # Find the block node's "type". For Python, this is always simply its parent's type.
+        try:
+            param_vec["type"] = self.get_node_type(block_node.parent)
+        except KeyError as e:
+            param_vec["type"] = self.names.error
+            self.logger.error(f"Node type <{str(block_node.parent.type)}> key error in file {self.file} "
+                              f"in line {block_node.parent.start_point[0] + 1}")
+            return
 
         # Get the block node's parent node
         node: Node = block_node.parent
