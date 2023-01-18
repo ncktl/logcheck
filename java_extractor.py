@@ -27,28 +27,42 @@ class JavaExtractor(Extractor):
                     self.check_expression(exp_child, param_vec)
 
     def get_java_type_and_parent(self, node: Node):
+
+        def handle_block_parent(node):
+            # TODO: Needs handling of all block types
+            assert node.parent.type == self.names.block
+            parent = node.parent.parent
+            java_type = node.type
+            if node.parent.prev_sibling.type == "else":
+                parent_type = "else"
+            elif parent.prev_sibling.type == "else":
+                parent_type = "elif"
+            else:
+                parent_type = parent.type
+            return java_type, parent_type, parent
+
         if node.type == self.names.if_stmt:
             # else if
             if node.parent.type == self.names.if_stmt:
                 assert node.parent.named_child_count == 3
                 parent = node.parent
-                java_type = self.get_node_type("elif")
+                parent_type = parent.type
+                java_type = "elif"
             # if
-            elif node.parent.type == self.names.block:  # TODO: Needs handling of all block types
-                parent = node.parent.parent
-                java_type = self.get_node_type(node.type)
+            elif node.parent.type == self.names.block:
+                java_type, parent_type, parent = handle_block_parent(node)
             else:
                 raise RuntimeError(f"if_stmt, child of <{str(node.parent.type)}> not handled")
         elif node.type == self.names.func_def:
-            java_type = self.get_node_type(node.type)
-            # TODO: Placeholder solution
+            java_type = node.type
             if node.parent.type == self.names.block:
-                parent = node.parent.parent
+                java_type, parent_type, parent = handle_block_parent(node)
             else:
                 parent = node.parent
+                parent_type = parent.type
         else:
             raise RuntimeError(f"Node type <{str(node.type)}> not handled")
-        return java_type, parent
+        return self.get_node_type(java_type), self.get_node_type(parent_type), parent.named_child_count
 
 
 
@@ -62,13 +76,10 @@ class JavaExtractor(Extractor):
         node: Node = block_node.parent
         if block_node.prev_sibling.type == "else":
             parent = block_node.parent
+            num_siblings = parent.named_child_count
             param_vec["type"] = self.get_node_type("else")
         else:
-            param_vec["type"], parent = self.get_java_type_and_parent(node)
+            param_vec["type"], parent, num_siblings = self.get_java_type_and_parent(node)
 
-        # TODO: Ugly, detection of parent = else
-        if parent.type == self.names.if_stmt:
-            param_vec["parent"], _ = self.get_java_type_and_parent(parent)
-        else:
-            param_vec["parent"] = self.get_node_type(parent)
-        param_vec["num_siblings"] = parent.named_child_count
+        param_vec["parent"] = self.get_node_type(parent)
+        param_vec["num_siblings"] = num_siblings
