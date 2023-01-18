@@ -7,6 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class NodeNames:
     error = "ERROR"
+    block = "block"
     expr_stmt = "expression_statement"
     if_stmt = "if_statement"
 
@@ -14,7 +15,6 @@ class NodeNames:
 @dataclass
 class PythonNodeNames(NodeNames):
     root = "module"
-    block = ["block"]
     func_def = "function_definition"
     class_def = "class_definition"
     func_call = "call"
@@ -23,7 +23,7 @@ class PythonNodeNames(NodeNames):
 @dataclass
 class JavaNodeNames(NodeNames):
     root = "program"
-    block = ["block", "constructor_body"]  # Who logs in a constructor?
+    alt_blocks = ["block", "constructor_body"]  # Who logs in a constructor?
     # More types that can have statements which in turn can have blocks:
     # do_statement enhanced_for_statement for_statement if_statement
     # labeled_statement program switch_block_statement_group while_statement

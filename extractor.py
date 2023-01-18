@@ -97,6 +97,8 @@ class Extractor:
         self.file = file
         self.lines: list = src.splitlines()
         self.settings = settings
+        # names is a dataclass containing Tree-Sitter's node type names for the current programming language
+        # E.g. if self.settings.language == "python" then self.names.func_def == "function_definition"
         self.names = node_names[self.settings.language]
         self.logger = logging.getLogger(self.settings.language.capitalize() + "Extractor")
         self.logger.setLevel(logging.DEBUG)
@@ -108,12 +110,19 @@ class Extractor:
         print(f"Children: {node.children}")
         # print(node.text.decode("UTF-8"))
 
-    def get_node_type(self, node: Node):
-        """Returns the node type of the given node. If the -a/--alt flag is set, the type is returned ascii encoded."""
-        if self.settings.alt:
-            return node_dict[node.type]
+    def get_node_type(self, node_or_str):
+        """Returns the node type of the given node or type string.
+        If the -a/--alt flag is set, the type is returned ascii encoded."""
+        if type(node_or_str) == str:
+            key = node_or_str
+        elif type(node_or_str) == Node:
+            key = node_or_str.type
         else:
-            return node.type
+            raise RuntimeError("Bad input type given to get_node_type()")
+        if self.settings.alt:
+            return node_dict[key]
+        else:
+            return key
 
     def fill_param_vectors(self, training: bool = True) -> list:
         """Extracts features like Zhenhao et al., i.e. looks at all blocks that are inside functions."""
@@ -140,9 +149,9 @@ class Extractor:
                 # Add +2 instead because the block lacks the parent's line?
                 param_vec["length"] = block_node.end_point[0] - block_node.start_point[0] + 1
                 param_vec["num_children"] = block_node.named_child_count
-                # Check parent
+                # Collect information from the block node's ancestors and siblings
                 self.check_parent(block_node, param_vec)
-                # Check node
+                # Collect information from the block node's content
                 self.check_block(block_node, param_vec)
 
                 if training:

@@ -26,9 +26,47 @@ class JavaExtractor(Extractor):
                 for exp_child in child.children:
                     self.check_expression(exp_child, param_vec)
 
+    def get_java_type(self, node: Node):
+        if node.type == self.names.if_stmt:
+            pass
+
+
+
     def check_parent(self, block_node: Node, param_vec: dict):
-        # Get the block node's parent node which we consider to be the given node
+        """Find the block node's and parent's types.
+        Collect information pertaining to the block node's ancestors and siblings"""
+
+        # Naive
+        param_vec["type"] = self.get_node_type(block_node.parent)
+        # The block node's direct parent
         node: Node = block_node.parent
-        parent = node.parent
-        param_vec["parent"] = self.get_node_type(parent)
-        param_vec["num_siblings"] = parent.named_child_count
+        if block_node.prev_sibling.type == "else":
+            parent = block_node.parent
+            param_vec["type"] = self.get_node_type("else")
+        # Block of if_statement
+        elif node.type == self.names.if_stmt:
+            # else if
+            if node.parent.type == self.names.if_stmt:
+                assert node.parent.named_child_count == 3
+                param_vec["parent"] = self.get_node_type(self.names.if_stmt)
+                if block_node.prev_sibling.type == "else":
+                    param_vec["type"] = self.get_node_type("else")
+                else:
+                    param_vec["type"] = self.get_node_type("elif")
+            # else
+            elif block_node.prev_sibling.type == "else":
+                param_vec["parent"] = self.get_node_type(self.names.if_stmt)
+                param_vec["type"] = self.get_node_type("else")
+
+            # if
+            elif node.parent.type == self.names.block: # TODO: Needs handling of all block types
+                param_vec["parent"] = self.get_node_type(node.parent.parent)
+                param_vec["type"] = self.get_node_type(self.names.if_stmt)
+        else:
+            pass
+            # raise RuntimeError(f"Node type <{str(node.type)}> not handled during node type check in file {self.file} "
+            #                    f"at line {block_node.start_point[0] + 1}")
+
+        # parent = node.parent
+        # param_vec["parent"] = self.get_node_type(parent)
+        # param_vec["num_siblings"] = parent.named_child_count

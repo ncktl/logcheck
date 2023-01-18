@@ -190,6 +190,7 @@ class PythonExtractor(Extractor):
                 raise RuntimeError("Could not find parent of node")
         # For the extra clauses (like else, elif, except, finally,etc.)
         # we consider the parent compound statement as logical parent
+        # TODO: Consider the parent compound statement's logical parent as logical parent instead?
         elif node.type in extra_clauses:
             parent = node.parent
             param_vec["parent"] = self.get_node_type(parent)
