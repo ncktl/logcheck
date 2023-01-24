@@ -23,7 +23,7 @@ class JavaAnalyzer(Extractor):
         Starts the analyses
         """
 
-        print_children(self.tree.root_node, print_unnamed=True); exit()
+        print_children(self.tree.root_node, print_unnamed=self.settings.debug); exit()
 
 
         # self.exception_handling_via_treesitter()

@@ -100,6 +100,9 @@ class Extractor:
         # names is a dataclass containing Tree-Sitter's node type names for the current programming language
         # E.g. if self.settings.language == "python" then self.names.func_def == "function_definition"
         self.names = node_names[self.settings.language]
+        # The parsed source code files can contain syntax errors. If a syntax error is discovered during processing of
+        # a block, this flag will be raised and the block discarded.
+        self.error_detected = False
         self.logger = logging.getLogger(self.settings.language.capitalize() + "Extractor")
         self.logger.setLevel(logging.DEBUG)
 
@@ -124,8 +127,23 @@ class Extractor:
         else:
             return key
 
+    def find_containing_block(self, node: Node):
+        parent = node.parent
+        while parent is not None:
+            # TODO: Handle other block types
+            if parent.type in [self.names.block, self.names.root]:
+                return parent
+            if parent.type == self.names.error:
+                self.error_detected = True
+                return parent
+            parent = parent.parent
+        else:
+            self.debug_helper(node)
+            raise RuntimeError("Could not find containing block")
+
     def fill_param_vectors(self, training: bool = True) -> list:
         """Extracts features like Zhenhao et al., i.e. looks at all blocks that are inside functions."""
+        self.error_detected = False
         param_vectors = []
         visited_nodes = set()
         func_def_query = self.lang.query(f"({self.names.func_def}) @funcdef")
@@ -153,6 +171,9 @@ class Extractor:
                 self.check_parent(block_node, param_vec)
                 # Collect information from the block node's content
                 self.check_block(block_node, param_vec)
+                # Discard blocks for which syntax errors have been discovered
+                if self.error_detected:
+                    continue
 
                 if training:
                     param_vec_list = list(param_vec.values())

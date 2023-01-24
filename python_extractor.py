@@ -173,7 +173,7 @@ class PythonExtractor(Extractor):
             # Using the loop allows us to skip function decorators for the parent parameter
             parent = considered_node.parent
             while parent is not None:
-                if parent.type == "block":
+                if parent.type == self.names.block:
                     param_vec["parent"] = self.get_node_type(parent.parent)
                     break
                 if parent.type == self.names.root:
