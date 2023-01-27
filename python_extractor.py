@@ -65,18 +65,32 @@ class PythonExtractor(Extractor):
         """Build the context of the block and computes depth from def"""
 
         # Find the containing (function) definition
-        def_node = block_node.parent
+        def_node = None
+        depth_from_def = -1
+        looking_for_def = True
+        climbing_node = block_node.parent
         # Measure the depth of nesting from the node's containing func/class def or module
         # Remains 0 if the given block node is the child of a function definition
-        depth_from_def = 0
-        while def_node.type != self.names.func_def:
+        depth_from_root = 0
+        while climbing_node.type != self.names.root:
             # Stop when encountering an error
-            if def_node.type == self.names.error:
+            if climbing_node.type == self.names.error:
                 self.error_detected = True
                 return
-            def_node = def_node.parent
-            depth_from_def += 1
+            # Note the height until enclosing function definition
+            if looking_for_def and climbing_node.type == self.names.func_def:
+                looking_for_def = False
+                def_node = climbing_node
+                depth_from_def = depth_from_root
+            climbing_node = climbing_node.parent
+            depth_from_root += 1
+        assert def_node is not None
+        assert depth_from_def != -1
         param_vec["depth_from_def"] = depth_from_def
+        param_vec["depth_from_root"] = depth_from_root
+        # Only build the context if argument is given
+        if not self.settings.alt:
+            return
 
         def add_relevant_node(node: Node, context: list):
             if node.is_named and node.type in most_node_types:
@@ -105,11 +119,10 @@ class PythonExtractor(Extractor):
         """Checks a block node for contained features, including logging by calling check_expression().
         Optionally also build the node's context."""
 
-        if self.settings.alt:
-            # Build the context of the block like in Zhenhao et al.
-            self.build_context_of_block_node(block_node, param_vec)
-            if self.error_detected:
-                return
+        # Calculate the depth and optionally build the context of the block
+        self.build_context_of_block_node(block_node, param_vec)
+        if self.error_detected:
+            return
 
         # Check the contents of the block, find logging
         for child in block_node.children:
@@ -149,19 +162,18 @@ class PythonExtractor(Extractor):
         """Find the block node's and parent's types.
         Collect information pertaining to the block node's ancestors and siblings"""
 
-        # Find the block node's "type". For Python, this is always simply its parent's type.
-        try:
-            param_vec["type"] = self.get_node_type(block_node.parent)
-        except KeyError as e:
-            self.error_detected = True
-            self.logger.error(f"Node type <{str(block_node.parent.type)}> key error in file {self.file} "
-                              f"in line {block_node.parent.start_point[0] + 1}")
-            return
-
         # Get the block node's parent node
         node: Node = block_node.parent
+        if not node.is_named:
+            self.error_detected = True
+            return
+        param_vec["type"] = self.get_node_type(node)
         # Get the containing block
-        parent = self.find_containing_block(node)
+        containing_block = self.find_containing_block(node)
+        if self.error_detected:
+            return
+        # parent = containing_block.parent
+
         # Special treatment for "else" as Python has if..else, for..else, while..else and try..else
         # and they all use the same node type for the else clause (in Tree-Sitter at least).
         # Therefore we consider the parent of else as its parent (i.e. "if" in an if..else situation),
@@ -171,12 +183,11 @@ class PythonExtractor(Extractor):
         if node.type == "else_clause":
             param_vec["parent"] = self.get_node_type(node.parent)
         elif node.type in compound_statements + extra_clauses:
-            if parent.type == self.names.block:
-                param_vec["parent"] = self.get_node_type(parent.parent)
-            elif parent.type == self.names.root:
-                param_vec["parent"] = self.get_node_type(parent)
+            if containing_block.type == self.names.block:
+                param_vec["parent"] = self.get_node_type(containing_block.parent)
+            elif containing_block.type == self.names.root:
+                param_vec["parent"] = self.get_node_type(containing_block)
         else:
-            err_str = f"Node type {node.type} not handled"
-            raise RuntimeError(err_str)
-        assert parent is not None
-        param_vec["num_siblings"] = parent.named_child_count
+            raise RuntimeError(f"Node type {node.type} not handled")
+        assert containing_block is not None
+        param_vec["num_siblings"] = containing_block.named_child_count

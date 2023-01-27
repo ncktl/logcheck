@@ -118,8 +118,9 @@ features_onehot_expanded = make_features([
     ("num_siblings", 0),
     ("num_children", 0),
     ("depth_from_def", 0),
+    ("depth_from_root", 0),
     ("parent", ""),
-    ("context", "")
+    ("context", "_")
 ])
 par_vec_onehot_expanded = dict([x for y in features_onehot_expanded for x in y])
 
