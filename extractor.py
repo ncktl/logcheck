@@ -113,7 +113,7 @@ class Extractor:
         print(f"Children: {node.children}")
         # print(node.text.decode("UTF-8"))
 
-    def get_node_type(self, node_or_str):
+    def get_node_type(self, node_or_str, encode=False):
         """Returns the node type of the given node or type string.
         If the -a/--alt flag is set, the type is returned ascii encoded."""
         if type(node_or_str) == str:
@@ -122,23 +122,22 @@ class Extractor:
             key = node_or_str.type
         else:
             raise RuntimeError("Bad input type given to get_node_type()")
-        if self.settings.encode:
+        if self.settings.encode or encode:
             return node_dict[key]
         else:
             return key
 
-    def find_child_of_block_ancestor(self, node: Node):
-        """Returns the child of the lowest containing block node that is in the node's ancestry.
-        This will be the node itself if its parent is a block node. """
-        ancestor = node
-        while ancestor.parent is not None:
+    def find_containing_block(self, node: Node):
+        """Returns the lowest block node containing the node."""
+        parent = node.parent
+        while parent is not None:
             # TODO: Handle other block types
-            if ancestor.parent.type in [self.names.block, self.names.root]:
-                return ancestor
-            if ancestor.parent.type == self.names.error:
+            if parent.type in [self.names.block, self.names.root]:
+                return parent
+            if parent.type == self.names.error:
                 self.error_detected = True
-                return ancestor
-            ancestor = ancestor.parent
+                return parent
+            parent = parent.parent
         else:
             self.debug_helper(node)
             raise RuntimeError("Could not find containing block")

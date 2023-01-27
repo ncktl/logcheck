@@ -86,7 +86,7 @@ class PythonExtractor(Extractor):
                         print("add_relevant_node: ", node.child_by_field_name("function").text.decode("UTF-8"))
                     return
                 else:
-                    context.append(self.get_node_type(node))
+                    context.append(self.get_node_type(node, encode=True))
 
         context = []
         # Add the ast nodes that came before the block in its parent (func|class) def or module
@@ -160,9 +160,8 @@ class PythonExtractor(Extractor):
 
         # Get the block node's parent node
         node: Node = block_node.parent
-        # Get the first ancestor whose parent is a block. In most cases this is the node itself.
-        considered_node = self.find_child_of_block_ancestor(node)
-        parent = considered_node.parent  # block or root
+        # Get the containing block
+        parent = self.find_containing_block(node)
         # Special treatment for "else" as Python has if..else, for..else, while..else and try..else
         # and they all use the same node type for the else clause (in Tree-Sitter at least).
         # Therefore we consider the parent of else as its parent (i.e. "if" in an if..else situation),
@@ -181,8 +180,3 @@ class PythonExtractor(Extractor):
             raise RuntimeError(err_str)
         assert parent is not None
         param_vec["num_siblings"] = parent.named_child_count
-        # The position of the node among its siblings, (e.g. node is the 2nd child of its parent)
-        # Actually makes the performance WORSE with rnd_forest classifier
-        # TODO: Check if +1 is best
-        # param_vec["sibling_index"] = node.parent.children.index(node) + 1
-        param_vec["sibling_index"] = parent.children.index(considered_node) + 1
