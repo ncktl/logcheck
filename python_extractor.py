@@ -159,41 +159,23 @@ class PythonExtractor(Extractor):
 
         # Get the block node's parent node
         node: Node = block_node.parent
-        # We try to find the node's logical parent,
-        # and the position of the highest ancestor of the node among the logical parent's children (sibling_index)
-        # This allows us e.g. to find the sibling_index of a function definition that is decorated among its enclosing
-        # block. Otherwise, the decorator would be considered the parent and the sibling_index would always be 0
-        parent = None
-        considered_node = node
-        # For compound statements (like function definition, if-statement, for-statement, etc.)
-        # we consider the enclosing block's parent as logical parent,
-        # or the module, if there is no block between the compound statement and the module node
-        # (module, the root, is essentially a block)
+
         if node.type in compound_statements:
-            # Using the loop allows us to skip function decorators for the parent parameter
-            parent = considered_node.parent
-            while parent is not None:
-                if parent.type == self.names.block:
-                    param_vec["parent"] = self.get_node_type(parent.parent)
-                    break
-                if parent.type == self.names.root:
-                    param_vec["parent"] = self.get_node_type(parent)
-                    break
-                if parent.type == self.names.error:
-                    param_vec["parent"] = self.get_node_type(parent)
-                    param_vec["type"] = self.get_node_type(parent)
-                    return
-                considered_node = parent
-                parent = parent.parent
-            else:
-                self.debug_helper(node)
-                raise RuntimeError("Could not find parent of node")
+            considered_node = self.find_ancestor_in_containing_block(node)
+            parent = considered_node.parent  # block or root
+            if parent.type == self.names.block:
+                param_vec["parent"] = self.get_node_type(parent.parent)
+            elif parent.type == self.names.root:
+                param_vec["parent"] = self.get_node_type(parent)
+
+
         # For the extra clauses (like else, elif, except, finally,etc.)
         # we consider the parent compound statement as logical parent
         # TODO: Consider the parent compound statement's logical parent as logical parent instead?
         elif node.type in extra_clauses:
             parent = node.parent
             param_vec["parent"] = self.get_node_type(parent)
+            considered_node = node
         else:
             err_str = f"Node type {node.type} not handled"
             raise RuntimeError(err_str)

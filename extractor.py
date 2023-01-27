@@ -127,16 +127,17 @@ class Extractor:
         else:
             return key
 
-    def find_containing_block(self, node: Node):
-        parent = node.parent
-        while parent is not None:
+    def find_ancestor_in_containing_block(self, node: Node):
+        """Returns the ancestor of the node among the containing block node's children"""
+        ancestor = node
+        while ancestor.parent is not None:
             # TODO: Handle other block types
-            if parent.type in [self.names.block, self.names.root]:
-                return parent
-            if parent.type == self.names.error:
+            if ancestor.parent.type in [self.names.block, self.names.root]:
+                return ancestor
+            if ancestor.parent.type == self.names.error:
                 self.error_detected = True
-                return parent
-            parent = parent.parent
+                return ancestor
+            ancestor = ancestor.parent
         else:
             self.debug_helper(node)
             raise RuntimeError("Could not find containing block")
@@ -169,9 +170,11 @@ class Extractor:
                 param_vec["num_children"] = block_node.named_child_count
                 # Collect information from the block node's ancestors and siblings
                 self.check_parent(block_node, param_vec)
+                # Discard blocks for which syntax errors have been discovered
+                if self.error_detected:
+                    continue
                 # Collect information from the block node's content
                 self.check_block(block_node, param_vec)
-                # Discard blocks for which syntax errors have been discovered
                 if self.error_detected:
                     continue
 

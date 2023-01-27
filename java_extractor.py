@@ -47,9 +47,9 @@ class JavaExtractor(Extractor):
         node: Node = block_node.parent
         node_type = node.type
         # The containing block
-        containing_block = self.find_containing_block(node)
+        ancestor = self.find_ancestor_in_containing_block(node)
 
-        if node.parent == containing_block:
+        if node == ancestor:
             parent_type = self.handle_block_parent(node)
         else:
             parent_type = node.parent.type
@@ -67,7 +67,7 @@ class JavaExtractor(Extractor):
                 assert node.prev_sibling.type == "else"
                 node_type = "elif"
             # regular if
-            elif node.parent == containing_block:
+            elif node== ancestor:
                 pass
             else:
                 self.debug_helper(node)
@@ -81,4 +81,4 @@ class JavaExtractor(Extractor):
 
         param_vec["type"] = self.get_node_type(node_type)
         param_vec["parent"] = self.get_node_type(parent_type)
-        param_vec["num_siblings"] = containing_block.named_child_count
+        param_vec["num_siblings"] = ancestor.parent.named_child_count
