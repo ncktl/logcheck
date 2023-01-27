@@ -104,14 +104,12 @@ class Extractor:
         # a block, this flag will be raised and the block discarded.
         self.error_detected = False
         self.logger = logging.getLogger(self.settings.language.capitalize() + "Extractor")
-        self.logger.setLevel(logging.DEBUG)
+        # self.logger.setLevel(logging.DEBUG)
 
     def debug_helper(self, node: Node):
-        print(self.file)
-        print(f"Parent: {node.parent}")
-        print(node)
-        print(f"Children: {node.children}")
-        # print(node.text.decode("UTF-8"))
+        debug_str = f"{self.file}\nParent: {node.parent}\n{str(node)}\nChildren: {node.children}"
+        self.logger.error(debug_str)
+        # self.logger.error(node.text.decode("UTF-8"))
 
     def get_node_type(self, node_or_str, encode=False):
         """Returns the node type of the given node or type string.
@@ -177,6 +175,11 @@ class Extractor:
                 self.check_block(block_node, param_vec)
                 if self.error_detected:
                     continue
+
+                # Debug grandparent feature
+                # if param_vec["contains_logging"] and param_vec["grandparent"] == "rootception":
+                #     self.logger.error("Found logging in a block whose containing block is already root:")
+                #     self.debug_helper(block_node.parent)
 
                 if training:
                     param_vec_list = list(param_vec.values())

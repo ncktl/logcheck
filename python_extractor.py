@@ -172,8 +172,29 @@ class PythonExtractor(Extractor):
         containing_block = self.find_containing_block(node)
         if self.error_detected:
             return
-        # parent = containing_block.parent
-
+        param_vec["num_siblings"] = containing_block.named_child_count
+        # Detect grandparent
+        if containing_block.type == self.names.root:
+            param_vec["grandparent"] = "rootception"
+        else:
+            parent = containing_block.parent
+            second_containing_block = self.find_containing_block(parent)
+            if self.error_detected:
+                return
+            param_vec["num_cousins"] = second_containing_block.named_child_count
+            if parent.type == "else_clause":
+                param_vec["grandparent"] = self.get_node_type(parent.parent)
+            elif parent.type in compound_statements + extra_clauses:
+                if second_containing_block.type == self.names.block:
+                    param_vec["grandparent"] = self.get_node_type(second_containing_block.parent)
+                elif second_containing_block.type == self.names.root:
+                    param_vec["grandparent"] = self.get_node_type(second_containing_block)
+                else:
+                    self.debug_helper(second_containing_block)
+                    raise RuntimeError(f"Second containing block is neither block nor root")
+            else:
+                raise RuntimeError(f"Parent node type {parent.type} not handled")
+        # Detect parent
         # Special treatment for "else" as Python has if..else, for..else, while..else and try..else
         # and they all use the same node type for the else clause (in Tree-Sitter at least).
         # Therefore we consider the parent of else as its parent (i.e. "if" in an if..else situation),
@@ -187,7 +208,8 @@ class PythonExtractor(Extractor):
                 param_vec["parent"] = self.get_node_type(containing_block.parent)
             elif containing_block.type == self.names.root:
                 param_vec["parent"] = self.get_node_type(containing_block)
+            else:
+                self.debug_helper(containing_block)
+                raise RuntimeError(f"Containing block is neither block nor root")
         else:
             raise RuntimeError(f"Node type {node.type} not handled")
-        assert containing_block is not None
-        param_vec["num_siblings"] = containing_block.named_child_count
