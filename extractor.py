@@ -122,13 +122,14 @@ class Extractor:
             key = node_or_str.type
         else:
             raise RuntimeError("Bad input type given to get_node_type()")
-        if self.settings.alt:
+        if self.settings.encode:
             return node_dict[key]
         else:
             return key
 
-    def find_ancestor_in_containing_block(self, node: Node):
-        """Returns the ancestor of the node among the containing block node's children"""
+    def find_child_of_block_ancestor(self, node: Node):
+        """Returns the child of the lowest containing block node that is in the node's ancestry.
+        This will be the node itself if its parent is a block node. """
         ancestor = node
         while ancestor.parent is not None:
             # TODO: Handle other block types

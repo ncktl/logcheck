@@ -160,23 +160,22 @@ class PythonExtractor(Extractor):
 
         # Get the block node's parent node
         node: Node = block_node.parent
-
-        if node.type in compound_statements:
-            considered_node = self.find_ancestor_in_containing_block(node)
-            parent = considered_node.parent  # block or root
+        # Get the first ancestor whose parent is a block. In most cases this is the node itself.
+        considered_node = self.find_child_of_block_ancestor(node)
+        parent = considered_node.parent  # block or root
+        # Special treatment for "else" as Python has if..else, for..else, while..else and try..else
+        # and they all use the same node type for the else clause (in Tree-Sitter at least).
+        # Therefore we consider the parent of else as its parent (i.e. "if" in an if..else situation),
+        # but for other "extra clauses" (case_clause, elif_clause, except_clause, except_group_clause, finally_clause)
+        # we consider the grandparent as its parent (i.e. "if" for "except" in an if..try..except situation)
+        # However, for the number of siblings we still consider the else's grandparent
+        if node.type == "else_clause":
+            param_vec["parent"] = self.get_node_type(node.parent)
+        elif node.type in compound_statements + extra_clauses:
             if parent.type == self.names.block:
                 param_vec["parent"] = self.get_node_type(parent.parent)
             elif parent.type == self.names.root:
                 param_vec["parent"] = self.get_node_type(parent)
-
-
-        # For the extra clauses (like else, elif, except, finally,etc.)
-        # we consider the parent compound statement as logical parent
-        # TODO: Consider the parent compound statement's logical parent as logical parent instead?
-        elif node.type in extra_clauses:
-            parent = node.parent
-            param_vec["parent"] = self.get_node_type(parent)
-            considered_node = node
         else:
             err_str = f"Node type {node.type} not handled"
             raise RuntimeError(err_str)

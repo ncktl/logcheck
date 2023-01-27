@@ -179,7 +179,9 @@ if __name__ == "__main__":
     arg_parser.add_argument("-d", "--debug", action="store_true",
                             help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",
-                            help="Also extract the context when in extraction mode. Type names will be ascii encoded.")
+                            help="Also extract the context when in extraction mode.")
+    arg_parser.add_argument("-c", "--encode", action="store_true",
+                            help="ASCII encode type names to save space.")
     settings = arg_parser.parse_args()
 
     # Check arguments
