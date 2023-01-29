@@ -130,7 +130,7 @@ class Extractor:
         parent = node.parent
         while parent is not None:
             # TODO: Handle other block types
-            if parent.type in [self.names.block, self.names.root]:
+            if parent.type in self.names.containing_block_types:
                 return parent
             if parent.type == self.names.error:
                 self.error_detected = True
@@ -140,6 +140,52 @@ class Extractor:
             self.debug_helper(node)
             raise RuntimeError("Could not find containing block")
 
+    def process_block_node(self, block_node: Node, training: bool, param_vectors: list, visited_nodes: set):
+        # print(block_node.type)
+        # Uniqueness check using start and end byte tuple
+        check_value = (block_node.start_byte, block_node.end_byte)
+        if check_value in visited_nodes:
+            return
+        else:
+            visited_nodes.add(check_value)
+        # Create a parameter vector for the block node and enter some information
+        param_vec = copy(par_vec_onehot_expanded)
+        param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
+                                f"{block_node.end_point[0]};{block_node.end_point[1]}"
+        # Add +2 instead because the block lacks the parent's line?
+        param_vec["length"] = block_node.end_point[0] - block_node.start_point[0] + 1
+        param_vec["num_children"] = block_node.named_child_count
+        # Collect information from the block node's ancestors and siblings
+        self.check_parent(block_node, param_vec)
+        # Discard blocks for which syntax errors have been discovered
+        if self.error_detected:
+            return
+        # Collect information from the block node's content
+        self.check_block(block_node, param_vec)
+        if self.error_detected:
+            return
+
+        # Debug grandparent feature
+        # if param_vec["contains_logging"] and param_vec["grandparent"] == "rootception":
+        #     self.logger.error("Found logging in a block whose containing block is already root:")
+        #     self.debug_helper(block_node.parent)
+
+        if training:
+            param_vec_list = list(param_vec.values())
+            # Check that no parameters have been accidentally added
+            if len(param_vec_list) != len(par_vec_onehot_expanded):
+                self.debug_helper(block_node)
+                print(par_vec_onehot_expanded.keys())
+                print(param_vec.keys())
+                raise RuntimeError("Parameter vector length mismatch")
+            param_vectors.append(param_vec_list)
+        else:
+            # For prediction, the extracted parameters will be returned as a list of dicts for subsequent
+            # pandas.Dataframe creation
+            # Only recommend for a node that doesn't have logging already
+            if not param_vec["contains_logging"]:
+                param_vectors.append(param_vec)
+
     def fill_param_vectors(self, training: bool = True) -> list:
         """Extracts features like Zhenhao et al., i.e. looks at all blocks that are inside functions."""
         self.error_detected = False
@@ -147,53 +193,12 @@ class Extractor:
         visited_nodes = set()
         func_def_query = self.lang.query(f"({self.names.func_def}) @funcdef")
         func_def_nodes = func_def_query.captures(self.tree.root_node)
-        block_query = self.lang.query("(block) @block")
         for funcdef_node, func_tag in func_def_nodes:
             funcdef_node: Node
-            block_nodes = block_query.captures(funcdef_node)
-            for block_node, block_tag in block_nodes:
-                block_node: Node
-                # Uniqueness check using start and end byte tuple
-                check_value = (block_node.start_byte, block_node.end_byte)
-                if check_value in visited_nodes:
-                    continue
-                else:
-                    visited_nodes.add(check_value)
-                # Create a parameter vector for the block node and enter some information
-                param_vec = copy(par_vec_onehot_expanded)
-                param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
-                                        f"{block_node.end_point[0]};{block_node.end_point[1]}"
-                # Add +2 instead because the block lacks the parent's line?
-                param_vec["length"] = block_node.end_point[0] - block_node.start_point[0] + 1
-                param_vec["num_children"] = block_node.named_child_count
-                # Collect information from the block node's ancestors and siblings
-                self.check_parent(block_node, param_vec)
-                # Discard blocks for which syntax errors have been discovered
-                if self.error_detected:
-                    continue
-                # Collect information from the block node's content
-                self.check_block(block_node, param_vec)
-                if self.error_detected:
-                    continue
-
-                # Debug grandparent feature
-                # if param_vec["contains_logging"] and param_vec["grandparent"] == "rootception":
-                #     self.logger.error("Found logging in a block whose containing block is already root:")
-                #     self.debug_helper(block_node.parent)
-
-                if training:
-                    param_vec_list = list(param_vec.values())
-                    # Check that no parameters have been accidentally added
-                    if len(param_vec_list) != len(par_vec_onehot_expanded):
-                        self.debug_helper(block_node)
-                        print(par_vec_onehot_expanded.keys())
-                        print(param_vec.keys())
-                        raise RuntimeError("Parameter vector length mismatch")
-                    param_vectors.append(param_vec_list)
-                else:
-                    # For prediction, the extracted parameters will be returned as a list of dicts for subsequent
-                    # pandas.Dataframe creation
-                    # Only recommend for a node that doesn't have logging already
-                    if not param_vec["contains_logging"]:
-                        param_vectors.append(param_vec)
+            for block_name in self.names.block_types:
+                block_query = self.lang.query(f"({block_name}) @block")
+                block_nodes = block_query.captures(funcdef_node)
+                for block_node, block_tag in block_nodes:
+                    block_node: Node
+                    self.process_block_node(block_node, training, param_vectors, visited_nodes)
         return param_vectors

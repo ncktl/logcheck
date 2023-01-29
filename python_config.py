@@ -15,6 +15,8 @@ class NodeNames:
 @dataclass
 class PythonNodeNames(NodeNames):
     root = "module"
+    block_types = ["block"]
+    containing_block_types = ["module", "block"]
     func_def = "function_definition"
     class_def = "class_definition"
     func_call = "call"
@@ -23,7 +25,8 @@ class PythonNodeNames(NodeNames):
 @dataclass
 class JavaNodeNames(NodeNames):
     root = "program"
-    alt_blocks = ["block", "constructor_body"]  # Who logs in a constructor?
+    block_types = ["block", "constructor_body", "switch_block_statement_group"]
+    containing_block_types = ["program", "class_body", "enum_body_declarations"] + block_types
     # More types that can have statements which in turn can have blocks:
     # do_statement enhanced_for_statement for_statement if_statement
     # labeled_statement program switch_block_statement_group while_statement

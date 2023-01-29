@@ -65,7 +65,7 @@ keyword = re.compile(
 # Java doesn't have compound statements.
 # The following compound statements and extra clauses are those Java node types that can have a block node as a child.
 compound_statements = [
-    "class_body",  # class_declaration > class_body is a special block node. Can contain a block or if_statement etc.
+    "class_body",  # class_declaration > class_body is a special block node. Can contain a block(?) or if_statement etc.
     "compact_constructor_declaration",
     "enum_body_declarations",  # enum_declaration > enum_body > enum_body_declarations is a special block node.
     # Enums are a lot like classes. enum_body_declarations can contain a block or if_statement etc.

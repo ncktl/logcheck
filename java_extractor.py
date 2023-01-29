@@ -48,9 +48,19 @@ class JavaExtractor(Extractor):
         node_type = node.type
         # The containing block
         containing_block = self.find_containing_block(node)
+        if self.error_detected:
+            return
 
         if node.parent == containing_block:
-            parent_type = self.handle_block_parent(node)
+            # Special treatments for different kind of Java blocks
+            if node.parent.type == self.names.block:
+                parent_type = self.handle_block_parent(node)
+            elif node.parent.type in ["enum_body_declarations", "switch_block_statement_group"]:
+                parent_type = node.parent.parent.type
+            else:
+                parent_type = node.parent.type
+                # Debug
+                # print(node)
         else:
             parent_type = node.parent.type
 
@@ -75,10 +85,19 @@ class JavaExtractor(Extractor):
         # Handle method declarations
         elif node.type == self.names.func_def:
             pass
+        elif node.type in ["for_statement",
+                           "do_statement",
+                           "try_statement",
+                           "catch_clause",
+                           "constructor_declaration",
+                           "switch_block",
+                           ]:
+            pass
         else:
             self.debug_helper(node)
             raise RuntimeError(f"Node type <{str(node.type)}> not handled")
 
         param_vec["type"] = self.get_node_type(node_type)
+        assert parent_type not in ["class_declaration", "constructor_declaration"]
         param_vec["parent"] = self.get_node_type(parent_type)
         param_vec["num_siblings"] = containing_block.named_child_count
