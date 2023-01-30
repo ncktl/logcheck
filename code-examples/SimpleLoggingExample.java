@@ -3,12 +3,12 @@ Multiline comment
 */
 
 // Example from https://logging.apache.org/log4j/2.x/manual/configuration.html
-import com.foo.Bar;
 import java.util.Scanner;
 
 // Import log4j classes.
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+// import org.apache.logging.log4j.Logger;
+// import org.apache.logging.log4j.LogManager;
+import java.util.logging.Logger;
 
 public class SimpleLoggingExample {
 
@@ -42,7 +42,7 @@ public class SimpleLoggingExample {
 
         private final double mass;   // in kilograms
         private final double radius; // in meters
-        Planet(double mass, double radius) {
+        Color(double mass, double radius) {
             this.mass = mass;
             this.radius = radius;
         }
@@ -57,6 +57,9 @@ public class SimpleLoggingExample {
         }
         catch (IOException e) {
             System.out.println("No logging!");
+        }
+        finally {
+            System.out.println("Finally!");
         }
         try {
             this.one();
@@ -87,6 +90,15 @@ public class SimpleLoggingExample {
             for (int i=0; i<5; i++) {
                 System.out.println("Good night");
             }
+        }
+        if (2 > 0) {
+            int a = 0;
+        }
+        else if (4 < 3) {
+            logger.info("Hiii");
+        }
+        else {
+            int a = 4;
         }
     }
 }

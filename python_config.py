@@ -25,8 +25,12 @@ class PythonNodeNames(NodeNames):
 @dataclass
 class JavaNodeNames(NodeNames):
     root = "program"
-    block_types = ["block", "constructor_body", "switch_block_statement_group"]
-    containing_block_types = ["program", "class_body", "enum_body_declarations"] + block_types
+    # Important to have "block" last, so we first go through the non-regular block types and find cases where they
+    # have regular block children, which will then be processed and added to the visited nodes set
+    block_types = ["constructor_body", "switch_block_statement_group", "block"]
+    containing_block_types = ["program",
+                              "class_body",
+                              "enum_body_declarations"] + block_types
     # More types that can have statements which in turn can have blocks:
     # do_statement enhanced_for_statement for_statement if_statement
     # labeled_statement program switch_block_statement_group while_statement
@@ -98,8 +102,8 @@ for i, node_type in enumerate(most_node_types):
 rev_node_dict = dict(zip(node_dict.values(), node_dict.keys()))
 
 
-def prefix(string):
-    return lambda x: [string + y for y in x]
+def prefix(prefix_string):
+    return lambda string_list: [prefix_string + string_from_list for string_from_list in string_list]
 
 
 def vectorize(x):

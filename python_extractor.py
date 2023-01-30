@@ -1,12 +1,9 @@
-import logging
-from copy import copy
-
 from tree_sitter import Language, Tree, Node
 
 import python_config as cfg
-from python_config import compound_statements, extra_clauses, statements, keyword, node_dict
-from python_config import most_node_types, par_vec_onehot_expanded
 from extractor import Extractor, traverse_sub_tree
+from python_config import compound_statements, extra_clauses, statements, keyword
+from python_config import most_node_types
 
 extra_debugging = False
 
@@ -21,17 +18,21 @@ class PythonExtractor(Extractor):
         """
         super().__init__(src, lang, tree, file, settings)
 
+    def get_func_call_str(self, func_call_node: Node):
+        assert func_call_node.type == self.names.func_call
+        func_call_str = func_call_node.child_by_field_name("function").text.decode("UTF-8").lower()
+        return func_call_str
+
     def check_expression(self, exp_child: Node, param_vec: dict):
         """Checks an expression node for contained features of the parent block node"""
 
         # Call
         if exp_child.type == self.names.func_call:
             # Check call nodes for logging. Only if it's not a logging statement do we count it as a call.
-            func_call = exp_child.child_by_field_name("function")
-            if keyword.match(func_call.text.decode("UTF-8").lower()):
+            func_call_str = self.get_func_call_str(exp_child)
+            if keyword.match(func_call_str):
                 if self.settings.debug and extra_debugging:
-                    print("check_expression: ", func_call.text.decode("UTF-8"))
-                    # "contains_logging" remains 0/1 as it is the target
+                    print("check_expression: ", func_call_str)
                 param_vec["contains_logging"] = 1
             else:
                 param_vec["contains_call"] += 1
@@ -93,14 +94,13 @@ class PythonExtractor(Extractor):
             return
 
         def add_relevant_node(node: Node, context: list):
+            """Adds the node to the context unless it is a logging statement"""
             if node.is_named and node.type in most_node_types:
-                if node.type == "call" \
-                        and keyword.match(node.child_by_field_name("function").text.decode("UTF-8").lower()):
-                    if self.settings.debug and extra_debugging:
-                        print("add_relevant_node: ", node.child_by_field_name("function").text.decode("UTF-8"))
-                    return
-                else:
-                    context.append(self.get_node_type(node, encode=True))
+                if node.type == self.names.func_call:
+                    func_call_str = self.get_func_call_str(node)
+                    if keyword.match(func_call_str):
+                        return
+                context.append(self.get_node_type(node, encode=True))
 
         context = []
         # Add the ast nodes that came before the block in its parent (func|class) def or module
@@ -144,8 +144,8 @@ class PythonExtractor(Extractor):
                 elif child.child_by_field_name("definition").type == "function_definition":
                     param_vec["contains_function_definition"] += 1
                 else:
-                    self.debug_helper(child)
-                    raise RuntimeError("Decorated definition not handled")
+                    debug_str = self.debug_helper(child)
+                    raise RuntimeError(f"Decorated definition not handled\n{debug_str}")
                 continue
             # Build the contains_features
             # Check if the child is a compound or simple statement
@@ -190,8 +190,8 @@ class PythonExtractor(Extractor):
                 elif second_containing_block.type == self.names.root:
                     param_vec["grandparent"] = self.get_node_type(second_containing_block)
                 else:
-                    self.debug_helper(second_containing_block)
-                    raise RuntimeError(f"Second containing block is neither block nor root")
+                    debug_str = self.debug_helper(second_containing_block)
+                    raise RuntimeError(f"Second containing block is neither block nor root\n{debug_str}")
             else:
                 raise RuntimeError(f"Parent node type {parent.type} not handled")
         # Detect parent
@@ -209,7 +209,7 @@ class PythonExtractor(Extractor):
             elif containing_block.type == self.names.root:
                 param_vec["parent"] = self.get_node_type(containing_block)
             else:
-                self.debug_helper(containing_block)
-                raise RuntimeError(f"Containing block is neither block nor root")
+                debug_str = self.debug_helper(containing_block)
+                raise RuntimeError(f"Containing block is neither block nor root\n{debug_str}")
         else:
             raise RuntimeError(f"Node type {node.type} not handled")

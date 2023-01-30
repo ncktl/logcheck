@@ -12,43 +12,7 @@ def print_children(node: Node, level=0, print_unnamed=False, maxdepth=999):
         return
     if node.is_named or print_unnamed:
         print(f"Line {node.start_point[0] + 1}: " + (level * 2) * "  " + str(node))
-    ### Debug
-    # if node.type == "elif_clause":
-    #     special = node.child_by_field_name("consequence")
-    #     print("ELIF")
-    #     print(special)
-    #     print("ELIF")
-    # if node.type == "else_clause":
-    #     special = node.child_by_field_name("body")
-    #     print("Else")
-    #     print(special)
-    #     print("Else")
-    # if node.type == "try_statement":
-    #     print("Try children:")
-    #     for child in node.children:
-    #         if child.is_named:
-    #             print(child)
-    #     print("Get body by field name:")
-    #     special = node.child_by_field_name("body")
-    #     print(special)
-    #     print("Try handling over")
-    # if node.type == "named_expression":
-    #     print("Named expression", node)
-    #     print("Parent", node.parent)
-    #     print("Children", node.children)
-    # if node.type == "block":
-    #     print("Children:", node.children)
-    # if node.type == "assignment":
-    #     print("Parent", node.parent)
-    #     print("Left: ", node.child_by_field_name("left"))
-    #     print("Right: ", node.child_by_field_name("right"))
-    #     print("Type: ", node.child_by_field_name("type"))
-    # if node.type == "augmented_assignment":
-    #     print("Parent", node.parent)
-    #     print("Left: ", node.child_by_field_name("left"))
-    #     print("Right: ", node.child_by_field_name("right"))
     for child in node.children:
-        # if child.is_named: print_children(child, level + 1)
         print_children(child, level + 1, print_unnamed)
 
 
@@ -79,9 +43,6 @@ def traverse_sub_tree(root_node: Node, stop_node: Node = None):
                 retracing = False
 
 
-
-
-
 class Extractor:
     def __init__(self, src: str, lang: Language, tree: Tree, file, settings):
         """
@@ -103,13 +64,15 @@ class Extractor:
         # The parsed source code files can contain syntax errors. If a syntax error is discovered during processing of
         # a block, this flag will be raised and the block discarded.
         self.error_detected = False
+        self.visited_nodes = set()
         self.logger = logging.getLogger(self.settings.language.capitalize() + "Extractor")
         # self.logger.setLevel(logging.DEBUG)
 
     def debug_helper(self, node: Node):
         debug_str = f"{self.file}\nParent: {node.parent}\n{str(node)}\nChildren: {node.children}"
-        self.logger.error(debug_str)
+        # self.logger.error(debug_str)
         # self.logger.error(node.text.decode("UTF-8"))
+        return debug_str
 
     def get_node_type(self, node_or_str, encode=False):
         """Returns the node type of the given node or type string.
@@ -129,7 +92,6 @@ class Extractor:
         """Returns the lowest block node containing the node."""
         parent = node.parent
         while parent is not None:
-            # TODO: Handle other block types
             if parent.type in self.names.containing_block_types:
                 return parent
             if parent.type == self.names.error:
@@ -137,17 +99,16 @@ class Extractor:
                 return parent
             parent = parent.parent
         else:
-            self.debug_helper(node)
-            raise RuntimeError("Could not find containing block")
+            debug_str = self.debug_helper(node)
+            raise RuntimeError(f"Could not find containing block\n{debug_str}")
 
-    def process_block_node(self, block_node: Node, training: bool, param_vectors: list, visited_nodes: set):
-        # print(block_node.type)
+    def process_block_node(self, block_node: Node, training: bool, param_vectors: list):
         # Uniqueness check using start and end byte tuple
         check_value = (block_node.start_byte, block_node.end_byte)
-        if check_value in visited_nodes:
+        if check_value in self.visited_nodes:
             return
         else:
-            visited_nodes.add(check_value)
+            self.visited_nodes.add(check_value)
         # Create a parameter vector for the block node and enter some information
         param_vec = copy(par_vec_onehot_expanded)
         param_vec["location"] = f"{block_node.start_point[0]};{block_node.start_point[1]}-" \
@@ -190,7 +151,7 @@ class Extractor:
         """Extracts features like Zhenhao et al., i.e. looks at all blocks that are inside functions."""
         self.error_detected = False
         param_vectors = []
-        visited_nodes = set()
+        # visited_nodes = set()
         func_def_query = self.lang.query(f"({self.names.func_def}) @funcdef")
         func_def_nodes = func_def_query.captures(self.tree.root_node)
         for funcdef_node, func_tag in func_def_nodes:
@@ -200,5 +161,5 @@ class Extractor:
                 block_nodes = block_query.captures(funcdef_node)
                 for block_node, block_tag in block_nodes:
                     block_node: Node
-                    self.process_block_node(block_node, training, param_vectors, visited_nodes)
+                    self.process_block_node(block_node, training, param_vectors)
         return param_vectors
