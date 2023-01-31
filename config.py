@@ -143,6 +143,10 @@ class JavaNodeNames(NodeNames):
     contains_statements = prefix("contains_")(statements)
     expressions = [
         func_call,
+        "assignment_expression",
+        "update_expression",
+        "object_creation_expression",
+        "binary_expression",
     ]
     extra_clauses = [
         "catch_clause",

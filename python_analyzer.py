@@ -88,7 +88,8 @@ class PythonAnalyzer(PythonExtractor):
 
     def analyze(self) -> list:
         """ Starts the analyses """
-        print_children(self.tree.root_node); exit()
+        print_children(self.tree.root_node, print_unnamed=self.settings.debug); exit()
+
         for node in traverse_sub_tree(self.tree.root_node):
             # if node.is_named and node.type == "expression_statement":
             if node.is_named:

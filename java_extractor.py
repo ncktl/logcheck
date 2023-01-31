@@ -22,6 +22,10 @@ class JavaExtractor(Extractor):
                 param_vec["contains_logging"] = 1
             else:
                 param_vec[f"contains_{self.names.func_call}"] += 1
+        elif exp_child.type in self.names.expressions:
+            param_vec[f"contains_{exp_child.type}"] += 1
+        elif exp_child.is_named and exp_child.type not in ["line_comment", "block_comment"]:
+            self.unhandled_node_types.add(exp_child.type)
 
     def check_block(self, block_node: Node, param_vec: dict, recursion_level=0):
 
