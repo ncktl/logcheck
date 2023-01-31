@@ -135,6 +135,8 @@ class JavaNodeNames(NodeNames):
         "yield_statement", # Todo?
         "switch_label",
         "labeled_statement",
+        "explicit_constructor_invocation",
+        "record_declaration",
     ]
     statements = compound_statements + simple_statements  # TODO
     contains_statements = prefix("contains_")(statements)

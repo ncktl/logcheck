@@ -29,9 +29,9 @@ class JavaExtractor(Extractor):
             self.build_context_of_block_node(block_node, param_vec)
             if self.error_detected:
                 return
-        elif recursion_level > 2:
-            debug_str = self.debug_helper(block_node)
-            self.logger.error(f"Check_block recursion {recursion_level}\n{debug_str}")
+        # elif recursion_level > 2:
+        #     debug_str = self.debug_helper(block_node)
+        #     self.logger.error(f"Check_block recursion {recursion_level}\n{debug_str}")
 
         # TODO: Should we check for block nodes directly inside this block node,
         #  include their content in this block's features and put them into the visited nodes set?
@@ -95,7 +95,7 @@ class JavaExtractor(Extractor):
             # e.g. as a child of a switch_block_statement_group like in
             # Ghidra/Framework/SoftwareModeling/src/main/java/ghidra/pcodeCPort/slghsymbol/SymbolTable.java line 337
             # In that case add the parent block to the visited nodes set (the regular block nodes are visited first)
-            if node.type in self.names.block_types:
+            elif node.type in self.names.block_types:
                 debug_str = self.debug_helper(block_node)
                 self.logger.error(f"Block, child of non reg block\n{debug_str}")
                 # Assumption: This doesn't happen twice in a row
@@ -154,6 +154,7 @@ class JavaExtractor(Extractor):
             "block",  # TODO Included for debug
             "constructor_body",
             "class_body",
+            "switch_rule",
         ]:
             pass
         else:
