@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
 from tree_sitter import Language, Parser
 
-from python_config import parameter_vectors, rev_node_dicts
+from config import parameter_vectors, rev_node_dicts
 
 supported_languages = ["java", "javascript", "python"]
 suf = {
@@ -254,10 +254,10 @@ if __name__ == "__main__":
     # Import the language's config and extractor
     # The extractor class has to be passed on as an argument due to parallelization
     if settings.language == "python":
-        from python_config import reindex
+        from config import reindex
         from python_extractor import PythonExtractor as LangExtractor
     elif settings.language == "java":
-        from java_config import reindex
+        from config import reindex
         from java_extractor import JavaExtractor as LangExtractor
     else:
         raise RuntimeError(f"{settings.language} is not actually supported yet.")

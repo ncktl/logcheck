@@ -4,7 +4,7 @@ import re
 from tree_sitter import Language, Tree, Node
 
 from extractor import print_children, traverse_sub_tree
-from python_config import keyword, PythonNodeNames
+from config import keywords, PythonNodeNames
 from python_extractor import PythonExtractor
 
 

@@ -4,7 +4,7 @@ from copy import copy
 from tree_sitter import Language, Tree, Node, TreeCursor
 
 # TODO: General config
-from python_config import parameter_vectors, node_dicts, node_names, keywords
+from config import parameter_vectors, node_dicts, node_names, keywords
 
 
 def print_children(node: Node, level=0, print_unnamed=False, maxdepth=999):
