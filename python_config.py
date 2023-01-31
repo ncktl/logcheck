@@ -131,8 +131,10 @@ class JavaNodeNames(NodeNames):
         NodeNames.break_stmt,
         NodeNames.continue_stmt,
         "local_variable_declaration",
-        "throw_statement", # Todo
-        "yield_statement", # Todo
+        "throw_statement", # Todo?
+        "yield_statement", # Todo?
+        "switch_label",
+        "labeled_statement",
     ]
     statements = compound_statements + simple_statements  # TODO
     contains_statements = prefix("contains_")(statements)

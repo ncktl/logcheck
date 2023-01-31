@@ -29,7 +29,7 @@ class JavaExtractor(Extractor):
             self.build_context_of_block_node(block_node, param_vec)
             if self.error_detected:
                 return
-        elif recursion_level > 1:
+        elif recursion_level > 2:
             debug_str = self.debug_helper(block_node)
             self.logger.error(f"Check_block recursion {recursion_level}\n{debug_str}")
 
@@ -56,6 +56,9 @@ class JavaExtractor(Extractor):
             elif child.type in self.names.statements:
                 # TODO: Is this more elegant than the approach for Python?
                 param_vec[f"contains_{child.type}"] += 1
+            elif child.type == self.names.error:
+                self.error_detected = True
+                return
             else:
                 self.unhandled_node_types.add(child.type)
 
@@ -84,8 +87,7 @@ class JavaExtractor(Extractor):
         # Handle regular blocks
         if block_node.type == self.names.block:
             node_type = node.type
-            # TODO: There shouldn't be any regular block types with regular block parents being processed
-            #  once check_block is fully implemented
+            # TODO: There shouldn't be any regular block types with block parents being processed due to check_block()!
             if node.type == self.names.block:
                 debug_str = self.debug_helper(block_node)
                 self.logger.error(f"Block, child of block\n{debug_str}")
@@ -94,6 +96,8 @@ class JavaExtractor(Extractor):
             # Ghidra/Framework/SoftwareModeling/src/main/java/ghidra/pcodeCPort/slghsymbol/SymbolTable.java line 337
             # In that case add the parent block to the visited nodes set (the regular block nodes are visited first)
             if node.type in self.names.block_types:
+                debug_str = self.debug_helper(block_node)
+                self.logger.error(f"Block, child of non reg block\n{debug_str}")
                 # Assumption: This doesn't happen twice in a row
                 assert node.parent.type not in self.names.block_types
                 # Add the block type parent to visited nodes so it will be skipped
