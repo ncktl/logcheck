@@ -66,9 +66,9 @@ class JavaExtractor(Extractor):
         assert node.parent.type == self.names.block
         block_parent = node.parent
         logical_parent = node.parent.parent
-        if block_parent.prev_sibling.type == "else":
+        if block_parent.prev_sibling and block_parent.prev_sibling.type == "else":
             parent_type = "else"
-        elif logical_parent.prev_sibling.type == "else":
+        elif logical_parent.prev_sibling and logical_parent.prev_sibling.type == "else":
             parent_type = "elif"
         else:
             parent_type = logical_parent.type
@@ -126,15 +126,17 @@ class JavaExtractor(Extractor):
                 if node.prev_sibling.type == "else":
                     node_type = "elif"
                 # else -> regular if
-            # regular if
-            elif node.parent == containing_block:
-                pass
-            # Loops without curly brackets and exactly one statement
-            elif node.parent.type in self.names.loops:
-                pass
-            else:
-                debug_str = self.debug_helper(node)
-                raise RuntimeError(f"if_stmt, child of <{str(node.parent.type)}> not handled\n{debug_str}")
+
+            # # regular if
+            # elif node.parent == containing_block:
+            #     pass
+            # # Loops without curly brackets and exactly one statement
+            # elif node.parent.type in self.names.loops:
+            #     pass
+            # else:
+            #     debug_str = self.debug_helper(node)
+            #     raise RuntimeError(f"if_stmt, child of <{str(node.parent.type)}> not handled\n{debug_str}")
+
         # Handle method declarations
         elif node_type == self.names.func_def:
             pass

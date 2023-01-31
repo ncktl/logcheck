@@ -137,6 +137,7 @@ class JavaNodeNames(NodeNames):
         "labeled_statement",
         "explicit_constructor_invocation",
         "record_declaration",
+        "interface_declaration",
     ]
     statements = compound_statements + simple_statements  # TODO
     contains_statements = prefix("contains_")(statements)
