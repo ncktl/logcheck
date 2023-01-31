@@ -1,7 +1,6 @@
 from tree_sitter import Language, Tree, Node
 
 from extractor import Extractor
-from java_config import keyword
 
 
 class JavaExtractor(Extractor):
@@ -19,12 +18,21 @@ class JavaExtractor(Extractor):
     def check_expression(self, exp_child: Node, param_vec: dict):
         if exp_child.type == self.names.func_call:
             func_call_str = self.get_func_call_str(exp_child)
-            if keyword.match(func_call_str):
+            if self.keyword.match(func_call_str):
                 param_vec["contains_logging"] = 1
             else:
-                param_vec["contains_call"] += 1
+                param_vec[f"contains_{self.names.func_call}"] += 1
 
-    def check_block(self, block_node: Node, param_vec: dict):
+    def check_block(self, block_node: Node, param_vec: dict, recursion_level=0):
+
+        if recursion_level == 0:
+            self.build_context_of_block_node(block_node, param_vec)
+            if self.error_detected:
+                return
+        elif recursion_level > 1:
+            debug_str = self.debug_helper(block_node)
+            self.logger.error(f"Check_block recursion {recursion_level}\n{debug_str}")
+
         # TODO: Should we check for block nodes directly inside this block node,
         #  include their content in this block's features and put them into the visited nodes set?
         #  The inner block has its own scope, but logging statements inside the inner block can essentially
@@ -39,12 +47,17 @@ class JavaExtractor(Extractor):
                     self.check_expression(exp_child, param_vec)
             elif child.type == self.names.block:
                 # We consider the block child to be part of the parent block
-                self.check_block(child, param_vec)
+                self.check_block(child, param_vec, recursion_level + 1)
                 # Add the block child to visited nodes so it will be skipped
                 check_value = (child.start_byte, child.end_byte)
                 self.visited_nodes.add(check_value)
-            elif child.type == "local_variable_declaration":
-                param_vec["contains_local_variable_declaration"] += 1
+            # elif child.type == "local_variable_declaration":
+            #     param_vec["contains_local_variable_declaration"] += 1
+            elif child.type in self.names.statements:
+                # TODO: Is this more elegant than the approach for Python?
+                param_vec[f"contains_{child.type}"] += 1
+            else:
+                self.unhandled_node_types.add(child.type)
 
     def handle_block_parent(self, node):
         assert node.parent.type == self.names.block
@@ -112,12 +125,7 @@ class JavaExtractor(Extractor):
             elif node.parent == containing_block:
                 pass
             # Loops without curly brackets and exactly one statement
-            elif node.parent.type in [
-                "for_statement",
-                "enhanced_for_statement",
-                "while_statement",
-                "do_statement",
-            ]:
+            elif node.parent.type in self.names.loops:
                 pass
             else:
                 debug_str = self.debug_helper(node)

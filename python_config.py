@@ -2,7 +2,15 @@ import re
 from string import ascii_letters
 from dataclasses import dataclass
 
+from java_config import java_keyword
 
+
+def prefix(prefix_string):
+    return lambda string_list: [prefix_string + string_from_list for string_from_list in string_list]
+
+###############################################
+# Node names
+###############################################
 # Shared node type names
 @dataclass
 class NodeNames:
@@ -10,6 +18,14 @@ class NodeNames:
     block = "block"
     expr_stmt = "expression_statement"
     if_stmt = "if_statement"
+    for_stmt = "for_statement"
+    while_stmt = "while_statement"
+    try_stmt = "try_statement"
+    finally_clause = "finally_clause"
+    return_stmt = "return_statement"
+    assert_stmt = "assert_statement"
+    break_stmt = "break_statement"
+    continue_stmt = "continue_statement"
 
 
 @dataclass
@@ -17,9 +33,66 @@ class PythonNodeNames(NodeNames):
     root = "module"
     block_types = ["block"]
     containing_block_types = ["module", "block"]
-    func_def = "function_definition"
     class_def = "class_definition"
+    func_def = "function_definition"
     func_call = "call"
+    compound_statements = [
+        class_def,
+        # "decorated_definition", # Not needed: It's just the @decorator_name line
+        func_def,
+        NodeNames.if_stmt,
+        NodeNames.for_stmt,
+        "match_statement",
+        NodeNames.while_stmt,
+        NodeNames.try_stmt,
+        "with_statement",
+    ]
+    extra_clauses = [
+        "case_clause",
+        "elif_clause",
+        "else_clause",
+        "except_clause",
+        "except_group_clause",
+        NodeNames.finally_clause
+    ]
+    simple_statements = [
+        NodeNames.return_stmt,
+        NodeNames.assert_stmt,
+        NodeNames.break_stmt,
+        NodeNames.continue_stmt,
+        "raise_statement",
+        "import_statement",
+        "import_from_statement",
+        "pass_statement",
+        "delete_statement",
+        "exec_statement",
+        # "expression_statement", #  Split up
+        "future_import_statement",
+        "global_statement",
+        "nonlocal_statement",
+        "print_statement",  # Python 2 feature
+    ]
+    # The node types that appear inside blocks
+    statements = compound_statements + simple_statements
+    # A list of the statement nodes prefixed with "contains_" to be used as keys in the parameter vector dict
+    contains_statements = prefix("contains_")(statements)
+    expressions = [
+        "assignment",
+        func_call,
+        "await",
+        "yield"
+    ]
+    # A list of most python syntax node types that are visible and non-literals and also not identifiers,
+    # plus module and error
+    # Excludes e.g. block and expression_statement nodes
+    most_node_types = [
+        root,
+        NodeNames.error, # Todo: Remove?
+        *compound_statements,
+        *extra_clauses,
+        *expressions,
+        *simple_statements,
+        ]
 
 
 @dataclass
@@ -32,93 +105,104 @@ class JavaNodeNames(NodeNames):
                               "class_body",
                               "enum_body_declarations"] + block_types
     # More types that can have statements which in turn can have blocks:
-    # do_statement enhanced_for_statement for_statement if_statement
-    # labeled_statement program switch_block_statement_group while_statement
-    func_def = "method_declaration"
+    # labeled_statement
     class_def = "class_declaration"
+    func_def = "method_declaration"
     func_call = "method_invocation"
+    loops = [
+        NodeNames.for_stmt,
+        "enhanced_for_statement",
+        NodeNames.while_stmt,
+        "do_statement",
+    ]
+    # These node types can have blocks as children or grand*children
+    compound_statements = [
+        *loops,
+        class_def,
+        func_def,  # Method declarations can only appear inside class bodies, enum bodies and interfaces
+        NodeNames.if_stmt,
+        NodeNames.try_stmt,
+        "try_with_resources_statement",
+        "switch_expression",
+        "synchronized_statement"
+
+    ]
+    simple_statements = [
+        NodeNames.return_stmt,
+        NodeNames.assert_stmt,
+        NodeNames.break_stmt,
+        NodeNames.continue_stmt,
+        "local_variable_declaration",
+        "throw_statement", # Todo
+        "yield_statement", # Todo
+    ]
+    statements = compound_statements + simple_statements  # TODO
+    contains_statements = prefix("contains_")(statements)
+    expressions = [
+        func_call,
+    ]
+    extra_clauses = [
+        "catch_clause",
+        NodeNames.finally_clause,
+    ]
+    most_node_types = [
+        root,
+        NodeNames.error, # Todo: Remove?
+        *statements,
+        *extra_clauses,
+        "else",  # artificial
+        "elif",  # artificial
+    ]
 
 
 node_names = {
-    "python": PythonNodeNames(),
-    "java": JavaNodeNames()
+    "python": PythonNodeNames,
+    "java": JavaNodeNames
 }
 
+###############################################
+# Keywords
+###############################################
 # Old:
-# keyword = re.compile("(\w|\.)+\.(debug|info|warning|error|critical|log|exception)$")
+# python_keyword = re.compile("(\w|\.)+\.(debug|info|warning|error|critical|log|exception)$")
 # New:
-keyword = re.compile("(\w|\.)*log(g(ing|er))?\.(debug|info|warning|error|critical|log|exception)$")
+python_keyword = re.compile("(\w|\.)*log(g(ing|er))?\.(debug|info|warning|error|critical|log|exception)$")
 
-compound_statements = [
-    "class_definition",
-    # "decorated_definition", # Not needed: It's just the @decorator_name line
-    "function_definition",
-    "if_statement",
-    "for_statement",
-    "match_statement",
-    "while_statement",
-    "try_statement",
-    "with_statement",
-]
+keywords = {
+    "python": python_keyword,
+    "java": java_keyword
+}
 
-extra_clauses = ["case_clause", "elif_clause", "else_clause", "except_clause", "except_group_clause", "finally_clause"]
+###############################################
+# Node dict: ASCII Encoding of visible node types
+###############################################
+python_node_dict = dict()
+for i, node_type in enumerate(PythonNodeNames.most_node_types):
+    python_node_dict[node_type] = ascii_letters[i]
+python_rev_node_dict = dict(zip(python_node_dict.values(), python_node_dict.keys()))
 
-simple_statements = [
-    "return_statement",
-    "assert_statement",
-    "break_statement",
-    "continue_statement",
-    "raise_statement",
-    "import_statement",
-    "import_from_statement",
-    "pass_statement",
-    "delete_statement",
-    "exec_statement",
-    # "expression_statement", #  Split up
-    "future_import_statement",
-    "global_statement",
-    "nonlocal_statement",
-    "print_statement",  # Python 2 feature
-]
+java_node_dict = dict()
+for i, node_type in enumerate(JavaNodeNames.most_node_types):
+    java_node_dict[node_type] = ascii_letters[i]
+java_rev_node_dict = dict(zip(java_node_dict.values(), java_node_dict.keys()))
 
-expressions = [
-    "assignment",
-    "call",
-    "await",
-    "yield"
-]
+node_dicts = {
+    "python": python_node_dict,
+    "java": java_node_dict
+}
+rev_node_dicts = {
+    "python": python_rev_node_dict,
+    "java": java_rev_node_dict
+}
 
-statements = compound_statements + simple_statements
-
-# A list of most python syntax node types that are visible and non-literals and also not identifiers,
-# plus module and error
-# Excludes e.g. block and expression_statement nodes
-most_node_types = ["module", "ERROR"] + compound_statements + extra_clauses + expressions + simple_statements
-
-# ASCII Encoding of visible node types
-node_dict = dict()
-for i, node_type in enumerate(most_node_types):
-    node_dict[node_type] = ascii_letters[i]
-rev_node_dict = dict(zip(node_dict.values(), node_dict.keys()))
-
-
-def prefix(prefix_string):
-    return lambda string_list: [prefix_string + string_from_list for string_from_list in string_list]
-
-
+###############################################
+# Parameter vectors for feature extraction
+###############################################
 def vectorize(x):
     return list(zip(x, [0] * len(x)))
 
 
-contains_only_statements = prefix("contains_")(statements)
-contains = prefix("contains_")(statements + expressions + ["logging"])
-
-
-def make_features(x):
-    return [x + vectorize(contains)]
-
-
-features_onehot_expanded = make_features([
+agnostic_features = [
     ("type", ""),
     ("location", ""),
     ("length", 0),
@@ -130,9 +214,23 @@ features_onehot_expanded = make_features([
     ("parent", ""),
     ("grandparent", ""),
     ("context", "_")
-])
-par_vec_onehot_expanded = dict([x for y in features_onehot_expanded for x in y])
+]
+# A list of the statement and expression nodes as well as "logging" prefixed with "contains_",
+# to be used as language specific keys in the parameter vector dict (i.e. features)
+python_contains = prefix("contains_")(PythonNodeNames.statements + PythonNodeNames.expressions + ["logging"])
+python_parameter_vector = dict(agnostic_features + vectorize(python_contains))
 
+# TODO: Finalize Java contains features
+java_contains = prefix("contains_")(JavaNodeNames.statements + JavaNodeNames.expressions + ["logging"])
+java_parameter_vector = dict(agnostic_features + vectorize(java_contains))
+
+parameter_vectors = {
+    "python": python_parameter_vector,
+    "java": java_parameter_vector
+}
+
+###############################################
+# TODO: Agnosticism
 # List of par_vec_onehot keys with onehot values expanded for reindexing the parameter vector during prediction
 reindex = ['length', 'num_siblings', 'num_children', 'depth_from_def', 'context',
            'contains_class_definition', 'contains_function_definition',
@@ -154,11 +252,14 @@ reindex = ['length', 'num_siblings', 'num_children', 'depth_from_def', 'context'
            'parent_m', 'parent_n', 'parent_o', 'parent_p']
 
 if __name__ == "__main__":
-    print(contains_only_statements)
-    print(contains)
-    print(node_dict)
-    print(len(most_node_types))
-    print(compound_statements)
+    # print(PythonNodeNames.contains_statements)
+    # print(python_contains)
+    # print(python_node_dict)
+    # print(len(PythonNodeNames.most_node_types))
+    # py_node_names = PythonNodeNames()
+    # print(f"Python Compound statements:\n{PythonNodeNames.compound_statements}")
+    # print(py_node_names.error)
+    print(java_parameter_vector)
 
 """
 {'module': 'a',

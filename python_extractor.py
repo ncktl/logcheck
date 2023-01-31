@@ -1,9 +1,6 @@
 from tree_sitter import Language, Tree, Node
 
-import python_config as cfg
-from extractor import Extractor, traverse_sub_tree
-from python_config import compound_statements, extra_clauses, statements, keyword
-from python_config import most_node_types
+from extractor import Extractor
 
 extra_debugging = False
 
@@ -30,12 +27,10 @@ class PythonExtractor(Extractor):
         if exp_child.type == self.names.func_call:
             # Check call nodes for logging. Only if it's not a logging statement do we count it as a call.
             func_call_str = self.get_func_call_str(exp_child)
-            if keyword.match(func_call_str):
-                if self.settings.debug and extra_debugging:
-                    print("check_expression: ", func_call_str)
+            if self.keyword.match(func_call_str):
                 param_vec["contains_logging"] = 1
             else:
-                param_vec["contains_call"] += 1
+                param_vec[f"contains_{self.names.func_call}"] += 1
         # Assignment
         elif exp_child.type == "assignment" or exp_child.type == "augmented_assignment":
             param_vec["contains_assignment"] += 1
@@ -47,7 +42,7 @@ class PythonExtractor(Extractor):
                 # No, because a logging method call on the right-hand side of an assigment
                 # is usually not a logging call but rather an instantiation of a logging class?
                 # func_call = assign_rhs.child_by_field_name("function")
-                # if keyword.match(func_call.text.decode("UTF-8").lower()):
+                # if self.keyword.match(func_call.text.decode("UTF-8").lower()):
                 #     param_vec["contains_logging"] = 1
         # Await
         elif exp_child.type == "await":
@@ -61,59 +56,6 @@ class PythonExtractor(Extractor):
         # Yield
         elif exp_child.type == "yield":
             param_vec["contains_yield"] += 1
-
-    def build_context_of_block_node(self, block_node: Node, param_vec: dict):
-        """Build the context of the block and computes depth from def"""
-
-        # Find the containing (function) definition
-        def_node = None
-        depth_from_def = -1
-        looking_for_def = True
-        climbing_node = block_node.parent
-        # Measure the depth of nesting from the node's containing func/class def or module
-        # Remains 0 if the given block node is the child of a function definition
-        depth_from_root = 0
-        while climbing_node.type != self.names.root:
-            # Stop when encountering an error
-            if climbing_node.type == self.names.error:
-                self.error_detected = True
-                return
-            # Note the height until enclosing function definition
-            if looking_for_def and climbing_node.type == self.names.func_def:
-                looking_for_def = False
-                def_node = climbing_node
-                depth_from_def = depth_from_root
-            climbing_node = climbing_node.parent
-            depth_from_root += 1
-        assert def_node is not None
-        assert depth_from_def != -1
-        param_vec["depth_from_def"] = depth_from_def
-        param_vec["depth_from_root"] = depth_from_root
-        # Only build the context if argument is given
-        if not self.settings.alt:
-            return
-
-        def add_relevant_node(node: Node, context: list):
-            """Adds the node to the context unless it is a logging statement"""
-            if node.is_named and node.type in most_node_types:
-                if node.type == self.names.func_call:
-                    func_call_str = self.get_func_call_str(node)
-                    if keyword.match(func_call_str):
-                        return
-                context.append(self.get_node_type(node, encode=True))
-
-        context = []
-        # Add the ast nodes that came before the block in its parent (func|class) def or module
-        for node in traverse_sub_tree(def_node, block_node):
-            add_relevant_node(node, context)
-        # Debug
-        if self.settings.debug:
-            context.append("%%%%")
-        # /Debug
-        # Add the ast nodes in the block and it's children
-        for node in traverse_sub_tree(block_node):
-            add_relevant_node(node, context)
-        param_vec["context"] = "".join(context)
 
     def check_block(self, block_node: Node, param_vec: dict):
         """Checks a block node for contained features, including logging by calling check_expression().
@@ -149,7 +91,7 @@ class PythonExtractor(Extractor):
                 continue
             # Build the contains_features
             # Check if the child is a compound or simple statement
-            for key, clause in zip(cfg.contains_only_statements, statements):
+            for key, clause in zip(self.names.contains_statements, self.names.statements):
                 if child.type == clause:
                     param_vec[key] += 1
                     break
@@ -184,7 +126,7 @@ class PythonExtractor(Extractor):
             param_vec["num_cousins"] = second_containing_block.named_child_count
             if parent.type == "else_clause":
                 param_vec["grandparent"] = self.get_node_type(parent.parent)
-            elif parent.type in compound_statements + extra_clauses:
+            elif parent.type in self.names.compound_statements + self.names.extra_clauses:
                 if second_containing_block.type == self.names.block:
                     param_vec["grandparent"] = self.get_node_type(second_containing_block.parent)
                 elif second_containing_block.type == self.names.root:
@@ -203,7 +145,7 @@ class PythonExtractor(Extractor):
         # However, for the number of siblings we still consider the else's grandparent
         if node.type == "else_clause":
             param_vec["parent"] = self.get_node_type(node.parent)
-        elif node.type in compound_statements + extra_clauses:
+        elif node.type in self.names.compound_statements + self.names.extra_clauses:
             if containing_block.type == self.names.block:
                 param_vec["parent"] = self.get_node_type(containing_block.parent)
             elif containing_block.type == self.names.root:

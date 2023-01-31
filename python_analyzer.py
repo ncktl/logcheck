@@ -1,14 +1,11 @@
 # Generally DEPRECIATED
-from python_extractor import PythonExtractor
-from tree_sitter import Language, Tree, Node, TreeCursor
-from pathlib import Path
-from extractor import print_children, traverse_sub_tree
-from python_config import most_node_types, keyword, par_vec_onehot_expanded, node_dict
-import pickle
-from sklearn.svm import LinearSVC
-from copy import copy
 import re
-import pandas as pd
+
+from tree_sitter import Language, Tree, Node
+
+from extractor import print_children, traverse_sub_tree
+from python_config import keyword, PythonNodeNames
+from python_extractor import PythonExtractor
 
 
 # Copied from Python Extractor
@@ -135,14 +132,14 @@ class PythonAnalyzer(PythonExtractor):
                     wandering_node = wandering_node.parent
                 pathlist.reverse()
                 for node in pathlist:
-                    if node.is_named and node.type in most_node_types:
+                    if node.is_named and node.type in PythonNodeNames.most_node_types:
                         print(node.type)
                 print("-" * 80)
                 print("Previous nodes in function definition:")
 
                 # last_node = None
                 def check_and_print(node: Node):
-                    if node.is_named and node.type in most_node_types:
+                    if node.is_named and node.type in PythonNodeNames.most_node_types:
                         if node.type == "call" and keyword.match(node.text.decode("UTF-8").lower()):
                             # print("Logging call found")
                             return

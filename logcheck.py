@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
 from tree_sitter import Language, Parser
 
-from python_config import par_vec_onehot_expanded
+from python_config import parameter_vectors, rev_node_dicts
 
 supported_languages = ["java", "javascript", "python"]
 suf = {
@@ -36,7 +36,7 @@ def create_ts_lang_obj(language: str) -> Language:
     return ts_lang
 
 
-def extract_file(file, settings, Extractor, train_mode):
+def extract_file(file, settings, LangExtractor, train_mode):
     """ Extracts features from a source code file and returns them as a list of parameter vectors (also lists) """
 
     # Read the source code
@@ -55,7 +55,7 @@ def extract_file(file, settings, Extractor, train_mode):
     # Create abstract syntax tree
     tree = parser.parse(bytes(sourcecode, "utf8"))
     # Instantiate the language's extractor
-    extractor = Extractor(sourcecode, tree_lang, tree, file, settings)
+    extractor = LangExtractor(sourcecode, tree_lang, tree, file, settings)
     # Start the extraction
     file_param_vecs = extractor.fill_param_vectors(training=train_mode)
     if settings.debug:
@@ -63,7 +63,7 @@ def extract_file(file, settings, Extractor, train_mode):
     return file_param_vecs
 
 
-def extract(files, settings, Extractor, output, train_mode: bool = True):
+def extract(files, settings, LangExtractor, output, train_mode: bool = True):
     """ Starts parallelized feature extraction and writes the result to output """
 
     # Extract features from each file by calling extract_file() in parallel
@@ -71,20 +71,21 @@ def extract(files, settings, Extractor, output, train_mode: bool = True):
     # Async variant:
     # param_vectors = pool.starmap_async(extract_file, [(file, settings, train_mode) for file in files]).get()
     # Ordered parallelization:
-    param_vectors = pool.starmap(extract_file, [(file, settings, Extractor, train_mode) for file in files])
+    param_vectors = pool.starmap(extract_file, [(file, settings, LangExtractor, train_mode) for file in files])
     param_vectors = [par_vec for par_vec_list in param_vectors for par_vec in par_vec_list]
     pool.close()
     # Write output
-    header = list(par_vec_onehot_expanded.keys())
+    header = list(parameter_vectors[settings.language].keys())
     output.write(",".join(header) + "\n")
     output.write("\n".join(
         [str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
     output.write("\n")
 
 
-def recommend(files, settings, Extractor, output):
+def recommend(files, settings, LangExtractor, output):
     """ Recommend logging """
     recommendations = []
+    rev_node_dict = rev_node_dicts[settings.language]
     classifier: RandomForestClassifier = pickle.load(open('classifier', 'rb'))
     for file in tqdm(files):
         with open(file) as f:
@@ -98,7 +99,7 @@ def recommend(files, settings, Extractor, output):
         # Create abstract syntax tree
         tree = parser.parse(bytes(sourcecode, "utf8"))
         # Instantiate the language's extractor
-        extractor = Extractor(sourcecode, tree_lang, tree, file, settings)
+        extractor = LangExtractor(sourcecode, tree_lang, tree, file, settings)
         # Build a list of parameter vectors for all interesting nodes in the current file
         file_param_vecs = extractor.fill_param_vectors(training=False)
         # print(df.to_string())
@@ -253,18 +254,18 @@ if __name__ == "__main__":
     # Import the language's config and extractor
     # The extractor class has to be passed on as an argument due to parallelization
     if settings.language == "python":
-        from python_config import reindex, rev_node_dict
-        from python_extractor import PythonExtractor as Extractor
+        from python_config import reindex
+        from python_extractor import PythonExtractor as LangExtractor
     elif settings.language == "java":
-        from java_config import reindex, rev_node_dict
-        from java_extractor import JavaExtractor as Extractor
+        from java_config import reindex
+        from java_extractor import JavaExtractor as LangExtractor
     else:
         raise RuntimeError(f"{settings.language} is not actually supported yet.")
     # Branch into extraction or recommendation
     if settings.extract:
-        extract(files, settings, Extractor, out)
+        extract(files, settings, LangExtractor, out)
     else:
         if settings.alt:
             analyze()
         else:
-            recommend(files, settings, Extractor, out)
+            recommend(files, settings, LangExtractor, out)

@@ -56,7 +56,7 @@ unified_methods_str = "|".join(unified_methods)
 # instead of
 # logger.info("Hello world.");
 
-keyword = re.compile(
+java_keyword = re.compile(
     "(\w|\.)*log(g(ing|er))?(\.at((Debug|Error|Fatal|Info|Trace|Warn)\(\)|Level\((\w|\.)+\)))?\.("
     + unified_methods_str
     + ")$"
@@ -86,9 +86,5 @@ extra_clauses = [
     "finally_clause",
 
 ]
-
-par_vec_onehot_expanded = []
-
-rev_node_dict = dict()
 
 reindex = []
