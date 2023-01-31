@@ -2,8 +2,6 @@ import re
 from string import ascii_letters
 from dataclasses import dataclass
 
-from java_config import java_keyword
-
 
 def prefix(prefix_string):
     return lambda string_list: [prefix_string + string_from_list for string_from_list in string_list]
@@ -168,6 +166,65 @@ node_names = {
 # New:
 python_keyword = re.compile("(\w|\.)*log(g(ing|er))?\.(debug|info|warning|error|critical|log|exception)$")
 
+# Logging methods of Java logging frameworks
+# java.util.logging.Logger https://docs.oracle.com/javase/7/docs/api/java/util/logging/Logger.html
+java_methods = [
+    "config",
+    "entering",
+    "exiting",
+    "fine",
+    "finer",
+    "finest",
+    "info",
+    "log",
+    "logp",
+    "logrb",
+    "severe",
+    "throwing",
+    "warning",
+]
+# Log4j https://logging.apache.org/log4j/2.x/log4j-api/apidocs/index.html
+# Deprecated methods: entry, exit
+log4j_methods = [
+    "always",
+    "catching",
+    "debug",
+    "entry",
+    "error",
+    "exit",
+    "fatal",
+    "info",
+    "log",
+    "logMessage",
+    "printf",
+    "throwing",
+    "trace",
+    "traceEntry",
+    "traceExit",
+    "warn",
+]
+# SLF4J https://www.slf4j.org/api/org/slf4j/Logger.html
+# Has no methods that log4j doesn't have
+# Logback uses SLF4J interface (?)
+
+# Set of all logging methods without duplicates
+unified_methods = set(java_methods + log4j_methods)
+# As a string for regex separated by |
+unified_methods_str = "|".join(unified_methods)
+
+# Log4j and SLF4J have "fluent" logger instance methods that change the logging level
+# and are composed with the actual logging methods.
+# logger.atInfo().log("Hello world.");
+# logger.atLevel(INFO).log("Hello world.");
+# instead of
+# logger.info("Hello world.");
+
+java_keyword = re.compile(
+    "(\w|\.)*log(g(ing|er))?(\.at((Debug|Error|Fatal|Info|Trace|Warn)\(\)|Level\((\w|\.)+\)))?\.("
+    + unified_methods_str
+    + ")$"
+)
+
 keywords = {
     "python": python_keyword,
     "java": java_keyword
@@ -229,6 +286,7 @@ parameter_vectors = {
     "java": java_parameter_vector
 }
 
+###############################################
 ###############################################
 # TODO: Agnosticism
 # List of par_vec_onehot keys with onehot values expanded for reindexing the parameter vector during prediction
