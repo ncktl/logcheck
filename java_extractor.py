@@ -123,8 +123,9 @@ class JavaExtractor(Extractor):
         elif node.type == self.names.if_stmt:
             # else if
             if node.parent.type == self.names.if_stmt:
-                assert node.prev_sibling.type == "else"
-                node_type = "elif"
+                if node.prev_sibling.type == "else":
+                    node_type = "elif"
+                # else -> regular if
             # regular if
             elif node.parent == containing_block:
                 pass
@@ -155,11 +156,16 @@ class JavaExtractor(Extractor):
             "constructor_body",
             "class_body",
             "switch_rule",
+            "compact_constructor_declaration",
+            "labeled_statement",
+            "interface_declaration",
+
         ]:
             pass
         else:
-            debug_str = self.debug_helper(node)
-            raise RuntimeError(f"Node type <{str(node_type)}> not handled:\n{debug_str}")
+            self.unhandled_node_types.add(node.type)
+            # debug_str = self.debug_helper(node)
+            # raise RuntimeError(f"Node type <{str(node_type)}> not handled:\n{debug_str}")
 
         # Find the parent's type
         # Most cases: The node is inside another block
@@ -193,6 +199,7 @@ class JavaExtractor(Extractor):
             parent_type = node.parent.type
 
         param_vec["type"] = self.get_node_type(node_type)
-        assert parent_type not in ["class_declaration", "constructor_declaration"]
+        # assert parent_type not in ["class_declaration", "constructor_declaration"]
+        # TODO Look at those cases
         param_vec["parent"] = self.get_node_type(parent_type)
         param_vec["num_siblings"] = containing_block.named_child_count

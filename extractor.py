@@ -184,15 +184,16 @@ class Extractor:
         # Add +2 instead because the block lacks the parent's line?
         param_vec["length"] = block_node.end_point[0] - block_node.start_point[0] + 1
         param_vec["num_children"] = block_node.named_child_count
+        # Collect information from the block node's content
+        self.check_block(block_node, param_vec)
+        if self.error_detected:
+            return
         # Collect information from the block node's ancestors and siblings
         self.check_parent(block_node, param_vec)
         # Discard blocks for which syntax errors have been discovered
         if self.error_detected:
             return
-        # Collect information from the block node's content
-        self.check_block(block_node, param_vec)
-        if self.error_detected:
-            return
+
 
         # Debug grandparent feature
         # if param_vec["contains_logging"] and param_vec["grandparent"] == "rootception":
