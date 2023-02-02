@@ -194,7 +194,6 @@ class Extractor:
         if self.error_detected:
             return
 
-
         # Debug grandparent feature
         # if param_vec["contains_logging"] and param_vec["grandparent"] == "rootception":
         #     self.logger.error("Found logging in a block whose containing block is already root:")
