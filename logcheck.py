@@ -47,6 +47,9 @@ def extract_file(file, settings, LangExtractor, train_mode):
     except UnicodeDecodeError as e:
         logger.error(f"Encountered UnicodeDecodeError in file {file}:\n{e}")
         return []
+    except IsADirectoryError as e:
+        logger.error(f"Encountered directory with a name ending like the language extension {file}:\n{e}")
+        return []
     # Create Tree-Sitter language object and parser.
     # These could be reused for another source code file, but this is nontrivial due to parallelization.
     tree_lang = create_ts_lang_obj(settings.language)
