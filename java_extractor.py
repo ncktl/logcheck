@@ -37,7 +37,7 @@ class JavaExtractor(Extractor):
         #     debug_str = self.debug_helper(block_node)
         #     self.logger.error(f"Check_block recursion {recursion_level}\n{debug_str}")
 
-        # TODO: Should we check for block nodes directly inside this block node,
+        #  We check for block nodes directly inside this block node,
         #  include their content in this block's features and put them into the visited nodes set?
         #  The inner block has its own scope, but logging statements inside the inner block can essentially
         #  be considered as if they were in the outer block. Also, there are Instance initialization blocks

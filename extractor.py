@@ -85,16 +85,22 @@ class Extractor:
     def get_node_type(self, node_or_str, encode=False):
         """Returns the node type of the given node or type string.
         If the -c/--encode flag is set, the type is returned ascii encoded."""
+
         if type(node_or_str) == str:
             key = node_or_str
         elif type(node_or_str) == Node:
             key = node_or_str.type
         else:
             raise RuntimeError("Bad input type given to get_node_type()")
+
+        if key == self.names.error:
+            self.error_detected = True
+
         if self.settings.encode or encode:
             return self.node_dict[key]
         else:
             return key
+
 
     def find_containing_block(self, node: Node):
         """Returns the lowest block node containing the node."""
@@ -112,6 +118,11 @@ class Extractor:
 
     def build_context_of_block_node(self, block_node: Node, param_vec: dict):
         """Build the context of the block and computes depth features"""
+
+        # When looping over all blocks there might not be a function definition ancestor
+        # Besides depth_from_def this also loses depth_from_def extraction, but they don't seem to help anyway
+        if self.settings.all:
+            return
 
         # Find the containing (function) definition
         def_node = None
@@ -216,21 +227,29 @@ class Extractor:
                 param_vectors.append(param_vec)
 
     def fill_param_vectors(self, training: bool = True) -> list:
-        """Extracts features like Zhenhao et al., i.e. looks at all blocks that are inside functions."""
+        """Extracts features from all blocks"""
         self.error_detected = False
         param_vectors = []
-        # visited_nodes = set()
-        func_def_query = self.lang.query(f"({self.names.func_def}) @funcdef")
-        func_def_nodes = func_def_query.captures(self.tree.root_node)
-        for funcdef_node, func_tag in func_def_nodes:
-            funcdef_node: Node
+        # Loop over all blocks
+        if self.settings.all:
             for block_name in self.names.block_types:
                 block_query = self.lang.query(f"({block_name}) @block")
-                block_nodes = block_query.captures(funcdef_node)
+                block_nodes = block_query.captures(self.tree.root_node)
                 for block_node, block_tag in block_nodes:
                     block_node: Node
                     self.process_block_node(block_node, training, param_vectors)
+        # or only descendants of function definitions like Li et al.
+        else:
+            func_def_query = self.lang.query(f"({self.names.func_def}) @funcdef")
+            func_def_nodes = func_def_query.captures(self.tree.root_node)
+            for funcdef_node, func_tag in func_def_nodes:
+                funcdef_node: Node
+                for block_name in self.names.block_types:
+                    block_query = self.lang.query(f"({block_name}) @block")
+                    block_nodes = block_query.captures(funcdef_node)
+                    for block_node, block_tag in block_nodes:
+                        block_node: Node
+                        self.process_block_node(block_node, training, param_vectors)
         if self.unhandled_node_types != set():
             self.logger.error(self.unhandled_node_types)
-            # self.logger.error(str(self.unhandled_node_types))
         return param_vectors

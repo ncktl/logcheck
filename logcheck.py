@@ -177,6 +177,9 @@ if __name__ == "__main__":
                             help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",
                             help="Also extract the context when in extraction mode.")
+    arg_parser.add_argument("-x", "--all", action="store_true",
+                            help="Extract features for all blocks instead of only those inside function definitions."
+                                 "Can't be used together with -a context extraction.")
     arg_parser.add_argument("-c", "--encode", action="store_true",
                             help="ASCII encode type names to save space.")
     settings = arg_parser.parse_args()
@@ -184,6 +187,8 @@ if __name__ == "__main__":
     # Check arguments
     if not settings.path.exists():
         arg_parser.error("Path does not exist.")
+    if settings.alt and settings.all:
+        arg_parser.error("Can't build context while also extracting features for all blocks.")
     # Detect batch mode
     if settings.path.is_dir():
         batch = True
