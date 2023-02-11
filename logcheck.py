@@ -11,15 +11,8 @@ from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
 from tree_sitter import Language, Parser
 
-from config import parameter_vectors, rev_node_dicts
-
-supported_languages = ["java", "javascript", "python"]
-suf = {
-    "java": ".java",
-    "javascript": ".js",
-    "python": ".py"
-}
-rev_suf = dict(zip(suf.values(), suf.keys()))
+from config import supported_languages, suf, rev_suf
+from config import parameter_vectors, rev_node_dicts, reindex
 
 
 def create_ts_lang_obj(language: str) -> Language:
@@ -115,7 +108,7 @@ def recommend(files, settings, LangExtractor, output):
             # One-hot encode the parameters type and parent
             X = pd.get_dummies(X, columns=["type", "parent"])
             # Reindex the dataframe to ensure all possible type and parent values are present as columns
-            X = X.reindex(reindex, fill_value=0, axis="columns")
+            X = X.reindex(reindex[settings.language], fill_value=0, axis="columns")
             # print(classifier.predict(df))
             # Predict logging for the parameter vectors, creating a list of booleans for the parameter vectors
             file_recommendations = classifier.predict(X)
@@ -257,10 +250,8 @@ if __name__ == "__main__":
     # Import the language's config and extractor
     # The extractor class has to be passed on as an argument due to parallelization
     if settings.language == "python":
-        from config import reindex
         from python_extractor import PythonExtractor as LangExtractor
     elif settings.language == "java":
-        from config import reindex
         from java_extractor import JavaExtractor as LangExtractor
     else:
         raise RuntimeError(f"{settings.language} is not actually supported yet.")

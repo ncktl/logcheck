@@ -1,5 +1,11 @@
 # Helper functions for the notebooks
 
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.metrics import roc_auc_score, balanced_accuracy_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import precision_score, recall_score, f1_score
+
 import pandas as pd
 # Tensorflow + Keras
 from keras.layers import CuDNNLSTM
@@ -10,10 +16,49 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
 from numpy import zeros
+import numpy as np
 
 iteration_features = "Name, Timestamp, sampling_strategy, max_length, vocab_size, batch_size, trainable," \
                      " dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight," \
                      " cmpltn_metrics, run_folder, execution_time"
+
+tex_fonts = {
+    "font.family": "serif",
+    "font.size": 11,
+    "axes.labelsize": 11,
+}
+
+
+def set_size(width_pt=443.863, fraction=1, subplots=(1, 1)):
+    """Set figure dimensions to sit nicely in our document.
+
+    Parameters
+    ----------
+    width_pt: float
+            Document width in points
+    fraction: float, optional
+            Fraction of the width which you wish the figure to occupy
+    subplots: array-like, optional
+            The number of rows and columns of subplots.
+    Returns
+    -------
+    fig_dim: tuple
+            Dimensions of figure in inches
+    """
+    # Width of figure (in pts)
+    fig_width_pt = width_pt * fraction
+    # Convert from pt to inches
+    inches_per_pt = 1 / 72.27
+
+    # Golden ratio to set aesthetic figure height
+    golden_ratio = (5**.5 - 1) / 2
+
+    # Figure width in inches
+    fig_width_in = fig_width_pt * inches_per_pt
+    # Figure height in inches
+    fig_height_in = fig_width_in * golden_ratio * (subplots[0] / subplots[1])
+
+    return fig_width_in, fig_height_in
 
 
 class MyCorpus:
@@ -25,6 +70,108 @@ class MyCorpus:
     def __iter__(self):
         for line in self.text_list:
             yield line
+
+
+def get_X_and_y_from_csv(
+        filepath,
+        drop_num_children=False,
+        drop_num_siblings=True,
+        drop_depth_from_def=True,
+        drop_depth_from_root=True,
+):
+    df = pd.read_csv(filepath)
+    # remove errors
+    df = df[df.parent != "b"]
+    df = df[df.type != "b"]
+    df = df[df.parent != "ERROR"]
+    df = df[df.type != "ERROR"]
+    columns_to_onehot_encode = [
+        "type",
+        "parent"
+    ]
+    df = pd.get_dummies(df, columns=columns_to_onehot_encode)
+    columns_to_drop = [
+        "location",
+        "contains_logging",
+        "grandparent",
+        "context",
+        # "num_children",
+        # "num_siblings",
+        "num_cousins",
+        # "depth_from_def",
+        # "depth_from_root"
+    ]
+    if drop_num_children:
+        columns_to_drop.append("num_children")
+    if drop_num_siblings:
+        columns_to_drop.append("num_siblings")
+    if drop_depth_from_def:
+        columns_to_drop.append("depth_from_def")
+    if drop_depth_from_root:
+        columns_to_drop.append("depth_from_root")
+
+    X = df.drop(columns_to_drop, axis=1)
+    y = df.contains_logging
+    return X, y
+
+
+def compute_scores_and_cm(
+        X,
+        y,
+        score_names: list,
+        verbose=True,
+        n_splits=10,
+        n_estimators=50,
+        min_samples_split=5,
+        min_samples_leaf=1,
+        max_depth=None,
+        pos_class_weight=4
+):
+    class_weight = {False: 1, True: pos_class_weight}
+    # class_weight = "balanced"
+
+    if verbose:
+        print(f"Running {n_splits} folds: ", end="")
+
+    all_scores = []
+    conf_matrices = []
+    skf = StratifiedShuffleSplit(n_splits=n_splits, test_size=0.25)
+    for k_fold, (train_index, test_index) in enumerate(skf.split(X, y)):
+        if verbose:
+            print(f"{k_fold + 1} ", end="")
+        classifier = RandomForestClassifier(
+            n_estimators=n_estimators,
+            n_jobs=-1,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            max_depth=max_depth,
+            class_weight=class_weight
+        )
+        X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+        y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+        classifier.fit(X_train, y_train)
+
+        y_pred = classifier.predict(X_test)
+        y_proba = classifier.predict_proba(X_test)
+
+        scores = [
+            balanced_accuracy_score(y_test, y_pred),
+            precision_score(y_test, y_pred),
+            recall_score(y_test, y_pred),
+            f1_score(y_test, y_pred, average='binary', pos_label=True),
+        ]
+        if "AUROC" in score_names:
+            scores.append(roc_auc_score(y_test, y_proba[:, 1]))
+
+        all_scores.append(scores)
+        cm = confusion_matrix(y_test, y_pred, labels=classifier.classes_)
+        conf_matrices.append(cm)
+
+    if verbose:
+        print("Done")
+    score_df = pd.DataFrame(all_scores, columns=score_names).mean().round(3)
+    avg_cm = np.mean(conf_matrices, axis=0).astype(int)
+    return score_df, avg_cm
 
 
 def show_stats(df: pd.DataFrame):
@@ -51,7 +198,6 @@ def show_stats(df: pd.DataFrame):
         results.append([type_name, cnt, pos_cnt, ratio])
     log_ratios_by_type_df = pd.DataFrame(results, columns=cols).sort_values(by="ratio", ascending=False)
     print(log_ratios_by_type_df)
-
 
 
 def build_others_model(vocab_size, output_dims, embedding_matrix, max_length,

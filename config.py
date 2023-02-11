@@ -2,6 +2,14 @@ import re
 from string import ascii_letters
 from dataclasses import dataclass
 
+supported_languages = ["java", "javascript", "python"]
+suf = {
+    "java": ".java",
+    "javascript": ".js",
+    "python": ".py"
+}
+rev_suf = dict(zip(suf.values(), suf.keys()))
+
 
 def prefix(prefix_string):
     return lambda string_list: [prefix_string + string_from_list for string_from_list in string_list]
@@ -296,27 +304,76 @@ parameter_vectors = {
 }
 
 ###############################################
+# Reindex
 ###############################################
-# TODO: Agnosticism
-# List of par_vec_onehot keys with onehot values expanded for reindexing the parameter vector during prediction
-reindex = ['length', 'num_siblings', 'num_children', 'depth_from_def', 'context',
-           'contains_class_definition', 'contains_function_definition',
-           'contains_if_statement', 'contains_for_statement',
-           'contains_match_statement', 'contains_while_statement',
-           'contains_try_statement', 'contains_with_statement',
-           'contains_return_statement', 'contains_assert_statement',
-           'contains_break_statement', 'contains_continue_statement',
-           'contains_raise_statement', 'contains_import_statement',
-           'contains_import_from_statement', 'contains_pass_statement',
-           'contains_delete_statement', 'contains_exec_statement',
-           'contains_future_import_statement', 'contains_global_statement',
-           'contains_nonlocal_statement', 'contains_print_statement',
-           'contains_assignment', 'contains_call', 'contains_await',
-           'contains_yield', 'type_c', 'type_d', 'type_e', 'type_f', 'type_h',
-           'type_i', 'type_j', 'type_k', 'type_l', 'type_m', 'type_n', 'type_o',
-           'type_p', 'parent_a', 'parent_c', 'parent_d', 'parent_e', 'parent_f',
-           'parent_g', 'parent_h', 'parent_i', 'parent_j', 'parent_k', 'parent_l',
-           'parent_m', 'parent_n', 'parent_o', 'parent_p']
+# List of parameter vecotor keys with onehot values expanded for reindexing the parameter vector during prediction
+# Assumption: num_children used; num_siblings, num_cousins, depth_from_def, depth_from_root, grandparent NOT used
+
+python_reindex = ['length', 'num_children', 'contains_class_definition',
+       'contains_function_definition', 'contains_if_statement',
+       'contains_for_statement', 'contains_match_statement',
+       'contains_while_statement', 'contains_try_statement',
+       'contains_with_statement', 'contains_return_statement',
+       'contains_assert_statement', 'contains_break_statement',
+       'contains_continue_statement', 'contains_raise_statement',
+       'contains_import_statement', 'contains_import_from_statement',
+       'contains_pass_statement', 'contains_delete_statement',
+       'contains_exec_statement', 'contains_future_import_statement',
+       'contains_global_statement', 'contains_nonlocal_statement',
+       'contains_print_statement', 'contains_assignment', 'contains_call',
+       'contains_await', 'contains_yield', 'type_case_clause',
+       'type_class_definition', 'type_elif_clause', 'type_else_clause',
+       'type_except_clause', 'type_except_group_clause', 'type_finally_clause',
+       'type_for_statement', 'type_function_definition', 'type_if_statement',
+       'type_try_statement', 'type_while_statement', 'type_with_statement',
+       'parent_case_clause', 'parent_class_definition', 'parent_elif_clause',
+       'parent_else_clause', 'parent_except_clause',
+       'parent_except_group_clause', 'parent_finally_clause',
+       'parent_for_statement', 'parent_function_definition',
+       'parent_if_statement', 'parent_module', 'parent_try_statement',
+       'parent_while_statement', 'parent_with_statement']
+
+java_reindex = ['length', 'num_children', 'contains_for_statement',
+       'contains_enhanced_for_statement', 'contains_while_statement',
+       'contains_do_statement', 'contains_class_declaration',
+       'contains_method_declaration', 'contains_if_statement',
+       'contains_try_statement', 'contains_try_with_resources_statement',
+       'contains_switch_expression', 'contains_synchronized_statement',
+       'contains_return_statement', 'contains_assert_statement',
+       'contains_break_statement', 'contains_continue_statement',
+       'contains_local_variable_declaration', 'contains_throw_statement',
+       'contains_yield_statement', 'contains_switch_label',
+       'contains_labeled_statement',
+       'contains_explicit_constructor_invocation',
+       'contains_record_declaration', 'contains_interface_declaration',
+       'contains_method_invocation', 'contains_assignment_expression',
+       'contains_update_expression', 'contains_object_creation_expression',
+       'contains_binary_expression', 'type_catch_clause', 'type_class_body',
+       'type_compact_constructor_declaration', 'type_constructor_body',
+       'type_do_statement', 'type_elif', 'type_else',
+       'type_enhanced_for_statement', 'type_finally_clause',
+       'type_for_statement', 'type_if_statement', 'type_labeled_statement',
+       'type_lambda_expression', 'type_method_declaration',
+       'type_switch_block_statement_group', 'type_switch_rule',
+       'type_synchronized_statement', 'type_try_statement',
+       'type_try_with_resources_statement', 'type_while_statement',
+       'parent_block', 'parent_catch_clause', 'parent_class_body',
+       'parent_class_declaration', 'parent_constructor_body',
+       'parent_constructor_declaration', 'parent_do_statement', 'parent_elif',
+       'parent_else', 'parent_enhanced_for_statement', 'parent_enum_body',
+       'parent_finally_clause', 'parent_for_statement', 'parent_if_statement',
+       'parent_interface_body', 'parent_labeled_statement',
+       'parent_lambda_expression', 'parent_method_declaration',
+       'parent_object_creation_expression', 'parent_switch_block',
+       'parent_switch_block_statement_group', 'parent_switch_rule',
+       'parent_synchronized_statement', 'parent_try_statement',
+       'parent_try_with_resources_statement', 'parent_while_statement']
+
+reindex = {
+    "python": python_reindex,
+    "java": java_reindex
+}
+
 
 if __name__ == "__main__":
     # print(PythonNodeNames.contains_statements)
@@ -397,4 +454,24 @@ if __name__ == "__main__":
  'await': '26',
  'call': '27',
  'yield': '28'}
+ 
+ reindex = ['length', 'num_siblings', 'num_children', 'depth_from_def', 'context',
+           'contains_class_definition', 'contains_function_definition',
+           'contains_if_statement', 'contains_for_statement',
+           'contains_match_statement', 'contains_while_statement',
+           'contains_try_statement', 'contains_with_statement',
+           'contains_return_statement', 'contains_assert_statement',
+           'contains_break_statement', 'contains_continue_statement',
+           'contains_raise_statement', 'contains_import_statement',
+           'contains_import_from_statement', 'contains_pass_statement',
+           'contains_delete_statement', 'contains_exec_statement',
+           'contains_future_import_statement', 'contains_global_statement',
+           'contains_nonlocal_statement', 'contains_print_statement',
+           'contains_assignment', 'contains_call', 'contains_await',
+           'contains_yield', 'type_c', 'type_d', 'type_e', 'type_f', 'type_h',
+           'type_i', 'type_j', 'type_k', 'type_l', 'type_m', 'type_n', 'type_o',
+           'type_p', 'parent_a', 'parent_c', 'parent_d', 'parent_e', 'parent_f',
+           'parent_g', 'parent_h', 'parent_i', 'parent_j', 'parent_k', 'parent_l',
+           'parent_m', 'parent_n', 'parent_o', 'parent_p']
+ 
 """
