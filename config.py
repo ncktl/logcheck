@@ -106,8 +106,9 @@ class JavaNodeNames(NodeNames):
     root = "program"
     # Important to have "block" last, so we first go through the non-regular block types and find cases where they
     # have regular block children, which will then be processed and added to the visited nodes set
+    # TODO: Add class_body
     block_types = ["constructor_body", "switch_block_statement_group", "block"]
-    containing_block_types = ["program",
+    containing_block_types = [root,
                               "class_body",
                               "enum_body_declarations"] + block_types
     # More types that can have statements which in turn can have blocks:
@@ -132,6 +133,7 @@ class JavaNodeNames(NodeNames):
         "switch_expression",  # Also in expressions. Unsure if needed here
         "synchronized_statement",
         "static_initializer",
+        "enum_declaration",
     ]
     simple_statements = [
         NodeNames.return_stmt,
@@ -155,10 +157,8 @@ class JavaNodeNames(NodeNames):
         "assignment_expression",
         "update_expression",
         "object_creation_expression",
-        "binary_expression",
-        "identifier",
-        "switch_expression",
-        "this",
+        "binary_expression",  # Superfluous?
+        "lambda_expression",
     ]
     extra_clauses = [
         "catch_clause",
@@ -343,7 +343,7 @@ java_reindex = ['length', 'num_children', 'contains_for_statement',
        'contains_method_declaration', 'contains_if_statement',
        'contains_try_statement', 'contains_try_with_resources_statement',
        'contains_switch_expression', 'contains_synchronized_statement',
-       'contains_static_initializer',
+       'contains_static_initializer', 'contains_enum_declaration',
        'contains_return_statement', 'contains_assert_statement',
        'contains_break_statement', 'contains_continue_statement',
        'contains_local_variable_declaration', 'contains_throw_statement',
@@ -354,8 +354,7 @@ java_reindex = ['length', 'num_children', 'contains_for_statement',
        'contains_import_declaration',
        'contains_method_invocation', 'contains_assignment_expression',
        'contains_update_expression', 'contains_object_creation_expression',
-       'contains_binary_expression', 'contains_identifier',
-       'contains_switch_expression', 'contains_this',
+       'contains_binary_expression', 'contains_lambda_expression',
        'type_catch_clause', 'type_class_body',
        'type_compact_constructor_declaration', 'type_constructor_body',
        'type_do_statement', 'type_elif', 'type_else',

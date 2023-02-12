@@ -22,8 +22,17 @@ class JavaExtractor(Extractor):
                 param_vec["contains_logging"] = 1
             else:
                 param_vec[f"contains_{self.names.func_call}"] += 1
-        elif exp_child.type in self.names.expressions:
+        elif exp_child.type in self.names.expressions + ["switch_expression"]:
             param_vec[f"contains_{exp_child.type}"] += 1
+        elif exp_child.type in [
+            "identifier",
+            "this",
+            "field_access",
+            "string_literal",
+            "parenthesized_expression",
+            "array_access",
+        ]:
+            pass
         elif exp_child.type == self.names.error:
             self.error_detected = True
         elif exp_child.is_named and exp_child.type not in ["line_comment", "block_comment"]:
@@ -203,12 +212,20 @@ class JavaExtractor(Extractor):
             "elif",
             "else",
         ]:
-            parent_type = containing_block.parent.type
+            # Can be none if containing block is root. Error condition?
+            if containing_block.parent:
+                parent_type = containing_block.parent.type
+            else:
+                parent_type = containing_block.type
             # Debug
             # if block_node.type == "switch_block_statement_group":
             #     print(containing_block.parent.type)
         else:
-            parent_type = node.parent.type
+            if node.parent:
+                parent_type = node.parent.type
+            # Error condition?
+            else:
+                parent_type = node.type
 
         param_vec["type"] = self.get_node_type(node_type)
         # assert parent_type not in ["class_declaration", "constructor_declaration"]
