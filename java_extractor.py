@@ -25,7 +25,8 @@ class JavaExtractor(Extractor):
         elif exp_child.type in self.names.expressions:
             param_vec[f"contains_{exp_child.type}"] += 1
         elif exp_child.is_named and exp_child.type not in ["line_comment", "block_comment"]:
-            self.unhandled_node_types.add(exp_child.type)
+            # self.unhandled_node_types.add(exp_child.type)
+            self.logger.error(f"check_expression: Unhandled node type: {exp_child.type}")
 
     def check_block(self, block_node: Node, param_vec: dict, recursion_level=0):
 
@@ -64,7 +65,8 @@ class JavaExtractor(Extractor):
                 self.error_detected = True
                 return
             else:
-                self.unhandled_node_types.add(child.type)
+                # self.unhandled_node_types.add(child.type)
+                self.logger.error(f"check_block: Unhandled node type: {child.type}")
 
     def handle_block_parent(self, node):
         assert node.parent.type == self.names.block
@@ -165,11 +167,12 @@ class JavaExtractor(Extractor):
             "compact_constructor_declaration",
             "labeled_statement",
             "interface_declaration",
-
+            "static_initializer",
         ]:
             pass
         else:
-            self.unhandled_node_types.add(node.type)
+            # self.unhandled_node_types.add(node.type)
+            self.logger.error(f"check_parent: Unhandled node type: {node.type}")
             # debug_str = self.debug_helper(node)
             # raise RuntimeError(f"Node type <{str(node_type)}> not handled:\n{debug_str}")
 

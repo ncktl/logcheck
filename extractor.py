@@ -101,12 +101,14 @@ class Extractor:
         else:
             return key
 
-
     def find_containing_block(self, node: Node):
         """Returns the lowest block node containing the node."""
+        if node.type == self.names.root:
+            self.error_detected = True
+            return node
         parent = node.parent
         while parent is not None:
-            if parent.type in self.names.containing_block_types:
+            if parent.type in self.names.containing_block_types + [self.names.root]:
                 return parent
             if parent.type == self.names.error:
                 self.error_detected = True
