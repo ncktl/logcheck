@@ -103,7 +103,7 @@ class Extractor:
 
     def find_containing_block(self, node: Node):
         """Returns the lowest block node containing the node."""
-        if node.type == self.names.root:
+        if node.type in [self.names.root, self.names.error]:
             self.error_detected = True
             return node
         parent = node.parent

@@ -129,7 +129,7 @@ class JavaNodeNames(NodeNames):
         NodeNames.if_stmt,
         NodeNames.try_stmt,
         "try_with_resources_statement",
-        "switch_expression",
+        "switch_expression",  # Also in expressions. Unsure if needed here
         "synchronized_statement",
         "static_initializer",
     ]
@@ -146,15 +146,19 @@ class JavaNodeNames(NodeNames):
         "explicit_constructor_invocation",
         "record_declaration",
         "interface_declaration",
+        "import_declaration",
     ]
     statements = compound_statements + simple_statements  # TODO
-    contains_statements = prefix("contains_")(statements)
+    # contains_statements = prefix("contains_")(statements)
     expressions = [
         func_call,
         "assignment_expression",
         "update_expression",
         "object_creation_expression",
         "binary_expression",
+        "identifier",
+        "switch_expression",
+        "this",
     ]
     extra_clauses = [
         "catch_clause",
@@ -339,6 +343,7 @@ java_reindex = ['length', 'num_children', 'contains_for_statement',
        'contains_method_declaration', 'contains_if_statement',
        'contains_try_statement', 'contains_try_with_resources_statement',
        'contains_switch_expression', 'contains_synchronized_statement',
+       'contains_static_initializer',
        'contains_return_statement', 'contains_assert_statement',
        'contains_break_statement', 'contains_continue_statement',
        'contains_local_variable_declaration', 'contains_throw_statement',
@@ -346,9 +351,12 @@ java_reindex = ['length', 'num_children', 'contains_for_statement',
        'contains_labeled_statement',
        'contains_explicit_constructor_invocation',
        'contains_record_declaration', 'contains_interface_declaration',
+       'contains_import_declaration',
        'contains_method_invocation', 'contains_assignment_expression',
        'contains_update_expression', 'contains_object_creation_expression',
-       'contains_binary_expression', 'type_catch_clause', 'type_class_body',
+       'contains_binary_expression', 'contains_identifier',
+       'contains_switch_expression', 'contains_this',
+       'type_catch_clause', 'type_class_body',
        'type_compact_constructor_declaration', 'type_constructor_body',
        'type_do_statement', 'type_elif', 'type_else',
        'type_enhanced_for_statement', 'type_finally_clause',

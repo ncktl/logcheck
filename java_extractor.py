@@ -24,6 +24,8 @@ class JavaExtractor(Extractor):
                 param_vec[f"contains_{self.names.func_call}"] += 1
         elif exp_child.type in self.names.expressions:
             param_vec[f"contains_{exp_child.type}"] += 1
+        elif exp_child.type == self.names.error:
+            self.error_detected = True
         elif exp_child.is_named and exp_child.type not in ["line_comment", "block_comment"]:
             # self.unhandled_node_types.add(exp_child.type)
             self.logger.error(f"check_expression: Unhandled node type: {exp_child.type}")
@@ -168,6 +170,7 @@ class JavaExtractor(Extractor):
             "labeled_statement",
             "interface_declaration",
             "static_initializer",
+            "enum_body_declarations",
         ]:
             pass
         else:
