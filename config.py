@@ -130,8 +130,8 @@ class JavaNodeNames(NodeNames):
         NodeNames.try_stmt,
         "try_with_resources_statement",
         "switch_expression",
-        "synchronized_statement"
-
+        "synchronized_statement",
+        "static_initializer",
     ]
     simple_statements = [
         NodeNames.return_stmt,
