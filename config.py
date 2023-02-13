@@ -106,10 +106,12 @@ class JavaNodeNames(NodeNames):
     root = "program"
     # Important to have "block" last, so we first go through the non-regular block types and find cases where they
     # have regular block children, which will then be processed and added to the visited nodes set
-    # TODO: Add class_body
-    block_types = ["constructor_body", "switch_block_statement_group", "block"]
+
+    # class_body can't contain logging statements directly but contained static|instance initialization blocks can,
+    # and they are considered part of the class_body
+    block_types = ["class_body", "constructor_body", "switch_block_statement_group", "block"]
     containing_block_types = [root,
-                              "class_body",
+                              # "class_body",
                               "enum_body_declarations"] + block_types
     # More types that can have statements which in turn can have blocks:
     # labeled_statement
@@ -134,6 +136,8 @@ class JavaNodeNames(NodeNames):
         "synchronized_statement",
         "static_initializer",
         "enum_declaration",
+        "constructor_declaration",
+        "compact_constructor_declaration",
     ]
     simple_statements = [
         NodeNames.return_stmt,
@@ -149,6 +153,8 @@ class JavaNodeNames(NodeNames):
         "record_declaration",
         "interface_declaration",
         "import_declaration",
+        "field_declaration",
+        "annotation_type_declaration",
     ]
     statements = compound_statements + simple_statements  # TODO
     # contains_statements = prefix("contains_")(statements)
@@ -312,6 +318,7 @@ parameter_vectors = {
 ###############################################
 # List of parameter vecotor keys with onehot values expanded for reindexing the parameter vector during prediction
 # Assumption: num_children used; num_siblings, num_cousins, depth_from_def, depth_from_root, grandparent NOT used
+# TODO: Create automatically
 
 python_reindex = ['length', 'num_children', 'contains_class_definition',
        'contains_function_definition', 'contains_if_statement',
@@ -344,6 +351,7 @@ java_reindex = ['length', 'num_children', 'contains_for_statement',
        'contains_try_statement', 'contains_try_with_resources_statement',
        'contains_switch_expression', 'contains_synchronized_statement',
        'contains_static_initializer', 'contains_enum_declaration',
+       'contains_constructor_declaration', 'contains_compact_constructor_declaration',
        'contains_return_statement', 'contains_assert_statement',
        'contains_break_statement', 'contains_continue_statement',
        'contains_local_variable_declaration', 'contains_throw_statement',
@@ -351,7 +359,8 @@ java_reindex = ['length', 'num_children', 'contains_for_statement',
        'contains_labeled_statement',
        'contains_explicit_constructor_invocation',
        'contains_record_declaration', 'contains_interface_declaration',
-       'contains_import_declaration',
+       'contains_import_declaration', 'contains_field_declaration',
+       'contains_annotation_type_declaration',
        'contains_method_invocation', 'contains_assignment_expression',
        'contains_update_expression', 'contains_object_creation_expression',
        'contains_binary_expression', 'contains_lambda_expression',
@@ -385,12 +394,12 @@ reindex = {
 if __name__ == "__main__":
     # print(PythonNodeNames.contains_statements)
     # print(python_contains)
-    # print(python_node_dict)
+    print(python_node_dict)
     # print(len(PythonNodeNames.most_node_types))
     # py_node_names = PythonNodeNames()
     # print(f"Python Compound statements:\n{PythonNodeNames.compound_statements}")
     # print(py_node_names.error)
-    print(java_parameter_vector)
+    # print(java_parameter_vector)
 
 """
 {'module': 'a',
@@ -403,12 +412,12 @@ if __name__ == "__main__":
  'while_statement': 'h',
  'try_statement': 'i',
  'with_statement': 'j',
- 'elif_clause': 'k',
- 'else_clause': 'l',
- 'except_clause': 'm',
- 'except_group_clause': 'n',
- 'finally_clause': 'o',
- 'case_clause': 'p',
+ 'case_clause': 'k',
+ 'elif_clause': 'l',
+ 'else_clause': 'm',
+ 'except_clause': 'n',
+ 'except_group_clause': 'o',
+ 'finally_clause': 'p',
  'assignment': 'q',
  'call': 'r',
  'await': 's',

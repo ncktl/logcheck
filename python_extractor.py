@@ -123,6 +123,7 @@ class PythonExtractor(Extractor):
             second_containing_block = self.find_containing_block(parent)
             if self.error_detected:
                 return
+            # TODO: This is wrong, it calculates the number of uncles!
             param_vec["num_cousins"] = second_containing_block.named_child_count
             if parent.type == "else_clause":
                 param_vec["grandparent"] = self.get_node_type(parent.parent)

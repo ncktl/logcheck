@@ -196,6 +196,7 @@ class Extractor:
                                 f"{block_node.end_point[0]};{block_node.end_point[1]}"
         # Add +2 instead because the block lacks the parent's line?
         param_vec["length"] = block_node.end_point[0] - block_node.start_point[0] + 1
+        # TODO: For Java, blocks-within-a-block must be taken into account for num_children
         param_vec["num_children"] = block_node.named_child_count
         # Collect information from the block node's content
         self.check_block(block_node, param_vec)
