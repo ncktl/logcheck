@@ -120,23 +120,27 @@ class PythonExtractor(Extractor):
             param_vec["grandparent"] = "rootception"
         else:
             parent = containing_block.parent
-            second_containing_block = self.find_containing_block(parent)
-            if self.error_detected:
-                return
-            # TODO: This is wrong, it calculates the number of uncles!
-            param_vec["num_cousins"] = second_containing_block.named_child_count
-            if parent.type == "else_clause":
-                param_vec["grandparent"] = self.get_node_type(parent.parent)
-            elif parent.type in self.names.compound_statements + self.names.extra_clauses:
-                if second_containing_block.type == self.names.block:
-                    param_vec["grandparent"] = self.get_node_type(second_containing_block.parent)
-                elif second_containing_block.type == self.names.root:
-                    param_vec["grandparent"] = self.get_node_type(second_containing_block)
-                else:
-                    debug_str = self.debug_helper(second_containing_block)
-                    raise RuntimeError(f"Second containing block is neither block nor root\n{debug_str}")
+            # Special handling for else
+            if node.type == "else_clause":
+                param_vec["grandparent"] = self.get_node_type(parent)
             else:
-                raise RuntimeError(f"Parent node type {parent.type} not handled")
+                second_containing_block = self.find_containing_block(parent)
+                if self.error_detected:
+                    return
+                # TODO: This is wrong, it calculates the number of uncles!
+                param_vec["num_cousins"] = second_containing_block.named_child_count
+                if parent.type == "else_clause":
+                    param_vec["grandparent"] = self.get_node_type(parent.parent)
+                elif parent.type in self.names.compound_statements + self.names.extra_clauses:
+                    if second_containing_block.type == self.names.block:
+                        param_vec["grandparent"] = self.get_node_type(second_containing_block.parent)
+                    elif second_containing_block.type == self.names.root:
+                        param_vec["grandparent"] = self.get_node_type(second_containing_block)
+                    else:
+                        debug_str = self.debug_helper(second_containing_block)
+                        raise RuntimeError(f"Second containing block is neither block nor root\n{debug_str}")
+                else:
+                    raise RuntimeError(f"Parent node type {parent.type} not handled")
         # Detect parent
         # Special treatment for "else" as Python has if..else, for..else, while..else and try..else
         # and they all use the same node type for the else clause (in Tree-Sitter at least).
