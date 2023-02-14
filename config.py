@@ -174,6 +174,7 @@ class JavaNodeNames(NodeNames):
         root,
         NodeNames.error, # Todo: Remove?
         *statements,
+        *expressions,
         *extra_clauses,
         "else",  # artificial
         "elif",  # artificial
@@ -394,7 +395,8 @@ reindex = {
 if __name__ == "__main__":
     # print(PythonNodeNames.contains_statements)
     # print(python_contains)
-    print(python_node_dict)
+    # print(python_node_dict)
+    for item in java_node_dict.items(): print(item)
     # print(len(PythonNodeNames.most_node_types))
     # py_node_names = PythonNodeNames()
     # print(f"Python Compound statements:\n{PythonNodeNames.compound_statements}")
