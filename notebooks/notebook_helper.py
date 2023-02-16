@@ -18,6 +18,8 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from numpy import zeros
 import numpy as np
 
+langs = ["python", "java"]
+
 iteration_features = "Name, Timestamp, sampling_strategy, max_length, vocab_size, batch_size, trainable," \
                      " dropout, val_split, callback, callback_monitor, num_nodes, num_epochs, class_weight," \
                      " cmpltn_metrics, run_folder, execution_time"
@@ -78,6 +80,7 @@ def get_X_and_y_from_csv(
         drop_num_siblings=True,
         drop_depth_from_def=True,
         drop_depth_from_root=True,
+        drop_context=True,
 ):
     df = pd.read_csv(filepath)
     # remove errors
@@ -94,7 +97,7 @@ def get_X_and_y_from_csv(
         "location",
         "contains_logging",
         "grandparent",
-        "context",
+        # "context",
         # "num_children",
         # "num_siblings",
         "num_cousins",
@@ -109,6 +112,8 @@ def get_X_and_y_from_csv(
         columns_to_drop.append("depth_from_def")
     if drop_depth_from_root:
         columns_to_drop.append("depth_from_root")
+    if drop_context:
+        columns_to_drop.append("context")
 
     X = df.drop(columns_to_drop, axis=1)
     y = df.contains_logging
