@@ -1,3 +1,10 @@
 tree_sitter
-sklearn
 pandas
+numpy
+tensorflow
+tensorflow-addons
+scikit-learn
+keras
+tqdm
+gensim
+imbalanced-learn

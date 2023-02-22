@@ -152,7 +152,7 @@ class Extractor:
         param_vec["depth_from_root"] = depth_from_root
 
         # Only build the context if argument is given
-        if not self.settings.alt:
+        if not (self.settings.alt or self.settings.model == "lstm"):
             return
 
         def add_relevant_node(node: Node, context: list):
@@ -221,7 +221,13 @@ class Extractor:
                 print(self.parameter_vector.keys())
                 print(param_vec.keys())
                 raise RuntimeError("Parameter vector length mismatch")
-            param_vectors.append(param_vec_list)
+
+            # For extraction of features to a csv file, append a list of the values
+            if self.settings.extract:
+                param_vectors.append(param_vec_list)
+            # For classifier training, append the whole dict
+            else:
+                param_vectors.append(param_vec)
         else:
             # For prediction, the extracted parameters will be returned as a list of dicts for subsequent
             # pandas.Dataframe creation

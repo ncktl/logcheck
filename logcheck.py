@@ -5,6 +5,7 @@ import multiprocessing as mp
 import pickle
 import sys
 from pathlib import Path
+from string import ascii_letters
 
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -13,6 +14,18 @@ from tree_sitter import Language, Parser
 
 from config import supported_languages, suf, rev_suf
 from config import parameter_vectors, rev_node_dicts, reindex
+from notebooks.notebook_helper import get_X_and_y_from_csv
+
+
+def overwrite():
+    force = input("Output file exists. Overwrite? [y/n]: ")
+    if force.lower() in ["y", "yes"]:
+        pass
+    elif force.lower() in ["n", "no"]:
+        print("Exiting")
+        sys.exit()
+    else:
+        overwrite()
 
 
 def create_ts_lang_obj(language: str) -> Language:
@@ -77,12 +90,165 @@ def extract(files, settings, LangExtractor, output, train_mode: bool = True):
         [str(x).replace(" ", "").replace("'", "")[1:-1] for x in param_vectors]))
     output.write("\n")
 
+def train(files, settings, LangExtractor, output):
+    """Train classifier"""
+
+    # Import modules only needed for training
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import recall_score, f1_score, precision_score, balanced_accuracy_score
+
+    model_is_rndfrst = (settings.model == "rnd")
+
+    # Extract features from each file by calling extract_file() in parallel
+    pool = mp.Pool(mp.cpu_count())
+    # Ordered parallelization:
+    param_vectors = pool.starmap(extract_file, [(file, settings, LangExtractor, True) for file in files])
+    param_vectors = [par_vec for par_vec_list in param_vectors for par_vec in par_vec_list]
+    pool.close()
+
+    # Get X and y and drop context for random forest classifiers as they don't use it
+    X, y = get_X_and_y_from_csv(param_vectors, drop_context=model_is_rndfrst)
+
+    # Reindex
+    X = X.reindex((["context"] if not model_is_rndfrst else []) + reindex[settings.language],
+                  fill_value=0, axis="columns")
+
+    # Convert the compacted context from letters into strings of integers
+    if not model_is_rndfrst:
+        X.context = [list(map(lambda c: str(ascii_letters.index(c)), list(str(x)))) for x in X.context]
+
+    # Splitting the dataset into the Training set and Test set
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, stratify=y)
+
+    # Train the chosen model and predict on test set
+    if model_is_rndfrst:
+        classifier = RandomForestClassifier(n_estimators=50,
+                                            n_jobs=-1,
+                                            min_samples_split=5,
+                                            class_weight={False: 1, True: 4}
+                                            )
+        classifier.fit(X_train, y_train)
+        y_pred = classifier.predict(X_test)
+    else:
+        # from notebooks.notebook_helper import MyCorpus, build_embedding_matrix, build_callbacks, build_hybrid_model
+        # import numpy as np
+        # import gensim.models
+        # import tensorflow_addons as tfa
+        from imblearn.over_sampling import RandomOverSampler
+        # from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+        # Word2vec model
+        sentences = MyCorpus(list(X.context))
+        gensim_model = gensim.models.Word2Vec(sentences=sentences, min_count=1, workers=mp.cpu_count())
+
+        # Settings
+        sampling_strategy = 0.05
+        vocab_size = len(rev_node_dicts[settings.language])
+        output_dims = 100
+        max_length = 80
+        num_epochs = 20  ### changed
+        batch_size = 64
+        trainable = True
+        dropout = 0.2
+        val_split = 0.0
+        num_nodes = 128
+        callback = ["cp"]
+        callback_monitor = 'val_f1_score'
+        cmpltn_metrics = [tfa.metrics.F1Score(num_classes=1, threshold=0.5)]
+        # Cross-validation settings (k-fold splits are actually NOT used here)
+        n_splits = 1
+
+        # Build embedding matrix
+        embedding_matrix = build_embedding_matrix(vocab_size, output_dims, gensim_model)
+
+        # Build and compile model
+        model = build_hybrid_model(vocab_size, output_dims, embedding_matrix, max_length,
+                                   trainable, num_nodes, dropout, X.shape[1] - 1)
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=cmpltn_metrics)
+
+        # Oversample
+        neg, pos = pd.value_counts(y)
+        log_ratio = pos / (neg + pos)
+        if log_ratio < sampling_strategy:
+            sampler = RandomOverSampler(sampling_strategy=sampling_strategy)
+            X_train, y_train = sampler.fit_resample(X_train, y_train)
+
+        # Pad the context to create the context input
+        padded_inputs = pad_sequences(np.array(list(X_train.context), dtype=object), maxlen=max_length, value=0.0)
+        padded_inputs_test = pad_sequences(np.array(list(X_test.context), dtype=object), maxlen=max_length, value=0.0)
+        # Prepare the "other" input
+        regular_inputs = X_train.drop(["context"], axis=1)
+        regular_inputs_test = X_test.drop(["context"], axis=1)
+        # Put both inputs into a dict
+        X_train_dict = {"context": padded_inputs, "other": regular_inputs}
+        X_test_dict = {"context": padded_inputs_test, "other": regular_inputs_test}
+
+        # Build the callbacks
+        repo_name = f"{settings.language}_{settings.path.stem}"
+        callbacks, model_cp_filepath = build_callbacks(callback, callback_monitor, repo_name, "checkpoint")
+
+        # Fit the model
+        history = model.fit(
+            X_train_dict,
+            {"logging": y_train},
+            epochs=num_epochs,
+            batch_size=batch_size,
+            validation_data=(X_test_dict, y_test),
+            validation_split=val_split,
+            callbacks=callbacks,
+        )
+        # Now load the best weights and predict on test data
+        model.load_weights(model_cp_filepath)
+        best_pred_test = model.predict(X_test_dict, batch_size=batch_size)
+        y_pred = np.round(best_pred_test)
+
+    # Evaluate classifier on test set
+    score_names = [
+        "Balanced accuracy score",
+        "Precision score",
+        "Recall score",
+        "F1 Binary"
+    ]
+    scores = [
+        balanced_accuracy_score(y_test, y_pred),
+        precision_score(y_test, y_pred),
+        recall_score(y_test, y_pred),
+        f1_score(y_test, y_pred, average='binary', pos_label=True)
+    ]
+    score_df = pd.DataFrame([scores], columns=score_names).mean().round(3)
+    print("Scores:")
+    print(score_df)
+
+    # Save classifier
+    if model_is_rndfrst:
+        # Default classifier save location
+        if output == sys.stdout:
+            output = Path(settings.language + "_" + settings.path.stem + "_classifier")
+            # Non-standard output path has already been checked for overwriting
+            print(f"Default classifier output path: {output}")
+            if output.is_file() and not settings.force:
+                overwrite()
+            output = open(output, 'wb')
+        # Save classifier
+        pickle.dump(classifier, output)
+        print(f"Created and saved classifier in {output}")
+    else:
+        print(f"LSTM checkpoint file path: {model_cp_filepath}")
+
+    # if output == sys.stdout:
+    #     print("output == sys.stdout")
+
 
 def recommend(files, settings, LangExtractor, output):
     """ Recommend logging """
+
+    model_is_rndfrst = (settings.model == "rnd")
+
     recommendations = []
     rev_node_dict = rev_node_dicts[settings.language]
-    classifier: RandomForestClassifier = pickle.load(open('classifier', 'rb'))
+    if model_is_rndfrst:
+        clf_name = f"{settings.language}_logging_classifier"
+        classifier: RandomForestClassifier = pickle.load(open(clf_name, 'rb'))
     for file in tqdm(files):
         with open(file) as f:
             sourcecode = f.read()
@@ -103,15 +269,66 @@ def recommend(files, settings, LangExtractor, output):
             # Build Pandas DataFrame from the list of parameter vectors
             df = pd.DataFrame.from_dict(file_param_vecs)
             # logger.debug(df); exit()
-            X = df.drop(["contains_logging", "location", "context", "sibling_index"], axis=1)
-            # X = df.drop(["contains_logging"], axis=1)
+
+            # Drop unused features
+            cols_to_drop = [
+                "contains_logging", "location", "grandparent",
+                "num_siblings", "depth_from_def", "depth_from_root"
+            ]
+            if model_is_rndfrst:
+                cols_to_drop.append("context")
+            X = df.drop(cols_to_drop, axis=1)
+
             # One-hot encode the parameters type and parent
             X = pd.get_dummies(X, columns=["type", "parent"])
             # Reindex the dataframe to ensure all possible type and parent values are present as columns
-            X = X.reindex(reindex[settings.language], fill_value=0, axis="columns")
-            # print(classifier.predict(df))
-            # Predict logging for the parameter vectors, creating a list of booleans for the parameter vectors
-            file_recommendations = classifier.predict(X)
+            X = X.reindex((["context"] if not model_is_rndfrst else []) + reindex[settings.language],
+                          fill_value=0, axis="columns")
+            if not model_is_rndfrst:
+                # Convert the compacted context from letters into strings of integers
+                X.context = [list(map(lambda c: str(ascii_letters.index(c)), list(str(x)))) for x in X.context]
+
+                # TODO: Should the Word2vec model / the embedding matrix be created and saved to disk during training?
+                #  We could use just pickle the model which works but is discouraged
+
+                # Word2vec model
+                sentences = MyCorpus(list(X.context))
+                gensim_model = gensim.models.Word2Vec(sentences=sentences, min_count=1, workers=mp.cpu_count())
+
+                # Settings
+                vocab_size = len(rev_node_dicts[settings.language])
+                output_dims = 100
+                max_length = 80
+                batch_size = 64
+                trainable = True
+                dropout = 0.2
+                num_nodes = 128
+                cmpltn_metrics = [tfa.metrics.F1Score(num_classes=1, threshold=0.5)]
+
+                # Build embedding matrix
+                embedding_matrix = build_embedding_matrix(vocab_size, output_dims, gensim_model)
+
+                # Build and compile model
+                model = build_hybrid_model(vocab_size, output_dims, embedding_matrix, max_length,
+                                           trainable, num_nodes, dropout, X.shape[1] - 1)
+                model.compile(optimizer='adam', loss='binary_crossentropy', metrics=cmpltn_metrics)
+
+                # Prepare test sets
+                padded_inputs = pad_sequences(np.array(list(X.context), dtype=object),
+                                                      maxlen=max_length, value=0.0)
+                regular_inputs = X.drop(["context"], axis=1)
+                X_dict = {"context": padded_inputs, "other": regular_inputs}
+
+                # Load weights
+                model_cp_filepath = f"hybrid_models{os.sep}python_logging{os.sep}checkpoint"
+                model.load_weights(model_cp_filepath)
+
+                # Predict
+                pred = model.predict(X_dict, batch_size=batch_size)
+                file_recommendations = np.round(pred)
+            else:
+                file_recommendations = classifier.predict(X)
+
             df['predictions'] = file_recommendations
             # Write the yes-instances as recommendations to the output file
             if 1 in file_recommendations:
@@ -120,7 +337,9 @@ def recommend(files, settings, LangExtractor, output):
                     if prediction:
                         line = file_param_vecs[i]['location'].split("-")[0].split(";")[0]
                         recommendations.append(f"We recommend logging in the "
-                                               f"{rev_node_dict[file_param_vecs[i]['type']]} starting in line {line}")
+                                               # f"{rev_node_dict[file_param_vecs[i]['type']]}"
+                                               f"{file_param_vecs[i]['type']}"
+                                               f" starting in line {line}")
     if recommendations:
         output.write("\n".join(recommendations))
     else:
@@ -167,8 +386,12 @@ if __name__ == "__main__":
     arg_parser.add_argument("-e", "--extract", action="store_true",
                             help="Enables feature extraction mode. Logcheck will output parameter "
                                  "vectors from its analysis instead of logging recommendations.")
+    arg_parser.add_argument("-t", "--train", action="store_true",
+                            help="Enables training mode.")
+    arg_parser.add_argument("-m", "--model", type=str, choices=["rnd", "lstm"],
+                            help="Specify the classifier model, either random forest (rnd) or LSTM (lstm). ")
     arg_parser.add_argument("-o", "--output", type=Path,
-                            help="Specify the output file.")
+                            help="Specify the output path.")
     arg_parser.add_argument("-f", "--force", action="store_true",
                             help="Force overwrite of output file")
     arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages,
@@ -189,6 +412,10 @@ if __name__ == "__main__":
         arg_parser.error("Path does not exist.")
     if settings.alt and settings.all:
         arg_parser.error("Can't build context while also extracting features for all blocks.")
+    if settings.extract and settings.train:
+        arg_parser.error("Can't enter extraction mode and training mode at the same time.")
+    if (not settings.extract or settings.train) and not settings.model:
+        arg_parser.error("Prediction and training mode require specification of model via -m")
     # Detect batch mode
     if settings.path.is_dir():
         batch = True
@@ -196,6 +423,17 @@ if __name__ == "__main__":
         batch = False
     else:
         arg_parser.error("Path is neither file nor directory.")
+
+    # Import modules for classifier training and recommendation
+    if settings.model == "rnd":
+        pass
+    elif settings.model == "lstm":
+        import gensim.models
+        from notebooks.notebook_helper import MyCorpus, build_embedding_matrix, build_callbacks, build_hybrid_model
+        import tensorflow_addons as tfa
+        from tensorflow.keras.preprocessing.sequence import pad_sequences
+        import numpy as np
+        import os
 
     # Default output handling disabled in favor of printing to stdout
     # # Handle output
@@ -219,19 +457,11 @@ if __name__ == "__main__":
 
     # File overwrite dialog
     if settings.output and settings.output.is_file() and not settings.force:
-        def overwrite():
-            force = input("Output file exists. Overwrite? [y/n]: ")
-            if force.lower() in ["y", "yes"]:
-                pass
-            elif force.lower() in ["n", "no"]:
-                print("Exiting")
-                sys.exit()
-            else:
-                overwrite()
         overwrite()
     # Catch permission errors before program execution
     try:
-        out = open(settings.output, "w") if settings.output else sys.stdout
+        writing = "wb" if settings.train else "w"
+        out = open(settings.output, writing) if settings.output else sys.stdout
     except PermissionError as e:
         arg_parser.error(e)
     # Ensure language is known
@@ -263,6 +493,8 @@ if __name__ == "__main__":
     # Branch into extraction or recommendation
     if settings.extract:
         extract(files, settings, LangExtractor, out)
+    elif settings.train:
+        train(files, settings, LangExtractor, out)
     else:
         if settings.alt:
             analyze()

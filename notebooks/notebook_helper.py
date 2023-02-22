@@ -1,5 +1,7 @@
 # Helper functions for the notebooks
 
+import os
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.metrics import roc_auc_score, balanced_accuracy_score
@@ -82,7 +84,9 @@ def get_X_and_y_from_csv(
         drop_depth_from_root=True,
         drop_context=True,
 ):
-    if filepath.endswith(".csv"):
+    if type(filepath) == list:
+        df = pd.DataFrame.from_dict(filepath)
+    elif str(filepath).endswith(".csv"):
         df = pd.read_csv(filepath)
     else:
         df = pd.read_csv(filepath + ".csv")
@@ -307,7 +311,7 @@ def build_model(name, vocab_size, output_dims, embedding_matrix, max_length, tra
     return model
 
 
-def build_callbacks(callback, callback_monitor, repo_name, run_folder, kfold, zhenhao=True, old=False):
+def build_callbacks(callback, callback_monitor, repo_name, run_folder, kfold=0, old=False):
     callbacks = []
     if "es" in callback:
         es = EarlyStopping(monitor=callback_monitor,
@@ -318,21 +322,17 @@ def build_callbacks(callback, callback_monitor, repo_name, run_folder, kfold, zh
         callbacks.append(es)
     model_cp_filepath = ""
     if "cp" in callback:
-        if zhenhao:
-            # No more epoch in filepath for loading the model weights after fit
-            # filepath = f"zhenhao_models/{repo_name}/{run_folder}/" + "epoch{epoch}"
-            if old:
-                model_cp_filepath = f"zhenhao_models/{repo_name}/{run_folder}/fold{kfold}"
-            else:
-                model_cp_filepath = f"my_zhenhao_models/{repo_name}/{run_folder}/fold{kfold}"
-        else:
+        if old:
             model_cp_filepath = f"hybrid_models/{repo_name}/{run_folder}/fold{kfold}"
+        else:
+            model_cp_filepath = f"hybrid_models{os.sep}{repo_name}{os.sep}{run_folder}"
         cp = ModelCheckpoint(filepath=model_cp_filepath,
                              monitor=callback_monitor,
                              mode="max",
                              save_best_only=True,
                              save_weights_only=True,
-                             save_freq="epoch")
+                             # save_freq="epoch"
+                             )
         callbacks.append(cp)
 
     if callbacks == []:
