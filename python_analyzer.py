@@ -88,24 +88,25 @@ class PythonAnalyzer(PythonExtractor):
 
     def analyze(self) -> list:
         """ Starts the analyses """
-        print_children(self.tree.root_node, print_unnamed=self.settings.debug); exit()
+        print_children(self.tree.root_node, print_unnamed=self.settings.debug);
 
         for node in traverse_sub_tree(self.tree.root_node):
             # if node.is_named and node.type == "expression_statement":
             if node.is_named:
+                print(node)
             #     print(node.text.decode("UTF-8"), "\t\t\t", node)
-                if node.type == "function_definition":
-                    print(node.text.decode("UTF-8"))
-                    block_node = node.child_by_field_name("body")
-                    print(block_node.text.decode("UTF-8"))
-                    exit()
+            #     if node.type == "function_definition":
+            #         print(node.text.decode("UTF-8"))
+            #         block_node = node.child_by_field_name("body")
+            #         print(block_node.text.decode("UTF-8"))
+            #         exit()
                 # print(node.text)
                 # print("#" * 80)
                 # print(node.text.decode("UTF-8"))
                 # exit()
-            return []
-        recommendations = []
-        return recommendations
+            # return []
+        # recommendations = []
+        # return recommendations
 
     def proto_context(self):
         # print_children(self.tree.root_node)

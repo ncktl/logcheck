@@ -82,7 +82,10 @@ def get_X_and_y_from_csv(
         drop_depth_from_root=True,
         drop_context=True,
 ):
-    df = pd.read_csv(filepath)
+    if filepath.endswith(".csv"):
+        df = pd.read_csv(filepath)
+    else:
+        df = pd.read_csv(filepath + ".csv")
     # remove errors
     df = df[df.parent != "b"]
     df = df[df.type != "b"]
@@ -197,6 +200,20 @@ def show_stats(df: pd.DataFrame):
         if not type_feature.startswith("type"):
             continue
         type_name = type_feature[5:]
+        cnt = df[df[type_feature] == 1].shape[0]
+        pos_cnt = positives[positives[type_feature] == 1].shape[0]
+        ratio = pos_cnt / cnt
+        results.append([type_name, cnt, pos_cnt, ratio])
+    log_ratios_by_type_df = pd.DataFrame(results, columns=cols).sort_values(by="ratio", ascending=False)
+    print(log_ratios_by_type_df)
+    # Compute the logging ratio by parent type
+    cols = ["parent", "count", "positives", "ratio"]
+    results = []
+    for type_feature in df.columns:
+        type_feature = str(type_feature)
+        if not type_feature.startswith("parent"):
+            continue
+        type_name = type_feature[7:]
         cnt = df[df[type_feature] == 1].shape[0]
         pos_cnt = positives[positives[type_feature] == 1].shape[0]
         ratio = pos_cnt / cnt
