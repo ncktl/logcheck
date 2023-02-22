@@ -136,6 +136,16 @@ def train(files, settings, LangExtractor, output):
         # import tensorflow_addons as tfa
         from imblearn.over_sampling import RandomOverSampler
         # from tensorflow.keras.preprocessing.sequence import pad_sequences
+        import tensorflow as tf
+
+        # Limit usage to second gpu
+        try:
+            print("Before:\n", tf.config.get_visible_devices('GPU'))
+            gpus = tf.config.list_physical_devices('GPU')
+            tf.config.experimental.set_visible_devices(gpus[1], 'GPU')
+            print("After:\n", tf.config.get_visible_devices('GPU'))
+        except IndexError as e:
+            pass
 
         # Word2vec model
         sentences = MyCorpus(list(X.context))
@@ -167,9 +177,10 @@ def train(files, settings, LangExtractor, output):
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=cmpltn_metrics)
 
         # Oversample
-        neg, pos = pd.value_counts(y)
+        neg, pos = pd.value_counts(y_train)
         log_ratio = pos / (neg + pos)
         if log_ratio < sampling_strategy:
+            # RandomOverSampler may still find the log ratio to be too high for some reason
             sampler = RandomOverSampler(sampling_strategy=sampling_strategy)
             X_train, y_train = sampler.fit_resample(X_train, y_train)
 
@@ -185,7 +196,7 @@ def train(files, settings, LangExtractor, output):
 
         # Build the callbacks
         repo_name = f"{settings.language}_{settings.path.stem}"
-        callbacks, model_cp_filepath = build_callbacks(callback, callback_monitor, repo_name, "checkpoint")
+        callbacks, model_cp_filepath = build_callbacks(callback, callback_monitor, repo_name, "checkp")
 
         # Fit the model
         history = model.fit(
@@ -320,7 +331,7 @@ def recommend(files, settings, LangExtractor, output):
                 X_dict = {"context": padded_inputs, "other": regular_inputs}
 
                 # Load weights
-                model_cp_filepath = f"hybrid_models{os.sep}python_logging{os.sep}checkpoint"
+                model_cp_filepath = f"hybrid_models{os.sep}python_logging{os.sep}checkp"
                 model.load_weights(model_cp_filepath)
 
                 # Predict
