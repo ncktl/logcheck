@@ -415,7 +415,11 @@ reindex = {
 if __name__ == "__main__":
     # print(PythonNodeNames.contains_statements)
     # print(python_contains)
+
     print(len(python_reindex))
+    print(len(python_rev_node_dict))
+    print(len(java_reindex))
+    print(len(java_rev_node_dict))
     # for item in java_node_dict.items(): print(item)
     # for item in python_rev_node_dict.items(): print(item)
     # print(len(PythonNodeNames.most_node_types))

@@ -147,6 +147,8 @@ def train(files, settings, LangExtractor, output):
         except IndexError as e:
             pass
 
+        repo_name = f"{settings.language}_{settings.path.stem}"
+
         # Word2vec model
         sentences = MyCorpus(list(X.context))
         gensim_model = gensim.models.Word2Vec(sentences=sentences, min_count=1, workers=mp.cpu_count())
@@ -154,6 +156,7 @@ def train(files, settings, LangExtractor, output):
         # Settings
         sampling_strategy = 0.05
         vocab_size = len(rev_node_dicts[settings.language])
+        other_input_num_cols = len(reindex[settings.language])
         output_dims = 100
         max_length = 80
         num_epochs = 20  ### changed
@@ -170,10 +173,12 @@ def train(files, settings, LangExtractor, output):
 
         # Build embedding matrix
         embedding_matrix = build_embedding_matrix(vocab_size, output_dims, gensim_model)
+        # Save the embedding matrix
+        pickle.dump(embedding_matrix, open(f"{settings.language}_{repo_name}_embedding_matrix", 'wb'))
 
         # Build and compile model
         model = build_hybrid_model(vocab_size, output_dims, embedding_matrix, max_length,
-                                   trainable, num_nodes, dropout, X.shape[1] - 1)
+                                   trainable, num_nodes, dropout, other_input_num_cols)
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=cmpltn_metrics)
 
         # Oversample
@@ -195,7 +200,7 @@ def train(files, settings, LangExtractor, output):
         X_test_dict = {"context": padded_inputs_test, "other": regular_inputs_test}
 
         # Build the callbacks
-        repo_name = f"{settings.language}_{settings.path.stem}"
+
         callbacks, model_cp_filepath = build_callbacks(callback, callback_monitor, repo_name, "checkp")
 
         # Fit the model
@@ -256,10 +261,31 @@ def recommend(files, settings, LangExtractor, output):
     model_is_rndfrst = (settings.model == "rnd")
 
     recommendations = []
-    rev_node_dict = rev_node_dicts[settings.language]
+    # rev_node_dict = rev_node_dicts[settings.language]
     if model_is_rndfrst:
         clf_name = f"{settings.language}_logging_classifier"
         classifier: RandomForestClassifier = pickle.load(open(clf_name, 'rb'))
+    else:
+        # Settings
+        vocab_size = len(rev_node_dicts[settings.language])
+        other_input_num_cols = len(reindex[settings.language])
+        output_dims = 100
+        max_length = 80
+        batch_size = 64
+        trainable = True
+        dropout = 0.2
+        num_nodes = 128
+        cmpltn_metrics = [tfa.metrics.F1Score(num_classes=1, threshold=0.5)]
+        # Load embedding matrix
+        embedding_matrix = pickle.load(open(f"{settings.language}_embedding_matrix", 'rb'))
+        # Build and compile model
+        model = build_hybrid_model(vocab_size, output_dims, embedding_matrix, max_length,
+                                   trainable, num_nodes, dropout, other_input_num_cols)
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=cmpltn_metrics)
+        # Load weights
+        model_cp_filepath = f"hybrid_models{os.sep}{settings.language}_logging{os.sep}checkp"
+        model.load_weights(model_cp_filepath)
+
     for file in tqdm(files):
         with open(file) as f:
             sourcecode = f.read()
@@ -299,40 +325,13 @@ def recommend(files, settings, LangExtractor, output):
                 # Convert the compacted context from letters into strings of integers
                 X.context = [list(map(lambda c: str(ascii_letters.index(c)), list(str(x)))) for x in X.context]
 
-                # TODO: Should the Word2vec model / the embedding matrix be created and saved to disk during training?
-                #  We could use just pickle the model which works but is discouraged
-
-                # Word2vec model
-                sentences = MyCorpus(list(X.context))
-                gensim_model = gensim.models.Word2Vec(sentences=sentences, min_count=1, workers=mp.cpu_count())
-
-                # Settings
-                vocab_size = len(rev_node_dicts[settings.language])
-                output_dims = 100
-                max_length = 80
-                batch_size = 64
-                trainable = True
-                dropout = 0.2
-                num_nodes = 128
-                cmpltn_metrics = [tfa.metrics.F1Score(num_classes=1, threshold=0.5)]
-
-                # Build embedding matrix
-                embedding_matrix = build_embedding_matrix(vocab_size, output_dims, gensim_model)
-
-                # Build and compile model
-                model = build_hybrid_model(vocab_size, output_dims, embedding_matrix, max_length,
-                                           trainable, num_nodes, dropout, X.shape[1] - 1)
-                model.compile(optimizer='adam', loss='binary_crossentropy', metrics=cmpltn_metrics)
-
                 # Prepare test sets
                 padded_inputs = pad_sequences(np.array(list(X.context), dtype=object),
                                                       maxlen=max_length, value=0.0)
                 regular_inputs = X.drop(["context"], axis=1)
                 X_dict = {"context": padded_inputs, "other": regular_inputs}
 
-                # Load weights
-                model_cp_filepath = f"hybrid_models{os.sep}python_logging{os.sep}checkp"
-                model.load_weights(model_cp_filepath)
+
 
                 # Predict
                 pred = model.predict(X_dict, batch_size=batch_size)
