@@ -1,21 +1,14 @@
 # Logcheck
 
-Logcheck is a static analysis tool utilising [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) to check code for sufficient logging.
-
-Using Tree-sitter allows us to analyse various programming languages in a relatively language-agnostic way.
+Logcheck is a language-agnostic framework for recommending logging statements. 
+It currently offers implementations for Python and Java.
 
 ## Setup
 
-The Tree-sitter python bindings as well as pandas and scikit-learn are required:
+Install the dependencies:
 
 ```sh
-python3 -m pip install tree_sitter pandas scikit-learn numpy tensorflow tensorflow-addons keras tqdm gensim imbalanced-learn
-```
-
-For the Jupyter notebooks, the following additional package is required (not listed in requirements.txt):
-
-```sh
-python3 -m pip install matplotlib 
+pip install -r requirements.txt
 ```
 
 To use the pre-trained random forest classifiers, they must be decompressed:
@@ -38,70 +31,93 @@ git clone https://github.com/tree-sitter/tree-sitter-python.git
 git clone https://github.com/tree-sitter/tree-sitter-java.git
 ```
 
-I.e. the folders "tree-sitter" and "tree-sitter-python" must be inside the folder "logcheck". 
+As a result the folders "tree-sitter" and "tree-sitter-python" should be inside the folder "logcheck". 
 
 ## Usage
 
 ```
-usage: logcheck.py [-h] [-e] [-t] [-m {rnd,lstm}] [-o OUTPUT] [-f] [-l {java,javascript,python}] [-d] [-a] [-x] [-c] path
+usage: logcheck.py [-t] [-m {rnd,lstm}] [-o OUTPUT] [-f] [-l {java,python}] [-a] [-x] path
 
-positional arguments:
-  path
+Positional arguments:
+  path                  The file or folder containing files to predict or train on.
+                        Files in subdirectories are included.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -e, --extract         Enables feature extraction mode. Logcheck will output parameter vectors from its analysis instead of logging recommendations.
-  -t, --train           Enables training mode.
+Optional arguments:
+  -h, --help            Show help 
   -m {rnd,lstm}, --model {rnd,lstm}
-                        Specify the classifier model, either random forest (rnd) or LSTM (lstm).
+                        Specify classifier model, either random forest (rnd) or LSTM (lstm).
+                        Required for both prediction and training.
   -o OUTPUT, --output OUTPUT
-                        Specify the output path.
+                        Specify the output path. By default logcheck will print to stdout.
   -f, --force           Force overwrite of output file
-  -l {java,javascript,python}, --language {java,javascript,python}
+  -l {java,python}, --language {java,python}
                         Specify the language.
-  -d, --debug           Enable debug mode.
+  -t, --train           Enables training mode.
+
+Further options for advanced usage:
+  -e, --extract         Enables feature extraction mode.
   -a, --alt             Also extract the context when in extraction mode.
-  -x, --all             Extract features for all blocks instead of only those inside function definitions.Can't be used together with -a context extraction.
-```
-
-### Training
-Logcheck can train and use either a random forest classifier from Scikit-learn or a neural network that includes an LSTM
-layer from Tensorflow. It also comes with pre-trained classifiers, so **this is optional**. Training mode is enable with 
-the -t argument. The language when training on more than one file is set with -l. The classifer type is 
-specified with the -m argument
-
-Example:
-
-```sh
-python3 logcheck.py -t -l python -m rnd <path to folder containg source code files, including those in further folders>
+  -x, --all             Extract all blocks instead of only those inside function definitions.
+                        Can't be used together with -a context extraction.
 ```
 
 ### Recommendation
 
 By default, Logcheck will analyse the source code of the given file(s) and give recommendations for logging.
 
-The classifer model must be specified with the -m argument.
+The classifier model must be specified with the -m argument.
 Options are "rnd" for the random forest classifier and "lstm" for the neural network classifier. 
 
 If a folder is given to analyze multiple files, the language must be specified.
 
 Example:
 ```sh
-python3 logcheck.py -m rnd <file to be analyzed>
+python3 logcheck.py -m lstm <file to be analyzed>
 ```
 or
 ```sh
 python3 logcheck.py -l python -m rnd <path to repository folder>
 ```
 
+### Training
+Logcheck can train and use either a random forest classifier from Scikit-learn or a neural network that includes an LSTM
+layer from Tensorflow. It also comes with pre-trained classifiers and neural network weights, so **this is optional**. 
+
+Training mode is enabled with the -t argument. The language when training on more than one file is set with -l. 
+
+The classifer type must be specified with the -m argument
+
+Example:
+
+```sh
+python3 logcheck.py -t -l python -m rnd <path to folder>
+```
+
+
+## Further usage options
+
 
 
 ### Manual feature extraction
 
-To extract parameter vectors from files for learning a classifier, use the -e extract option like this:
+To extract block features from files for learning a classifier, use the -e extract argument. 
+The output will be a .csv file.
 
 ```sh
-python3 logcheck.py -e <path to file or directory to extract features from>
+python3 logcheck.py -e <path to file / folder>
+```
+
+To also extract the context feature, use the -a argument:
+
+```sh
+python3 logcheck.py -e -a <path to file / folder>
+```
+
+By default, only blocks descended from function/method definitions are extracted.
+Extract all blocks using the -x argument. This can not be combined with context extraction (-a)
+
+```sh
+python3 logcheck.py -e -x <path to file / folder>
 ```
 
 ### Manual classification learning

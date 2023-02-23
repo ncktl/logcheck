@@ -392,20 +392,23 @@ def analyze():
 if __name__ == "__main__":
     # Handle arguments
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("path", type=Path)
-    arg_parser.add_argument("-e", "--extract", action="store_true",
-                            help="Enables feature extraction mode. Logcheck will output parameter "
-                                 "vectors from its analysis instead of logging recommendations.")
-    arg_parser.add_argument("-t", "--train", action="store_true",
-                            help="Enables training mode.")
+    arg_parser.add_argument("path", type=Path,
+                            help="The file or folder containing files to predict or train on. "
+                                 "Files in subdirectories are included.")
     arg_parser.add_argument("-m", "--model", type=str, choices=["rnd", "lstm"],
-                            help="Specify the classifier model, either random forest (rnd) or LSTM (lstm). ")
+                            help="Specify the classifier model, either random forest (rnd) or LSTM (lstm). "
+                                 "Required for prediction and training.")
     arg_parser.add_argument("-o", "--output", type=Path,
-                            help="Specify the output path.")
+                            help="Specify the output path. By default logcheck will print to stdout.")
     arg_parser.add_argument("-f", "--force", action="store_true",
                             help="Force overwrite of output file")
     arg_parser.add_argument("-l", "--language", type=str, choices=supported_languages,
                             help="Specify the language.")
+    arg_parser.add_argument("-t", "--train", action="store_true",
+                            help="Enables training mode.")
+    arg_parser.add_argument("-e", "--extract", action="store_true",
+                            help="Enables feature extraction mode. Logcheck will output parameter "
+                                 "vectors from its analysis instead of logging recommendations.")
     arg_parser.add_argument("-d", "--debug", action="store_true",
                             help="Enable debug mode.")
     arg_parser.add_argument("-a", "--alt", action="store_true",

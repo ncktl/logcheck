@@ -5,7 +5,7 @@ from dataclasses import dataclass
 supported_languages = ["java", "javascript", "python"]
 suf = {
     "java": ".java",
-    "javascript": ".js",
+    # "javascript": ".js",
     "python": ".py"
 }
 rev_suf = dict(zip(suf.values(), suf.keys()))
@@ -404,7 +404,7 @@ java_reindex = [
     'parent_throw_statement',
     'parent_variable_declarator',
     'parent_yield_statement',
-                ]
+]
 
 reindex = {
     "python": python_reindex,
